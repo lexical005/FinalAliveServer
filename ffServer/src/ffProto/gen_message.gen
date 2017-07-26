@@ -1,0 +1,136 @@
+/********************************************************************/
+/*
+	协议名称必须以Msg开头!
+    协议id由0开始，按下面的定义顺序自动递增
+    新增协议添加在后面，不要插入到中间，以便维持开发测试过程中最大的兼容性
+*/
+
+/*                        服务器间协议                              */
+/********************************************************************/
+    /*服务器之间互相注册*/
+    @MsgServerRegister
+        string serverType   /*服务器类型*/
+        int32 serverID
+
+    /*服务器之间维持连接不断开*/
+    @MsgServerKeepAlive
+/********************************************************************/
+
+
+
+/*                      帐号验证、重连、踢人                        */
+/********************************************************************/
+    /* 客户端通过唯一字符串准备登录, 目前应用于: GameCenter, GooglePlay */
+    /* 唯一字符串来源: 如 GameCenter, GooglePlay 账号返回的唯一字符串*/
+    /*C->S, S->C*/
+    @MsgPrepareLoginPlatformUniqueID
+        /*C->S*/
+        /*sub_channel: 子渠道, 特定渠道可能会再次分发给多个特定渠道来运营*/
+        string subChannel
+
+        /*
+        platformUserid为空, gameUserid为空, 则代表首次申请以游客身份准备登录.
+            后台将新建一个未关联渠道账号的游客账号返回给客户端
+        platformUserid为空, gameUserid不为空, 则代表准备以已登录过的游客身份准备登录.
+            如果gameUserid已经与某个渠道账号绑定, 则将新建一个未关联渠道账号的游客账号返回给客户端.
+            否则就将请求的账号返回给客户端.
+        platformUserid不为空, 则代表以已登录过的渠道身份准备登录.
+            如果以platformUserid检索到了账号, 则以检索到的账号返回给客户端
+            如果未检索到
+                如果gameUserid不为空, 则检索gameUserid信息
+                    如果不存在, 则将新建一个关联渠道账号的游客账号返回给客户端.
+                    如果存在且已经与别的渠道账号绑定, 则将新建一个关联渠道账号的游客账号返回给客户端
+                    如果存在且未与渠道账号绑定, 则执行绑定渠道账号操作, 并返回该账号给客户端
+                    如果存在且已经与本渠道账号绑定, 则返回该账号给客户端
+                如果gameUserid为空
+                    则将新建一个关联渠道账号的游客账号返回给客户端.
+        */
+        string platformUserid
+        /*服务器总会改写gameUserid, 以通知客户端即将实际使用的账号*/
+        string gameUserid
+
+        /*登录校验相关*/
+        string randomSalt
+        int32 timestamp
+
+        /*S->C*/
+        int32 status            /*status: 0 新创建的账号; 1 老账号; 2 即将账号绑定*/
+        int32 result
+
+
+    /* 客户端通过唯一字符串登录, 目前应用于: GameCenter, GooglePlay */
+    /*C->S, S->C*/
+    @MsgLoginPlatformUniqueID
+        /*C->S*/
+        string token
+        string clientGUID
+
+        /*S->C*/
+        StLoginSuccess data
+        int32 result
+
+
+    /* 客户端通过第三方的 token 登录 */
+    @MsgLoginPlatformSidToken
+        /*C->S*/
+        string token
+        string clientGUID
+
+        /*S->C*/
+        StLoginSuccess data
+        int32 result
+
+
+    /* 重连协议 */
+    /*C->S, S->C*/
+    @MsgReLogin
+        /*C->S*/
+        string token
+        string clientGUID
+
+        /*S->C*/
+        StLoginSuccess data
+        int32 result
+
+
+    /* 踢人协议 */
+    /*S->C*/
+    @MsgKick
+        /*S->C*/
+        int32 result        /*kick reason*/
+/********************************************************************/
+
+
+
+/*                  进入游戏世界与离开游戏世界                      */
+/********************************************************************/
+    /* 进入游戏世界协议 */
+    /*C->S, S->C*/
+    @MsgEnterGameWorld
+        /*C->S*/
+        int32 serverID      /*请求进入的游戏服务器id*/
+
+        /*AgentServer->GameServer*/
+        uint64 UUIDAccount  /*帐号唯一标识*/
+
+        /*S->C*/
+        int32 result
+
+    /*Agent断开连接时, 通知Server*/
+    @MsgAgentDisConnect
+/********************************************************************/
+
+
+
+/*                          特殊协议                                */
+/********************************************************************/
+    /*维持连接不断开协议*/
+    @MsgKeepAlive
+/********************************************************************/
+
+
+
+/*                          逻辑协议                                */
+/********************************************************************/
+
+
