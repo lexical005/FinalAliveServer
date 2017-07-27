@@ -8,23 +8,35 @@ import (
 	"fmt"
 )
 
-var arraySizeLimit = []int{16, 32, 64, 128, 256, 512, 1024, 2048}
-var arrayCountRate = []int{50, 50, 50, 50, 25, 20, 10, 5}
+var arraySizeLimit = []int{16, 32, 64, 128, 256, 512, 1024, 2048, 4096}
+var arrayInitCount = []int{100, 100, 100, 100, 50, 50, 20, 10, 5}
 var protoPool []*pool.Pool
 
 func init() {
-	l1, l2 := len(arraySizeLimit), len(arrayCountRate)
+	l1, l2 := len(arraySizeLimit), len(arrayInitCount)
 	if l1 != l2 {
-		panic(fmt.Sprintf("ffProto.proto_pool len(arraySizeLimit)[%d] != len(arrayCountRate)[%d]", l1, l2))
+		panic(fmt.Sprintf("ffProto.proto_pool len(arraySizeLimit)[%d] != len(arrayInitCount)[%d]", l1, l2))
 	}
 
-	protoPool = make([]*pool.Pool, len(arrayCountRate), len(arrayCountRate)*3/2)
-	for i, v := range arrayCountRate {
+	for index := 1; index < l1; index++ {
+		if arraySizeLimit[index-1] >= arraySizeLimit[index] {
+			panic(fmt.Sprintf("ffProto.proto_pool invalid arraySizeLimit at index %d:%d: size must increase", index-1, index))
+		} else if arraySizeLimit[index] > protoMaxLength {
+			panic(fmt.Sprintf("ffProto.proto_pool invalid arraySizeLimit: size must letter than protoMaxLength[%d]", protoMaxLength))
+		}
+
+		if arrayInitCount[index-1] < arrayInitCount[index] {
+			panic(fmt.Sprintf("ffProto.proto_pool invalid arrayInitCount at index %d:%d: init count must decrease", index-1, index))
+		}
+	}
+
+	protoPool = make([]*pool.Pool, l1, l1)
+	for i, v := range arrayInitCount {
 		protoPool[i] = newProtoPool(arraySizeLimit[i], v)
 	}
 }
 
-func newProtoPool(bufSize, countRate int) *pool.Pool {
+func newProtoPool(bufSize, initCount int) *pool.Pool {
 	creator := func() interface{} {
 		buf := make([]byte, 0, bufSize)
 		p := &Proto{
@@ -35,10 +47,10 @@ func newProtoPool(bufSize, countRate int) *pool.Pool {
 		return p
 	}
 
-	return pool.New(fmt.Sprintf("ffProto.proto_pool.protoPool_%v", bufSize), true, creator, initProtoCount*countRate/100, 50)
+	return pool.New(fmt.Sprintf("ffProto.proto_pool.protoPool_%v", bufSize), true, creator, initCount, 50)
 }
 
-// bufLengthLimit: >=0 限定协议体缓冲区大小; <0 协议体缓冲区越大越好
+// bufLengthLimit: >=0 限定协议缓冲区大小; <0 协议缓冲区越大越好
 func findIndex(bufLengthLimit int) int {
 	index := len(arraySizeLimit) - 1
 	if bufLengthLimit >= 0 {
@@ -61,22 +73,20 @@ func ApplyProtoForRecv(header *ProtoHeader) (p *Proto) {
 	// l := len(arraySizeLimit)
 	// if bufLengthLimit > arraySizeLimit[l-1] {
 	// 	arraySizeLimit = append(arraySizeLimit, bufLengthLimit)
-	// 	arrayCountRate = append(arrayCountRate, arrayCountRate[l-1])
+	// 	arrayInitCount = append(arrayInitCount, arrayInitCount[l-1])
 
-	// 	protoPool = append(protoPool, newProtoPool(bufLengthLimit, arrayCountRate[l-1]))
+	// 	protoPool = append(protoPool, newProtoPool(bufLengthLimit, arrayInitCount[l-1]))
 	// }
 
 	index := findIndex(bufLengthLimit)
 	p, _ = protoPool[index].Apply().(*Proto)
-	if p.Cap() < bufLengthLimit {
-		p.setBuf(make([]byte, 0, bufLengthLimit))
-	}
 	p.resetForRecv(header, bufLengthLimit)
 	return p
 }
 
-// ApplyProtoForSend apply a Proto with specified Message
+// ApplyProtoForSend apply a Proto for specified Message
 func ApplyProtoForSend(protoID MessageType) (p *Proto) {
+	// todo: 解析协议结构，尽可能得到确切的大小
 	index := findIndex(-1)
 	p, _ = protoPool[index].Apply().(*Proto)
 	p.resetForSend(protoID)
@@ -85,32 +95,33 @@ func ApplyProtoForSend(protoID MessageType) (p *Proto) {
 
 // BackProtoAfterSend back Proto to pool after send
 func BackProtoAfterSend(p *Proto) {
-	p.onBackPoolAfterSend()
-
-	index := findIndex(p.Cap())
-	protoPool[index].Back(p)
+	if p.onBackPoolAfterSend() {
+		backProto(p)
+	}
 }
 
 // BackProtoAfterRecv back Proto to pool after recv
 func BackProtoAfterRecv(p *Proto) {
-	p.onBackPoolAfterRecv()
-
-	index := findIndex(p.Cap())
-	protoPool[index].Back(p)
+	if p.onBackPoolAfterRecv() {
+		backProto(p)
+	}
 }
 
-// BackProtoAfterDispatch back Proto to pool after cache
+// BackProtoAfterDispatch back Proto to pool after dispatch
 func BackProtoAfterDispatch(p *Proto) {
-	p.onBackPoolAfterDispatch()
-
-	index := findIndex(p.Cap())
-	protoPool[index].Back(p)
+	if p.onBackPoolAfterDispatch() {
+		backProto(p)
+	}
 }
 
-// ForceBackProtoInWaitSend force back Proto to pool in state useStateCacheWaitSend
-func ForceBackProtoInWaitSend(p *Proto) {
-	p.forceBackProtoInWaitSend()
+// BackProtoInWaitSend force back Proto to pool in state useStateCacheWaitSend
+func BackProtoInWaitSend(p *Proto) {
+	if p.onBackProtoInWaitSend() {
+		backProto(p)
+	}
+}
 
+func backProto(p *Proto) {
 	index := findIndex(p.Cap())
 	protoPool[index].Back(p)
 }

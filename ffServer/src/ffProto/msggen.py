@@ -13,6 +13,10 @@ struct_cfg = configfile.read()
 configfile.close()
 
 msg_types = []
+custom_msg = [
+	["SessionConnect", -1],
+	["SessionDisConnect", -2],
+]
 
 def parse(text, ismsg):
 	output = ''
@@ -42,13 +46,12 @@ def parse(text, ismsg):
 		return output
 
 	enumstr = ''
-	enumstr += '\t' + 'SpecialEventInvalid' + ' = 0;\n'
-	type_i = 1
+	type_i = 0
 	for t in msg_types:
 		enumstr += '\t' + t + ' = %d;\n' % type_i
 		type_i += 1
-	enumstr += '\t' + 'SpecialEventConnect' + ' = -1;\n'
-	enumstr += '\t' + 'SpecialEventDisConnect' + ' = -2;\n'
+	for one in custom_msg:
+		enumstr += '\t' + one[0] + ' = %d;\n' % (one[1],)
 	enumstr = '''enum MessageType {
 %s}''' % enumstr
 	output = enumstr + '\n\n' + output

@@ -34,7 +34,7 @@ func (c *clientAgent) onConnect() {
 	var serverType string = "GameServer"
 	var serverID int32 = 1
 
-	p := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgServerRegister)
+	p := ffProto.ApplyProtoForSend(ffProto.MessageType_ServerRegister)
 	message := p.Message().(*ffProto.MsgServerRegister)
 	message.ServerType = &serverType
 	message.ServerID = &serverID
@@ -51,9 +51,9 @@ func (c *clientAgent) onDisConnect() {
 func (c *clientAgent) OnEvent(protoID ffProto.MessageType, data interface{}) {
 	log.RunLogger.Printf("clientAgent.OnEvent: protoID[%s]\n", ffProto.MessageType_name[int32(protoID)])
 
-	if protoID == ffProto.MessageType_MT_Connect {
+	if protoID == ffProto.MessageType_SessionConnect {
 		c.onConnect()
-	} else if protoID == ffProto.MessageType_MT_DisConnect {
+	} else if protoID == ffProto.MessageType_SessionDisConnect {
 		c.onDisConnect()
 
 		wg, _ := data.(*sync.WaitGroup)
@@ -71,14 +71,14 @@ func (c *clientAgent) OnEvent(protoID ffProto.MessageType, data interface{}) {
 
 		// log.RunLogger.Println(m)
 
-		// if p.ProtoID() != ffProto.MessageType_MT_MsgChatData {
+		// if p.ProtoID() != ffProto.MessageType_ChatData {
 		//  log.RunLogger.Printf("recv invalid ProtID: ProtoID[%d]\n", p.ProtoID())
 		//  return
 		// }
 
 		// m1 := m.(*ffProto.MsgChatData)
 
-		// p2 := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgChatData)
+		// p2 := ffProto.ApplyProtoForSend(ffProto.MessageType_ChatData)
 		// msg, _ := p2.MessageForSend().(*ffProto.MsgChatData)
 		// msg.MsgData = proto.String(m1.GetMsgData())
 		// msg.FromName = proto.String(m1.GetFromName())

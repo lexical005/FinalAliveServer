@@ -1,14 +1,10 @@
-/*帐号基础数据*/
-@StAccountBaseData
+/*帐号数据*/
+@StAccountData
+    bool isFirst						/*是不是新账号*/
+
+    int32 serverTime					/*服务器时间戳*/
+    int32 serverZone					/*服务器时区*/
+
     string name							/*名称*/
 	repeated int32 baseKeys				/*下发了哪些数据*/
 	repeated int32 baseDatas			/*下发的数据的值*/
-
-/*登录成功时, 返回的数据*/
-@StLoginSuccess
-    string gameUserid
-
-    bool isFirst						/*是不是首次进本游戏服务器*/
-    int32 serverTime					/*服务器时间戳*/
-    int32 serverZone					/*服务器时区*/
-	StAccountBaseData accountBaseData	/*帐号基础数据*/

@@ -88,14 +88,14 @@ func (c *Client) onConnect(conn net.Conn) {
 // OnEvent base.Agent'OnEvent
 func (c *Client) OnEvent(protoID ffProto.MessageType, data interface{}) {
 	// 上层逻辑必须执行Done
-	if protoID == ffProto.MessageType_MT_DisConnect {
+	if protoID == ffProto.MessageType_SessionDisConnect {
 		wg, _ := data.(*sync.WaitGroup)
 		wg.Add(1)
 	}
 
 	c.agent.OnEvent(protoID, data)
 
-	if protoID == ffProto.MessageType_MT_DisConnect {
+	if protoID == ffProto.MessageType_SessionDisConnect {
 		c.sess = nil
 
 		wg, _ := data.(*sync.WaitGroup)

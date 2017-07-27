@@ -21,10 +21,10 @@ type agentServer struct {
 func (as *agentServer) onConnect() {
 	// 服务器注册
 	serverID := int32(appConfig.Server.ServerID)
-	p := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgServerRegister)
+	p := ffProto.ApplyProtoForSend(ffProto.MessageType_ServerRegister)
 	message := p.Message().(*ffProto.MsgServerRegister)
-	message.ServerType = &appConfig.Server.ServerType
-	message.ServerID = &serverID
+	message.ServerType = appConfig.Server.ServerType
+	message.ServerID = serverID
 	p.SetExtraData(ffProto.ExtraDataTypeUUID, 0)
 	as.server.SendProto(p)
 
@@ -39,14 +39,14 @@ func (as *agentServer) onDisConnect() {
 }
 
 func (as *agentServer) OnEvent(protoID ffProto.MessageType, data interface{}) {
-	if protoID == ffProto.MessageType_MT_Connect {
+	if protoID == ffProto.MessageType_SessionConnect {
 
 		log.RunLogger.Printf("agentServer.OnEvent: protoID[%s]\n",
 			ffProto.MessageType_name[int32(protoID)])
 
 		as.onConnect()
 
-	} else if protoID == ffProto.MessageType_MT_DisConnect {
+	} else if protoID == ffProto.MessageType_SessionDisConnect {
 
 		log.RunLogger.Printf("agentServer.OnEvent: protoID[%s]\n",
 			ffProto.MessageType_name[int32(protoID)])
@@ -56,7 +56,7 @@ func (as *agentServer) OnEvent(protoID ffProto.MessageType, data interface{}) {
 		wg, _ := data.(*sync.WaitGroup)
 		wg.Done()
 
-	} else if protoID == ffProto.MessageType_MT_MsgServerKeepAlive {
+	} else if protoID == ffProto.MessageType_ServerKeepAlive {
 
 		// 维持连接不断开协议(什么都不需要做)
 
@@ -77,7 +77,7 @@ func (as *agentServer) keepAliveLoop(params ...interface{}) {
 	for {
 		select {
 		case <-time.After(interval):
-			as.sendProto(ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgServerKeepAlive), 0)
+			as.sendProto(ffProto.ApplyProtoForSend(ffProto.MessageType_ServerKeepAlive), 0)
 		}
 	}
 }

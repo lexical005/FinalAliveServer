@@ -49,7 +49,7 @@ func (gwf *gameWorldFrame) Kick(uuidAgent uuid.UUID, notifyKick bool, kickReason
 
 	// 踢出通知
 	if notifyKick {
-		p := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgKick)
+		p := ffProto.ApplyProtoForSend(ffProto.MessageType_Kick)
 		message := p.Message().(*ffProto.MsgKick)
 		message.Result = kickReason.Code()
 		gwf.SendProto(uuidAgent, p)

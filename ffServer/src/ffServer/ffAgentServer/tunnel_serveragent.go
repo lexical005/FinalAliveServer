@@ -62,12 +62,12 @@ func (tsa *tunnelServerAgent) OnEvent(protoID ffProto.MessageType, data interfac
 	log.RunLogger.Printf("tunnelServerAgent.OnEvent: uuid[%x] protoID[%s] data[%v]\n",
 		tsa.uuid(), ffProto.MessageType_name[int32(protoID)], data)
 
-	if protoID == ffProto.MessageType_MT_Connect {
+	if protoID == ffProto.MessageType_SessionConnect {
 
 		// 连接建立
 		tsa.onConnect()
 
-	} else if protoID == ffProto.MessageType_MT_DisConnect {
+	} else if protoID == ffProto.MessageType_SessionDisConnect {
 
 		// 连接断开
 		tsa.onDisConnect()
@@ -75,21 +75,21 @@ func (tsa *tunnelServerAgent) OnEvent(protoID ffProto.MessageType, data interfac
 		wg, _ := data.(*sync.WaitGroup)
 		wg.Done()
 
-	} else if protoID == ffProto.MessageType_MT_MsgServerKeepAlive {
+	} else if protoID == ffProto.MessageType_ServerKeepAlive {
 
 		// 维持连接不断开协议(什么都不需要做)
 
 	} else {
 
 		proto, _ := data.(*ffProto.Proto)
-		if protoID == ffProto.MessageType_MT_MsgKick {
+		if protoID == ffProto.MessageType_Kick {
 
 			// 踢出用户协议
 			proto.Unmarshal() // 不验证服务端发来的协议
 			message := proto.Message().(*ffProto.MsgKick)
-			clientAgentMgr.kick(uuid.UUID(proto.ExtraData()), *message.Result)
+			clientAgentMgr.kick(uuid.UUID(proto.ExtraData()), message.Result)
 
-		} else if protoID == ffProto.MessageType_MT_MsgServerRegister {
+		} else if protoID == ffProto.MessageType_ServerRegister {
 
 			// 服务器注册协议
 			proto.Unmarshal() // 不验证服务端发来的协议
@@ -112,7 +112,7 @@ func (tsa *tunnelServerAgent) OnEvent(protoID ffProto.MessageType, data interfac
 
 			// 普通协议转发
 			if !clientAgentMgr.sendProto(uuid.UUID(proto.ExtraData()), proto) {
-				p := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgAgentDisConnect)
+				p := ffProto.ApplyProtoForSend(ffProto.MessageType_AgentDisConnect)
 				tsa.sendProto(p, proto.ExtraData())
 			}
 

@@ -5,7 +5,7 @@ import (
 	"ffCommon/log/log"
 	"strconv"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lexical005/mysql"
 )
 
 func main() {

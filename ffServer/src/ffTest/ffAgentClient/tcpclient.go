@@ -39,7 +39,7 @@ func (c *clientAgent) onConnect() {
 	var targetServerID int32 = 1
 	var uuid uint64 = 0x123456
 
-	p := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgEnterGameWorld)
+	p := ffProto.ApplyProtoForSend(ffProto.MessageType_EnterGameWorld)
 	message := p.Message().(*ffProto.MsgEnterGameWorld)
 	message.ServerID = &targetServerID
 	message.UUIDAccount = &uuid
@@ -56,15 +56,15 @@ func (c *clientAgent) onDisConnect() {
 func (c *clientAgent) OnEvent(protoID ffProto.MessageType, data interface{}) {
 	log.RunLogger.Printf("clientAgent.OnEvent: protoID[%s]\n", ffProto.MessageType_name[int32(protoID)])
 
-	if protoID == ffProto.MessageType_MT_Connect {
+	if protoID == ffProto.MessageType_SessionConnect {
 		c.onConnect()
-	} else if protoID == ffProto.MessageType_MT_DisConnect {
+	} else if protoID == ffProto.MessageType_SessionDisConnect {
 		c.onDisConnect()
 
 		wg, _ := data.(*sync.WaitGroup)
 		wg.Done()
 	} else {
-		if protoID == ffProto.MessageType_MT_MsgEnterGameWorld {
+		if protoID == ffProto.MessageType_EnterGameWorld {
 			proto := data.(*ffProto.Proto)
 			if err := proto.Unmarshal(); err != nil {
 				log.FatalLogger.Println(err)
@@ -79,14 +79,14 @@ func (c *clientAgent) OnEvent(protoID ffProto.MessageType, data interface{}) {
 			// c.number = 0
 			// c.startTime = time.Now()
 
-			// p := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgCountNumber)
+			// p := ffProto.ApplyProtoForSend(ffProto.MessageType_CountNumber)
 			// m, _ := p.Message().(*ffProto.MsgCountNumber)
 			// m.Number = &c.number
 			// c.sendProto(p)
 			return
 		}
 
-		// if protoID == ffProto.MessageType_MT_MsgCountNumber {
+		// if protoID == ffProto.MessageType_CountNumber {
 		// 	proto := data.(*ffProto.Proto)
 		// 	if err := proto.Unmarshal(); err != nil {
 		// 		log.RunLogger.Println(err)

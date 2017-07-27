@@ -8,7 +8,7 @@ import (
 
 // Error Error
 type Error interface {
-	Code() *int32
+	Code() int32
 	Error() string
 	String() string
 }
@@ -18,8 +18,8 @@ type errReason struct {
 	desc string
 }
 
-func (ec *errReason) Code() *int32 {
-	return &ec.code
+func (ec *errReason) Code() int32 {
+	return ec.code
 }
 
 func (ec *errReason) Error() string {

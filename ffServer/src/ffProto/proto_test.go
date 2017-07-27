@@ -49,7 +49,7 @@ func testClientSendToAgentServerProto(t *testing.T) {
 	clientSendHeader = NewProtoHeader()
 	clientSendHeader.ResetForSend()
 
-	clientSendProto = ApplyProtoForSend(MessageType_MT_MsgPrepareLoginPlatformUniqueID)
+	clientSendProto = ApplyProtoForSend(MessageType_PrepareLoginPlatformUniqueID)
 
 	messageForSend := clientSendProto.Message().(*MsgPrepareLoginPlatformUniqueID)
 	messageForSend.SubChannel = proto.String("SubChannel")
@@ -281,7 +281,7 @@ func testAgentServerSendToClientProto(t *testing.T) {
 	agentServerSendToClientHeader = NewProtoHeader()
 	agentServerSendToClientHeader.ResetForSend()
 
-	agentServerSendToClientProto = ApplyProtoForSend(MessageType_MT_MsgPrepareLoginPlatformUniqueID)
+	agentServerSendToClientProto = ApplyProtoForSend(MessageType_PrepareLoginPlatformUniqueID)
 
 	messageForSend := agentServerSendToClientProto.Message().(*MsgPrepareLoginPlatformUniqueID)
 	messageForSend.SubChannel = proto.String("SubChannel")

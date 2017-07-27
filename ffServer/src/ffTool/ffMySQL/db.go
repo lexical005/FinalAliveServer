@@ -6,7 +6,7 @@ import (
 	// 每次查询，优先获取可用的数据库连接，如果没有且未达到最大同时连接数，则创建连接，否则等待可用的数据库连接
 	"ffCommon/log/log"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lexical005/mysql"
 )
 
 type stmtInfo struct {

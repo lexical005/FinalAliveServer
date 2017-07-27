@@ -62,7 +62,7 @@ func (tca *tunnelClientAgent) onDisConnect() {
 
 	// 通知服务端侧
 	if tca.serverAgent != nil {
-		sendProto := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgAgentDisConnect)
+		sendProto := ffProto.ApplyProtoForSend(ffProto.MessageType_AgentDisConnect)
 		tca.serverAgent.sendProto(sendProto, uint64(tca.uuid()))
 	}
 
@@ -74,12 +74,12 @@ func (tca *tunnelClientAgent) OnEvent(protoID ffProto.MessageType, data interfac
 	log.RunLogger.Printf("tunnelClientAgent.OnEvent: uuid[%x] protoID[%s] data[%v]\n",
 		tca.uuid(), ffProto.MessageType_name[int32(protoID)], data)
 
-	if protoID == ffProto.MessageType_MT_Connect {
+	if protoID == ffProto.MessageType_SessionConnect {
 
 		// 连接建立
 		tca.onConnect()
 
-	} else if protoID == ffProto.MessageType_MT_DisConnect {
+	} else if protoID == ffProto.MessageType_SessionDisConnect {
 
 		// 连接断开
 		tca.onDisConnect()
@@ -87,7 +87,7 @@ func (tca *tunnelClientAgent) OnEvent(protoID ffProto.MessageType, data interfac
 		wg, _ := data.(*sync.WaitGroup)
 		wg.Done()
 
-	} else if protoID == ffProto.MessageType_MT_MsgCSKeepAlive {
+	} else if protoID == ffProto.MessageType_KeepAlive {
 
 		// 维持连接不断开协议(什么都不需要做)
 
@@ -101,7 +101,7 @@ func (tca *tunnelClientAgent) OnEvent(protoID ffProto.MessageType, data interfac
 		// todo: 帐号登录协议, 转到帐号服务器处理
 
 		// 进入游戏世界协议
-		if protoID == ffProto.MessageType_MT_MsgEnterGameWorld {
+		if protoID == ffProto.MessageType_EnterGameWorld {
 			proto, _ := data.(*ffProto.Proto)
 			if err := proto.Unmarshal(); err == nil {
 				message := proto.Message().(*ffProto.MsgEnterGameWorld)
@@ -144,7 +144,7 @@ func (tca *tunnelClientAgent) kick(notifyKick bool, kickReason ffError.Error) {
 		tca.kicked = true
 
 		if notifyKick {
-			sendProto := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgKick)
+			sendProto := ffProto.ApplyProtoForSend(ffProto.MessageType_Kick)
 			message := sendProto.Message().(*ffProto.MsgKick)
 			message.Result = kickReason.Code()
 			tca.sendProto(sendProto)

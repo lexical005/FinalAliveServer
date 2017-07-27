@@ -91,7 +91,7 @@ func (s *Session) Start(conn net.Conn, agent base.Agent, recvProtoExtraDataType 
 
 	s.conn, s.agent = conn, agent
 
-	s.agent.OnEvent(ffProto.MessageType_MT_Connect, nil)
+	s.agent.OnEvent(ffProto.MessageType_SessionConnect, nil)
 
 	// start recv goroutine
 	go util.SafeGo(s.doRecvWork)
@@ -268,7 +268,7 @@ func (s *Session) doClose() {
 	// 通知上层逻辑对象
 	var wg sync.WaitGroup
 	wg.Add(1)
-	s.agent.OnEvent(ffProto.MessageType_MT_DisConnect, &wg)
+	s.agent.OnEvent(ffProto.MessageType_SessionDisConnect, &wg)
 	wg.Wait()
 
 	// 清理内部数据

@@ -2,7 +2,7 @@ package ffMySQL
 
 import (
 	// mysql driver
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lexical005/mysql"
 
 	"ffCommon/log/log"
 	"ffLogic/ffDef"

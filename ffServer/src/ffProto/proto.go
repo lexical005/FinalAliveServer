@@ -10,7 +10,7 @@ type Proto struct {
 	msg            proto.Message
 	msgNeedMarshal bool // 协议内容需要序列化
 
-	useState useState // 协议当前状态.
+	useState useState // 协议当前状态
 
 	extraDataType ExtraDataType // 附加数据类型
 	extraData     []byte        // 附加数据
@@ -23,32 +23,40 @@ func (p *Proto) setBuf(buf []byte) {
 	p.pb.SetBuf(nil)
 }
 
-func (p *Proto) onBackPoolAfterSend() {
+func (p *Proto) onBackPoolAfterSend() bool {
 	if p.useState == useStateSend && p.msg != nil {
 		backMessage(p.protoID, p.msg)
 		p.msg = nil
+		return true
 	}
+	return false
 }
 
-func (p *Proto) onBackPoolAfterRecv() {
+func (p *Proto) onBackPoolAfterRecv() bool {
 	if p.useState == useStateRecv && p.msg != nil {
 		backMessage(p.protoID, p.msg)
 		p.msg = nil
+		return true
 	}
+	return false
 }
 
-func (p *Proto) onBackPoolAfterDispatch() {
+func (p *Proto) onBackPoolAfterDispatch() bool {
 	if p.useState == useStateCacheWaitDispatch && p.msg != nil {
 		backMessage(p.protoID, p.msg)
 		p.msg = nil
+		return true
 	}
+	return false
 }
 
-func (p *Proto) forceBackProtoInWaitSend() {
+func (p *Proto) onBackProtoInWaitSend() bool {
 	if p.useState == useStateCacheWaitSend && p.msg != nil {
 		backMessage(p.protoID, p.msg)
 		p.msg = nil
+		return true
 	}
+	return false
 }
 
 func (p *Proto) resetForSend(protoID MessageType) {
@@ -57,7 +65,7 @@ func (p *Proto) resetForSend(protoID MessageType) {
 	p.protoID = protoID
 	p.buf = p.buf[0:protoHeaderLength] // len(p.buf) = protoHeaderLength
 
-	p.extraDataType = ExtraDataTypeNormal
+	p.extraDataType = ExtraDataTypeNormal // 默认附加数据类型
 
 	p.msg = applyMessage(p.protoID)
 }
@@ -98,7 +106,7 @@ func (p *Proto) BytesForSend() []byte {
 	return p.buf
 }
 
-// BytesForRecv 协议体部分的buffer
+// BytesForRecv 协议体和附加数据部分的buffer
 func (p *Proto) BytesForRecv() []byte {
 	return p.buf[protoHeaderLength:]
 }
@@ -106,25 +114,25 @@ func (p *Proto) BytesForRecv() []byte {
 // OnRecvAllBytes 本协议的所有字节流接收完毕
 func (p *Proto) OnRecvAllBytes(header *ProtoHeader) error {
 	extraDataLen := getExtraDataLength(p.extraDataType)
+	extraDataOffset := protoHeaderLength + header.contentLength
 
 	// 校验并记录附加数据
-	if p.buf[protoHeaderExtraDataTypeOffset] == byte(ExtraDataTypeUUID) {
+	if p.extraDataType == ExtraDataTypeUUID {
 
-		copy(p.extraData[:extraDataLen], p.buf[len(p.buf)-extraDataLen:])
+		copy(p.extraData[:extraDataLen], p.buf[extraDataOffset:])
 
-	} else if p.buf[protoHeaderExtraDataTypeOffset] == byte(ExtraDataTypeNormal) {
+	} else if p.extraDataType == ExtraDataTypeNormal {
 
-		offset := protoHeaderLength + header.contentLength
-		if header.lastRecvExtraDataNormal[0]+1 != p.buf[offset+0] {
+		if header.lastRecvExtraDataNormal[0]+1 != p.buf[extraDataOffset+0] {
 			return errCheckSerial
 		}
-		header.lastRecvExtraDataNormal[0] = p.buf[offset+0]
+		header.lastRecvExtraDataNormal[0] = p.buf[extraDataOffset+0]
 
 	}
 
 	// 清除掉附加数据
 	if extraDataLen > 0 {
-		p.buf = p.buf[0 : len(p.buf)-extraDataLen]
+		p.buf = p.buf[0:extraDataOffset]
 	}
 
 	return nil
@@ -193,7 +201,7 @@ func (p *Proto) Marshal(header *ProtoHeader) (err error) {
 	if p.extraDataType == ExtraDataTypeUUID {
 		copy(p.buf[bufLengthLimit-extraDataLen:], p.extraData[:extraDataLen])
 	} else if p.extraDataType == ExtraDataTypeNormal {
-		header.marshalExtraData(p.buf[bufLengthLimit-extraDataLen:])
+		header.marshalSendExtraDataNormal(p.buf[bufLengthLimit-extraDataLen:])
 	}
 
 	return err
@@ -242,7 +250,7 @@ func (p *Proto) SetCacheWaitDispatch() {
 //	2. 协议最终会被返回给客户端或者转发给其他服务端
 // 在异步查询结果出来前，如果需要销毁，允许执行强制回收。
 func (p *Proto) SetCacheWaitSend() {
-	p.useState = useStateCacheWaitDispatch
+	p.useState = useStateCacheWaitSend
 }
 
 // String 返回Proto的自我描述

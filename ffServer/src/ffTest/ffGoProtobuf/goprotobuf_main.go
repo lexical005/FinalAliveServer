@@ -12,7 +12,7 @@ import (
 func testExtraDataUUID() {
 	sendHeader := ffProto.NewProtoHeader()
 
-	sendProto := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgPrepareLoginPlatformUniqueID)
+	sendProto := ffProto.ApplyProtoForSend(ffProto.MessageType_PrepareLoginPlatformUniqueID)
 	messageForSend := sendProto.Message().(*ffProto.MsgPrepareLoginPlatformUniqueID)
 	messageForSend.SubChannel = proto.String("SubChannel")
 	messageForSend.GameUserid = proto.String("GameUserid")
@@ -72,7 +72,7 @@ func testExtraDataUUID() {
 func testExtraDataNormal() {
 	sendHeader := ffProto.NewProtoHeader()
 
-	sendProto := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgPrepareLoginPlatformUniqueID)
+	sendProto := ffProto.ApplyProtoForSend(ffProto.MessageType_PrepareLoginPlatformUniqueID)
 	messageForSend := sendProto.Message().(*ffProto.MsgPrepareLoginPlatformUniqueID)
 	messageForSend.SubChannel = proto.String("SubChannel")
 	messageForSend.GameUserid = proto.String("GameUserid")
@@ -126,7 +126,7 @@ func testExtraDataNormal() {
 func testExtraDataNormalToUUID() {
 	sendHeader := ffProto.NewProtoHeader()
 
-	sendProto := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgPrepareLoginPlatformUniqueID)
+	sendProto := ffProto.ApplyProtoForSend(ffProto.MessageType_PrepareLoginPlatformUniqueID)
 	messageForSend := sendProto.Message().(*ffProto.MsgPrepareLoginPlatformUniqueID)
 	messageForSend.SubChannel = proto.String("SubChannel")
 	messageForSend.GameUserid = proto.String("GameUserid")

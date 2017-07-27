@@ -5,7 +5,7 @@ import "fmt"
 // ProtoHeader 协议头
 type ProtoHeader struct {
 	protoID       int32 // 协议号
-	contentLength int   // 协议内容的长度
+	contentLength int   // 协议体的长度
 
 	recvExtraDataType byte // 用于接收时, 限定的附加数据的类型
 
@@ -18,19 +18,20 @@ type ProtoHeader struct {
 func (ph *ProtoHeader) Unmarshal(buf []byte) error {
 	// 附加数据类型限定
 	if ph.recvExtraDataType != buf[protoHeaderExtraDataTypeOffset] {
-		return fmt.Errorf("ProtoHeader.Unmarshal: invalid ExtraDataType[%v]", buf[protoHeaderExtraDataTypeOffset])
+		return fmt.Errorf("ffProto.ProtoHeader.Unmarshal: ExtraDataType not match[%v:%v]",
+			ph.recvExtraDataType, buf[protoHeaderExtraDataTypeOffset])
 	}
 
 	// 协议号有效性
 	ph.protoID = int32(uint16(buf[protoHeaderIDOffset+1]) | uint16(buf[protoHeaderIDOffset+0])<<8)
 	if _, ok := MessageType_name[ph.protoID]; !ok {
-		return fmt.Errorf("ProtoHeader.Unmarshal: invalid protoID[%v]", ph.protoID)
+		return fmt.Errorf("ffProto.ProtoHeader.Unmarshal: invalid protoID[%v]", ph.protoID)
 	}
 
 	// 协议内容长度有效性
 	ph.contentLength = int(uint16(buf[protoHeaderContentOffset+1]) | uint16(buf[protoHeaderContentOffset+0])<<8)
 	if ph.contentLength > protoMaxContentLength {
-		return fmt.Errorf("ProtoHeader.Unmarshal: ContentLength[%v] > protoMaxContentLength[%v]", ph.contentLength, protoMaxContentLength)
+		return fmt.Errorf("ffProto.ProtoHeader.Unmarshal: ContentLength[%v] > protoMaxContentLength[%v]", ph.contentLength, protoMaxContentLength)
 	}
 
 	// todo:协议头校验
@@ -56,7 +57,7 @@ func (ph *ProtoHeader) ResetForSend() {
 
 // marshalHeader 序列化协议头(bigEndian)
 // 将协议头内的数据, 序列化到待发送的字节流
-func (ph *ProtoHeader) marshalHeader(buf []byte, forRecv bool) {
+func (ph *ProtoHeader) marshalHeader(buf []byte, marshalExtraDataType bool) {
 	// 协议号
 	buf[protoHeaderIDOffset] = byte(ph.protoID >> 8)
 	buf[protoHeaderIDOffset+1] = byte(ph.protoID)
@@ -65,14 +66,14 @@ func (ph *ProtoHeader) marshalHeader(buf []byte, forRecv bool) {
 	buf[protoHeaderContentOffset] = byte(ph.contentLength >> 8)
 	buf[protoHeaderContentOffset+1] = byte(ph.contentLength)
 
-	// 协议头的附加数据组合位
-	if forRecv {
+	// 附加数据类型
+	if marshalExtraDataType {
 		buf[protoHeaderExtraDataTypeOffset] = ph.recvExtraDataType
 	}
 }
 
-// 将sendExtraData序列化到协议缓冲区
-func (ph *ProtoHeader) marshalExtraData(buf []byte) {
+// 将lastSendExtraDataNormal序列化到协议缓冲区
+func (ph *ProtoHeader) marshalSendExtraDataNormal(buf []byte) {
 	ph.lastSendExtraDataNormal[0]++
 	copy(buf, ph.lastSendExtraDataNormal)
 }

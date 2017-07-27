@@ -86,7 +86,7 @@ func (tsam *tunnelServerAgentManager) keepAliveOneLoop() {
 
 	// 向每一个现有连接发送一条MsgKeepAlive协议, 以避免协议被物理断开
 	for _, agent := range tsam.agents {
-		agent.sendProto(ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgServerKeepAlive), 0)
+		agent.sendProto(ffProto.ApplyProtoForSend(ffProto.MessageType_ServerKeepAlive), 0)
 	}
 }
 

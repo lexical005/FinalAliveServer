@@ -49,18 +49,18 @@ todo:
     10.如果协议附加数据模式为extraDataUUID, 则拷贝协议头的附加数据, 到协议缓冲区的附加数据部分
 
 
-                                                接收到的协议字节流           发送的协议字节流     接收协议重发送
+                                                接收到的协议字节流           发送的协议字节流
 AgentServer接收到Client的协议                   ExtraDataTypeNormal
-AgentServer将Client的协议返回给Client           ExtraDataTypeNormal         ExtraDataTypeNormal        true
-AgentServer新发协议到Client                                                 ExtraDataTypeNormal        false
-AgentServer将GameServer的协议转发给Client       ExtraDataTypeUUID           ExtraDataTypeNormal        true
+AgentServer将Client的协议返回给Client           ExtraDataTypeNormal         ExtraDataTypeNormal
+AgentServer新发协议到Client                                                 ExtraDataTypeNormal
+AgentServer将GameServer的协议转发给Client       ExtraDataTypeUUID           ExtraDataTypeNormal
 
 AgentServer接收到GameServer的协议               ExtraDataTypeUUID
-AgentServer将Client的协议转发给GameServer       ExtraDataTypeNormal         ExtraDataTypeUUID          true
-AgentServer新发协议到GameServer                                             ExtraDataTypeUUID          false
+AgentServer将Client的协议转发给GameServer       ExtraDataTypeNormal         ExtraDataTypeUUID
+AgentServer新发协议到GameServer                                             ExtraDataTypeUUID
 
-GameServer将收到的Client协议返回给AgentServer   ExtraDataTypeUUID           ExtraDataTypeUUID          true
-GameServer新发协议到GameServer                                              ExtraDataTypeUUID          false
+GameServer将收到的Client协议返回给AgentServer   ExtraDataTypeUUID           ExtraDataTypeUUID
+GameServer新发协议到GameServer                                              ExtraDataTypeUUID
 
 
 为发送而申请的协议, 其附加数据类型, 默认是ExtraDataTypeNormal, 可通过ChangeExtraData改变
@@ -69,15 +69,12 @@ GameServer新发协议到GameServer                                             
 
 GameServer新建协议发送到客户端
 
-
-需要新增ping协议 --ok
-
 SetExtraData    发送任何协议前，必须调用SetExtraData
 
 协议状态 useState
-    申请协议用于发送    resetForSend      设置  useState = useStateSend
-    申请协议用于接收    resetForRecv      设置  useState = useStateRecv
-    发送协议前         SetExtraData      设置  useState = useStateSend
+    申请协议用于发送    resetForSend            设置  useState = useStateSend
+    申请协议用于接收    resetForRecv            设置  useState = useStateRecv
+    发送协议前         SetExtraData            设置  useState = useStateSend
     手动缓存等待分发   SetCacheWaitDispatch     设置  useState = useStateCacheWaitDispatch
     手动缓存等待发送   SetCacheWaitSend         设置  useState = useStateCacheWaitSend
 
@@ -89,7 +86,7 @@ SetExtraData    发送任何协议前，必须调用SetExtraData
         新申请协议用于发送
         接收到的协议立即被转发
         接收到的协议被缓存分发、被逻辑处理后立即被返回或被转发
-        接收到的协议被缓存分发、被逻辑处理后被缓存等待发送，查询到结构后被返回或被转发
+        接收到的协议被缓存分发、被逻辑处理后被缓存等待发送，查询到结果后被返回或被转发
 
         底层发送操作完成时，协议将被回收
 
@@ -107,5 +104,3 @@ SetExtraData    发送任何协议前，必须调用SetExtraData
         逻辑处理过程中，需要等待异步查询结果然后再返回或转发
 
         没有对应的回收，最终必须进入发送状态 useStateSend
-
-目前使用的是 protoc-2.6.1-build2-windows-x86_64.exe，考虑换称 protoc-3

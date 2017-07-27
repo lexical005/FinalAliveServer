@@ -56,7 +56,7 @@ func (gw *gameWorld) DispatchProto(uuidAgent uuid.UUID, p *ffProto.Proto) {
 
 	log.RunLogger.Printf("gameWorld.DispatchProto: uuidAgent[%x] proto[%v]\n", uuidAgent, p)
 
-	if p.ProtoID() == ffProto.MessageType_MT_MsgEnterGameWorld {
+	if p.ProtoID() == ffProto.MessageType_EnterGameWorld {
 
 		// 开始
 		if okOnlineAccount {
@@ -66,7 +66,7 @@ func (gw *gameWorld) DispatchProto(uuidAgent uuid.UUID, p *ffProto.Proto) {
 		}
 
 		message := p.Message().(*ffProto.MsgEnterGameWorld)
-		uuidAcount := uuid.UUID(*message.UUIDAccount)
+		uuidAcount := uuid.UUID(message.UUIDLogin)
 
 		// 帐号异地登录
 		if uuidAgentOld, ok := managerOfAccount.mapAccountAgent[uuidAcount]; ok {
@@ -91,7 +91,7 @@ func (gw *gameWorld) DispatchProto(uuidAgent uuid.UUID, p *ffProto.Proto) {
 
 		return
 
-	} else if p.ProtoID() == ffProto.MessageType_MT_MsgAgentDisConnect {
+	} else if p.ProtoID() == ffProto.MessageType_AgentDisConnect {
 
 		// 结束
 		if okOnlineAccount {
@@ -130,7 +130,7 @@ func (gw *gameWorld) KickAll(kickReason ffError.Error) {
 
 // sendMsgKick 发送踢人协议
 func (gw *gameWorld) sendMsgKick(uuidAgent uuid.UUID, kickReason ffError.Error) {
-	p := ffProto.ApplyProtoForSend(ffProto.MessageType_MT_MsgKick)
+	p := ffProto.ApplyProtoForSend(ffProto.MessageType_Kick)
 	message := p.Message().(*ffProto.MsgKick)
 	message.Result = kickReason.Code()
 	worldFrame.SendProto(uuidAgent, p)

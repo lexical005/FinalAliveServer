@@ -6,7 +6,7 @@ import (
 
 /*
 标准Proto结构:
-						Header 						+ 	Content  +	  ExtraData
+						Header 					 	Content  	  ExtraData
 2字节协议号+2字节Content长度+1字节标识附加数据类型		协议内容	最大extraDataMaxLength字节附加数据
 
 协议号字段: BigEndian uint16
@@ -27,10 +27,10 @@ const (
 	// protoHeaderIDOffset 协议号偏移
 	protoHeaderIDOffset = 0
 
-	// protoHeaderContentLength 协议内容用几字节表示
+	// protoHeaderContentLength 协议内容长度用几字节表示
 	protoHeaderContentLength = 2
 
-	// protoHeaderContentOffset 协议内容偏移
+	// protoHeaderContentOffset 协议内容长度偏移
 	protoHeaderContentOffset = protoHeaderIDOffset + protoHeaderIDLength
 
 	// protoHeaderExtraDataTypeLength 标识附加数据类型的长度
@@ -43,13 +43,10 @@ const (
 	protoHeaderLength = protoHeaderExtraDataTypeOffset + protoHeaderExtraDataTypeLength
 
 	// protoMaxContentLength 协议内容最大长度限制
-	protoMaxContentLength = 4096
+	protoMaxContentLength = protoMaxLength - protoHeaderLength - extraDataMaxLength
 
-	// protoHeaderSpecialLeaderExtraData
-	protoHeaderSpecialLeaderExtraData = 1
-
-	// initProtoCount 初始默认Proto创建基数
-	initProtoCount = 1000
+	// protoMaxLength 协议最大长度限制（协议头 + 协议体 + 附加数据）
+	protoMaxLength = 4096
 )
 
 // useState 协议使用状态
@@ -76,7 +73,7 @@ const (
 type ExtraDataType byte
 
 const (
-	// ExtraDataTypeNormal 客户端与服务端之间交互的标准附加数据, 1字节递增序号
+	// ExtraDataTypeNormal 客户端与服务端之间交互的标准附加数据, 1字节
 	ExtraDataTypeNormal ExtraDataType = 0
 
 	// ExtraDataTypeUUID 服务端与服务端之间交互的附加数据, 8字节UUID
@@ -97,7 +94,10 @@ const (
 
 var errCheckSerial = fmt.Errorf("ffProto check serial number failed")
 
-var extraDataLengthConfig = [extraDataTypeCount]int{extraDataNormalLength, extraDataUUIDLength}
+var extraDataLengthConfig = [extraDataTypeCount]int{
+	extraDataNormalLength,
+	extraDataUUIDLength,
+}
 
 func getExtraDataLength(extraDataType ExtraDataType) int {
 	if extraDataType < extraDataTypeCount {
