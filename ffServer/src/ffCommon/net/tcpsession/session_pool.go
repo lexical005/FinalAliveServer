@@ -1,4 +1,4 @@
-package session
+package tcpsession
 
 import (
 	"ffCommon/net/base"
@@ -13,7 +13,7 @@ type sessionPool struct {
 }
 
 func (sp *sessionPool) apply() base.Session {
-	s, _ := sp.pool.Apply().(*Session)
+	s, _ := sp.pool.Apply().(*tcpSession)
 	s.uuid = sp.uuidGenerator.Gen()
 	return s
 }
