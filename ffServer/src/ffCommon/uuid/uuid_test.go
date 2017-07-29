@@ -4,7 +4,6 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/util"
 
-	"fmt"
 	"sync"
 	"testing"
 )
@@ -12,7 +11,7 @@ import (
 // func Test_Bug_Gen_Duplicate_uuid(t *testing.T) {
 // 	id := 71838114186780
 
-// 	requester := uint16(1)
+// 	requester := uint64(1)
 // 	u1, _ := New(requester)
 
 // 	// u.requester + (u.sn << sn_bit_count) + now
@@ -24,9 +23,9 @@ import (
 func Test_UUID_1(t *testing.T) {
 	count := 100
 
-	requester := uint16(1)
+	requester := uint64(1)
 
-	u1, _ := NewGenerator(requester)
+	u1, _ := NewGeneratorSafe(requester)
 	result := make(map[UUID]string, count)
 	for i := 0; i < count; i++ {
 		id := u1.Gen()
@@ -43,10 +42,10 @@ func Test_UUID_1(t *testing.T) {
 func Test_UUID_2(t *testing.T) {
 	count := 100
 
-	requester1, requester2 := uint16(1), uint16(2)
+	requester1, requester2 := uint64(1), uint64(2)
 
-	u1, _ := NewGenerator(requester1)
-	u2, _ := NewGenerator(requester2)
+	u1, _ := NewGeneratorSafe(requester1)
+	u2, _ := NewGeneratorSafe(requester2)
 	result1 := make(map[UUID]string, count)
 	result2 := make(map[UUID]string, count)
 	for i := 0; i < count; i++ {
@@ -76,7 +75,7 @@ func Test_UUID_2(t *testing.T) {
 
 func genUUIDAsync(params ...interface{}) {
 	t, _ := params[0].(*testing.T)
-	u, _ := params[1].(*GeneratorSafe)
+	u, _ := params[1].(Generator)
 	loopCount, _ := params[2].(int)
 	result, _ := params[3].(map[UUID]string)
 	wg, _ := params[4].(*sync.WaitGroup)
@@ -111,7 +110,7 @@ func Test_UUIDAsync_1(t *testing.T) {
 	goCount := 10
 	loopCount := 100
 
-	requester := uint16(11)
+	requester := uint64(11)
 
 	u1, _ := NewGeneratorSafe(requester)
 	result1 := make(map[UUID]string, loopCount)
