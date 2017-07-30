@@ -9,113 +9,192 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/net/base"
 	"ffCommon/net/tcpclient"
+	"ffCommon/util"
 )
 
 type clientAgent struct {
-	client base.Client
+	client         base.Client            // client 实现了tcp连接的client端
+	extraDataType  ffProto.ExtraDataType  // extraDataType 附加数据类型
+	chNetEventData chan base.NetEventData // chNetEventData 接收client反馈的事件
 
-	isSessionOn bool
-	muSessionOn sync.RWMutex
+	mutexWorking sync.RWMutex // mutexWorking 状态锁
+	working      bool         // mutexWorking 状态
+
+	chNtfClose          chan struct{} // chClose 通知关闭
+	chWaitCloseComplete chan struct{} // chWaitCloseComplete 等待关闭完成
 
 	number    int32
 	startTime time.Time
 }
 
-func (c *clientAgent) sendProto(p *ffProto.Proto) {
-	c.muSessionOn.RLock()
-	defer c.muSessionOn.RUnlock()
+// close 同步关闭
+func (c *clientAgent) close(delayMillisecond int64) {
+	close(c.chNtfClose)
 
-	p.SetExtraData(ffProto.ExtraDataTypeNormal, 0)
-	if c.isSessionOn {
+	<-c.chWaitCloseComplete
+}
+
+// changeWorking 改变当前状态
+func (c *clientAgent) changeWorking(working bool) {
+	c.mutexWorking.Lock()
+	defer c.mutexWorking.Lock()
+	c.working = working
+}
+
+func (c *clientAgent) sendProto(p *ffProto.Proto) {
+	c.mutexWorking.RLock()
+	defer c.mutexWorking.RUnlock()
+
+	p.SetExtraDataNormal()
+	if c.working {
 		c.client.SendProto(p)
 		return
 	}
-	ffProto.BackProtoAfterSend(p)
+	p.BackAfterSend()
 }
 
-func (c *clientAgent) onConnect() {
-	c.isSessionOn = true
+func (c *clientAgent) onConnect(data base.NetEventData) {
+	c.changeWorking(true)
 
 	var targetServerID int32 = 1
-	var uuid uint64 = 0x123456
+	var uuid uint64 = 0x1234567890
 
 	p := ffProto.ApplyProtoForSend(ffProto.MessageType_EnterGameWorld)
 	message := p.Message().(*ffProto.MsgEnterGameWorld)
-	message.ServerID = &targetServerID
-	message.UUIDAccount = &uuid
+	message.ServerID = targetServerID
+	message.UUIDLogin = uuid
 	c.sendProto(p)
 }
 
-func (c *clientAgent) onDisConnect() {
-	c.muSessionOn.Lock()
-	defer c.muSessionOn.Unlock()
+func (c *clientAgent) onDisConnect(data base.NetEventData) {
+	c.changeWorking(false)
 
-	c.isSessionOn = false
-}
-
-func (c *clientAgent) OnEvent(protoID ffProto.MessageType, data interface{}) {
-	log.RunLogger.Printf("clientAgent.OnEvent: protoID[%s]\n", ffProto.MessageType_name[int32(protoID)])
-
-	if protoID == ffProto.MessageType_SessionConnect {
-		c.onConnect()
-	} else if protoID == ffProto.MessageType_SessionDisConnect {
-		c.onDisConnect()
-
-		wg, _ := data.(*sync.WaitGroup)
-		wg.Done()
-	} else {
-		if protoID == ffProto.MessageType_EnterGameWorld {
-			proto := data.(*ffProto.Proto)
-			if err := proto.Unmarshal(); err != nil {
-				log.FatalLogger.Println(err)
-				return
-			}
-
-			message, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
-			if *message.Result != *ffError.ErrNone.Code() {
-				log.FatalLogger.Println(ffError.ErrByCode(*message.Result))
-				return
-			}
-			// c.number = 0
-			// c.startTime = time.Now()
-
-			// p := ffProto.ApplyProtoForSend(ffProto.MessageType_CountNumber)
-			// m, _ := p.Message().(*ffProto.MsgCountNumber)
-			// m.Number = &c.number
-			// c.sendProto(p)
-			return
-		}
-
-		// if protoID == ffProto.MessageType_CountNumber {
-		// 	proto := data.(*ffProto.Proto)
-		// 	if err := proto.Unmarshal(); err != nil {
-		// 		log.RunLogger.Println(err)
-		// 	}
-
-		// 	message, _ := proto.Message().(*ffProto.MsgCountNumber)
-		// 	if *message.Number != c.number+1 {
-		// 		log.FatalLogger.Printf("message.Number[%d] != c.number[%d]+1", *message.Number, c.number)
-		// 	}
-		// 	c.number++
-		// 	if c.number < 1000 {
-		// 		message.Number = &c.number
-		// 		c.sendProto(proto)
-		// 		return
-		// 	}
-		// 	delta := time.Now().Sub(c.startTime)
-		// 	// fmt.Println(c.number, delta.Nanoseconds(), delta)
-		// 	logfile.Init(logfile.DefaultLogFileRelativePath, logfile.DefaultLogFileLengthLimit, true, "run", true, logfile.DefaultLogFileFatalPrefix)
-		// 	log.RunLogger.Println(c.number, delta.Nanoseconds(), delta)
-		// }
+	if !data.ManualClose() {
+		c.client.ReConnect()
 	}
 }
 
-func (c *clientAgent) start(addr string, autoReconnect bool) (err error) {
-	log.RunLogger = log.NewLoggerEmpty()
-	// logfile.Init(logfile.DefaultLogFileRelativePath, logfile.DefaultLogFileLengthLimit, true, "run", true, logfile.DefaultLogFileFatalPrefix)
-	c.client, err = tcpclient.New(addr, autoReconnect)
-	c.client.Start(c, ffProto.ExtraDataTypeNormal)
-	return
+// onEnd 只会在主动调用client.Close, 且底层完成关闭处理后, 才会触发该事件. 处理完该事件后, client将被回收. 此处需要解除引用.
+func (c *clientAgent) onEnd(data base.NetEventData) {
+	c.client = nil
 }
 
-var agent clientAgent
+func (c *clientAgent) onProto(data base.NetEventData) {
+	proto := data.Proto()
+	protoID := proto.ProtoID()
+
+	log.RunLogger.Printf("clientAgent.onProto: proto[%v]\n", proto)
+
+	if protoID == ffProto.MessageType_EnterGameWorld {
+		if err := proto.Unmarshal(); err != nil {
+			log.FatalLogger.Println(err)
+			return
+		}
+
+		c.onMessageEnterGameWorld(proto)
+
+		return
+	}
+}
+
+func (c *clientAgent) onMessageEnterGameWorld(proto *ffProto.Proto) {
+	message, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
+	if message.Result != ffError.ErrNone.Code() {
+		log.FatalLogger.Println(ffError.ErrByCode(message.Result))
+		return
+	}
+
+	log.RunLogger.Printf("clientAgent.onMessageEnterGameWorld message[%v]\n", message)
+
+	c.number = 0
+	c.startTime = time.Now()
+
+	p := ffProto.ApplyProtoForSend(ffProto.MessageType_KeepAlive)
+	m, _ := p.Message().(*ffProto.MsgKeepAlive)
+	m.Number = c.number
+	c.sendProto(p)
+}
+
+func (c *clientAgent) onMessageKeepAlive(proto *ffProto.Proto) {
+	message, _ := proto.Message().(*ffProto.MsgKeepAlive)
+
+	log.RunLogger.Printf("clientAgent.onMessageKeepAlive message[%v]\n", message)
+
+	c.number++
+	if c.number != message.Number {
+		log.FatalLogger.Printf("clientAgent.onMessageKeepAlive number not match[%v:%v]", c.number, message.Number)
+	}
+
+	c.number++
+
+	message.Number = c.number
+	c.sendProto(proto)
+}
+
+func (c *clientAgent) mainLoop(params ...interface{}) {
+	defer func() {
+		if err := recover(); err != nil {
+			util.PrintPanicStack(err, "clientAgent.mainLoop", c)
+		}
+
+		c.chWaitCloseComplete <- struct{}{}
+	}()
+
+	c.client.Start(c.chNetEventData, ffProto.ExtraDataTypeNormal)
+
+	for {
+		select {
+		case data := <-c.chNetEventData: // 网络事件数据
+			if c.onNetDataEvent(data) {
+				// 退出
+				return
+			}
+
+		case <-c.chNtfClose: // 通知退出
+			for {
+				select {
+				case data := <-c.chNetEventData: // 网络事件数据
+					if c.onNetDataEvent(data) {
+						// 退出
+						return
+					}
+				}
+			}
+		}
+	}
+}
+
+// onNetDataEvent 处理网络事件. 返回是否退出网络事件处理协程
+func (c *clientAgent) onNetDataEvent(data base.NetEventData) bool {
+	defer data.Back()
+
+	switch data.NetEventType() {
+	case base.NetEventOn:
+		c.onConnect(data)
+	case base.NetEventOff:
+		c.onDisConnect(data)
+	case base.NetEventProto:
+		c.onProto(data)
+	case base.NetEventEnd:
+		c.onEnd(data)
+		return true
+	}
+	return false
+}
+
+func newClientAgent(addr string, extraDataType ffProto.ExtraDataType) (agent *clientAgent, err error) {
+	client, err := tcpclient.NewClient(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	agent = &clientAgent{
+		extraDataType:  extraDataType,
+		client:         client,
+		chNetEventData: make(chan base.NetEventData, tcpclient.DefaultClientNetEventDataChanCount),
+
+		chNtfClose:          make(chan struct{}),
+		chWaitCloseComplete: make(chan struct{}, 1),
+	}
+	return
+}
