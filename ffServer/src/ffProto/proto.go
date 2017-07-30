@@ -5,17 +5,17 @@ import "github.com/golang/protobuf/proto"
 
 // Proto proto
 type Proto struct {
-	pb             *proto.Buffer
-	protoID        MessageType
+	pb *proto.Buffer //
+
 	msg            proto.Message
 	msgNeedMarshal bool // 协议内容需要序列化
 
-	useState useState // 协议当前状态
+	protoID  MessageType // 协议id
+	useState useState    // 协议当前状态
+	buf      []byte      // 协议使用的缓冲区
 
 	extraDataType ExtraDataType // 附加数据类型
 	extraData     []byte        // 附加数据
-
-	buf []byte //待发送数据
 }
 
 func (p *Proto) setBuf(buf []byte) {
@@ -255,5 +255,6 @@ func (p *Proto) SetCacheWaitSend() {
 
 // String 返回Proto的自我描述
 func (p *Proto) String() string {
-	return fmt.Sprintf("protoID[%v:%v] msg[%v] len(buf)[%v] cap(buf)[%v] buf:\n[%v]", p.protoID, MessageType_name[int32(p.protoID)], p.msg, len(p.buf), cap(p.buf), p.buf)
+	return fmt.Sprintf("protoID[%v:%v] useState[%v] msg[%v] extraDataType[%v] extraData[%v] len(buf)[%v] cap(buf)[%v] buf:\n[%v]",
+		p.protoID, MessageType_name[int32(p.protoID)], p.useState, p.msg, p.extraDataType, p.extraData, len(p.buf), cap(p.buf), p.buf)
 }

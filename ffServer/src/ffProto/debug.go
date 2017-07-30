@@ -9,7 +9,7 @@ func PrintModule() {
 	log.RunLogger.Println("\nPrintModule Start ffProto:")
 
 	log.RunLogger.Println("ffProto.messagePool:")
-	for pool := range messagePool {
+	for _, pool := range messagePool {
 		log.RunLogger.Println(pool)
 	}
 
@@ -17,7 +17,9 @@ func PrintModule() {
 	log.RunLogger.Println(protoPool)
 
 	log.RunLogger.Println("ffProto.bufferPool:")
-	log.RunLogger.Println(bufferPool)
+	for _, pool := range bufferPool {
+		log.RunLogger.Println(pool)
+	}
 
 	log.RunLogger.Printf("PrintModule End ffProto\n\n")
 }
