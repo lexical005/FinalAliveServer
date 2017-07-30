@@ -77,5 +77,6 @@ message MsgAgentDisConnect{
 }
 
 message MsgKeepAlive{
+	int32 number = 1;
 }
 
