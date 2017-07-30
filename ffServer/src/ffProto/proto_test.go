@@ -3,8 +3,6 @@ package ffProto
 import (
 	"ffCommon/log/log"
 
-	"github.com/golang/protobuf/proto"
-
 	"testing"
 )
 
@@ -52,9 +50,9 @@ func testClientSendToAgentServerProto(t *testing.T) {
 	clientSendProto = ApplyProtoForSend(MessageType_PrepareLoginPlatformUniqueID)
 
 	messageForSend := clientSendProto.Message().(*MsgPrepareLoginPlatformUniqueID)
-	messageForSend.SubChannel = proto.String("SubChannel")
-	messageForSend.GameUserid = proto.String("Client->AgentServer")
-	messageForSend.Timestamp = proto.Int32(32)
+	messageForSend.SubChannel = "SubChannel"
+	messageForSend.UUIDPlatformLogin = "Client->AgentServer"
+	messageForSend.Timestamp = 32
 
 	// 进行编码
 	err := clientSendProto.Marshal(clientSendHeader)
@@ -106,7 +104,7 @@ func testAgentServerRecvClientProto(t *testing.T) {
 	log.RunLogger.Println(agentServerRecvClientProto)
 
 	// 向GameServer转发
-	agentServerRecvClientProto.SetExtraData(ExtraDataTypeUUID, 0x12345678)
+	agentServerRecvClientProto.SetExtraDataUUID(0x12345678)
 	sendToGameServerHeader := NewProtoHeader()
 	sendToGameServerHeader.ResetForSend()
 
@@ -163,9 +161,9 @@ func testGameServerRecvClientProto(t *testing.T) {
 	// 返回给AgentServer
 	message, _ := gameServerRecvClientProto.Message().(*MsgPrepareLoginPlatformUniqueID)
 	GameUserid := "GameServer->Client"
-	message.GameUserid = &GameUserid
+	message.UUIDPlatformLogin = GameUserid
 
-	gameServerRecvClientProto.SetExtraData(ExtraDataTypeUUID, gameServerRecvClientProto.ExtraData())
+	gameServerRecvClientProto.SetExtraDataUUID(gameServerRecvClientProto.ExtraData())
 
 	sendToAgentServerHeader := NewProtoHeader()
 	sendToAgentServerHeader.ResetForSend()
@@ -221,7 +219,7 @@ func testAgentServerRecvGameServerProto(t *testing.T) {
 	log.RunLogger.Printf("ExtraData:%x\n", agentServerRecvClientProto.ExtraData())
 
 	// 返回给Client
-	agentServerRecvClientProto.SetExtraData(ExtraDataTypeNormal, 0)
+	agentServerRecvClientProto.SetExtraDataNormal()
 
 	sendToClientHeader := NewProtoHeader()
 	sendToClientHeader.ResetForSend()
@@ -284,9 +282,9 @@ func testAgentServerSendToClientProto(t *testing.T) {
 	agentServerSendToClientProto = ApplyProtoForSend(MessageType_PrepareLoginPlatformUniqueID)
 
 	messageForSend := agentServerSendToClientProto.Message().(*MsgPrepareLoginPlatformUniqueID)
-	messageForSend.SubChannel = proto.String("SubChannel")
-	messageForSend.GameUserid = proto.String("AgentServer->Client")
-	messageForSend.Timestamp = proto.Int32(32)
+	messageForSend.SubChannel = "SubChannel"
+	messageForSend.UUIDPlatformLogin = "AgentServer->Client"
+	messageForSend.Timestamp = 32
 
 	// 进行编码
 	err := agentServerSendToClientProto.Marshal(agentServerSendToClientHeader)

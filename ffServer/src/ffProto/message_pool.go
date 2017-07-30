@@ -7,7 +7,7 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-var msgPool []*pool.Pool
+var messagePool []*pool.Pool
 
 func init() {
 	maxProtoID := len(listProtoID)
@@ -17,20 +17,18 @@ func init() {
 		}
 	}
 
-	msgPool = make([]*pool.Pool, maxProtoID+1, maxProtoID+1)
+	messagePool = make([]*pool.Pool, maxProtoID+1, maxProtoID+1)
 	for i, protoID := range listProtoID {
-		msgPool[protoID] = pool.New(fmt.Sprintf("ffProto.message_pool.msgPool_%d", i), true, mapMessageCreator[protoID], 10, 50)
+		messagePool[protoID] = pool.New(fmt.Sprintf("ffProto.message_pool.messagePool_%d", i), false, mapMessageCreator[protoID], 10, 50)
 	}
 }
 
 func applyMessage(mt MessageType) proto.Message {
-	m, _ := msgPool[int32(mt)].Apply().(proto.Message)
-	// todo: 增加追踪-添加到被使用列表
+	m, _ := messagePool[int32(mt)].Apply().(proto.Message)
 	return m
 }
 
 func backMessage(mt MessageType, m proto.Message) {
-	// todo: 增加追踪-从被使用列表移除，供缓存泄露分析
 	m.Reset()
-	msgPool[int32(mt)].Back(m)
+	messagePool[int32(mt)].Back(m)
 }

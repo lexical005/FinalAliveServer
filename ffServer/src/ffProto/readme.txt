@@ -69,38 +69,34 @@ GameServer新发协议到GameServer                                             
 
 GameServer新建协议发送到客户端
 
-SetExtraData    发送任何协议前，必须调用SetExtraData
+SetExtraData    发送任何协议前, 必须调用SetExtraData
 
 协议状态 useState
-    申请协议用于发送    resetForSend            设置  useState = useStateSend
-    申请协议用于接收    resetForRecv            设置  useState = useStateRecv
-    发送协议前         SetExtraData            设置  useState = useStateSend
+    申请协议用于发送   resetForSend             设置  useState = useStateSend
+    申请协议用于接收   resetForRecv             设置  useState = useStateRecv
+    发送协议前        SetExtraData             设置  useState = useStateSend
     手动缓存等待分发   SetCacheWaitDispatch     设置  useState = useStateCacheWaitDispatch
     手动缓存等待发送   SetCacheWaitSend         设置  useState = useStateCacheWaitSend
 
-    发送完毕尝试回收 onBackPoolAfterSend
-    接收完毕尝试回收 onBackPoolAfterRecv
-    分发完毕尝试回收 onBackPoolAfterDispatchCache
+    发送完毕尝试回收 BackAfterSend
+    分发完毕尝试回收 BackAfterDispatchCache
 
-    useStateSend，协议在被发送时，总是会被设置成此状态；当底层完成发送操作时，协议将被回收：
+    useStateSend, 协议在被发送时, 总是会被设置成此状态; 当底层完成发送操作时, 协议将被回收：
         新申请协议用于发送
-        接收到的协议立即被转发
-        接收到的协议被缓存分发、被逻辑处理后立即被返回或被转发
-        接收到的协议被缓存分发、被逻辑处理后被缓存等待发送，查询到结果后被返回或被转发
+        接收到的协议被缓存分发, 被逻辑处理后立即被返回或被转发
+        接收到的协议被缓存分发, 被逻辑处理后被缓存等待发送, 查询到结果后被返回或被转发
 
-        底层发送操作完成时，协议将被回收
+        底层发送操作完成时, 协议将被回收
 
-    useStateRecv，接收到的协议会被设置成此状态；且根据需要，经常会变换为其他状态，未转变状态时，将被立即回收：
+    useStateRecv, 接收到的协议会被设置成此状态; 临时状态, 接下立即进入状态useStateCacheWaitDispatch
         接收到的协议
 
-        接收到的协议，上层处理完毕后依然处于此状态的（未转发且未缓存等待分发），协议将被回收
+    useStateCacheWaitDispatch, 接收到的协议进入等待分发, 由逻辑处理时, 会设置成此状态; 逻辑不更改状态时（发送或缓存）, 将被立即回收：
+        接收到的协议, 进入等待分发给逻辑处理
 
-    useStateCacheWaitDispatch，接收到的协议进入等待分发、由逻辑处理时，会设置成此状态；逻辑不更改状态时（发送或缓存），将被立即回收：
-        接收到的协议，进入等待分发给逻辑处理
+        被分发给逻辑处理完毕后依然处于此状态的（未转发且未缓存等待发送）, 协议将被回收
 
-        被分发给逻辑处理完毕后依然处于此状态的（未转发且未缓存等待发送），协议将被回收
+    useStateCacheWaitSend, 逻辑处理协议时需要等待异步查询结果才能返回或转发时, 会设置成此状态：
+        逻辑处理过程中, 需要等待异步查询结果然后再返回或转发
 
-    useStateCacheWaitSend，逻辑处理协议时需要等待异步查询结果才能返回或转发时，会设置成此状态；此状态没有对应的回收，必定进入 useStateSend：
-        逻辑处理过程中，需要等待异步查询结果然后再返回或转发
-
-        没有对应的回收，最终必须进入发送状态 useStateSend
+        没有对应的回收, 最终必须进入发送状态 useStateSend

@@ -23,40 +23,35 @@ func (p *Proto) setBuf(buf []byte) {
 	p.pb.SetBuf(nil)
 }
 
-func (p *Proto) onBackPoolAfterSend() bool {
+func (p *Proto) back() {
+	if p.msg != nil {
+		backMessage(p.protoID, p.msg)
+		p.msg = nil
+
+		backProto(p)
+		backBuffer(p.buf)
+
+		p.setBuf(nil)
+	}
+}
+
+// BackAfterSend 在底层发送协议后, 尝试回收
+func (p *Proto) BackAfterSend() {
 	if p.useState == useStateSend && p.msg != nil {
-		backMessage(p.protoID, p.msg)
-		p.msg = nil
-		return true
+		p.back()
 	}
-	return false
 }
 
-func (p *Proto) onBackPoolAfterRecv() bool {
-	if p.useState == useStateRecv && p.msg != nil {
-		backMessage(p.protoID, p.msg)
-		p.msg = nil
-		return true
-	}
-	return false
-}
-
-func (p *Proto) onBackPoolAfterDispatch() bool {
+// BackAfterDispatch 缓存分发后, 不再需要时, 尝试回收
+func (p *Proto) BackAfterDispatch() {
 	if p.useState == useStateCacheWaitDispatch && p.msg != nil {
-		backMessage(p.protoID, p.msg)
-		p.msg = nil
-		return true
+		p.back()
 	}
-	return false
 }
 
-func (p *Proto) onBackProtoInWaitSend() bool {
-	if p.useState == useStateCacheWaitSend && p.msg != nil {
-		backMessage(p.protoID, p.msg)
-		p.msg = nil
-		return true
-	}
-	return false
+// BackForce 强制回收, 慎用!!
+func (p *Proto) BackForce() {
+	p.back()
 }
 
 func (p *Proto) resetForSend(protoID MessageType) {
@@ -130,7 +125,7 @@ func (p *Proto) OnRecvAllBytes(header *ProtoHeader) error {
 
 	}
 
-	// 清除掉附加数据
+	// 清除附加数据
 	if extraDataLen > 0 {
 		p.buf = p.buf[0:extraDataOffset]
 	}
@@ -182,9 +177,11 @@ func (p *Proto) Marshal(header *ProtoHeader) (err error) {
 			copy(contentBuf[protoHeaderLength:protoHeaderLength+contentLen], contentBuf[0:contentLen])
 			p.buf = contentBuf[0:bufLengthLimit]
 		} else {
-			buf := make([]byte, bufLengthLimit, bufLengthLimit)
+			bufCapLimit := upperProtoBufferLength(bufLengthLimit)
+			buf := make([]byte, bufLengthLimit, bufCapLimit)
 			buf[protoHeaderExtraDataTypeOffset] = p.buf[protoHeaderExtraDataTypeOffset]
 			copy(buf[protoHeaderLength:protoHeaderLength+contentLen], contentBuf[0:contentLen])
+			// todo: 此处, 之前的p.buf将不会被任何地方引用, 将被回收, 是否增加buf缓存?
 			p.buf = buf
 		}
 	} else {
@@ -219,24 +216,27 @@ func (p *Proto) ExtraData() (extraData uint64) {
 		(uint64(p.extraData[7]))
 }
 
-// SetExtraData 发送协议前, 必须设置附加数据类型及数据, 为发送而申请的协议, 其默认附加数据类型是ExtraDataTypeNormal
-//	extraDataType: 附加数据类型
+// SetExtraDataUUID 发送协议前, 必须设置附加数据类型及数据, 为发送而申请的协议, 其默认附加数据类型是ExtraDataTypeNormal
 //	extraData: 附加数据
-func (p *Proto) SetExtraData(extraDataType ExtraDataType, extraData uint64) {
+func (p *Proto) SetExtraDataUUID(extraData uint64) {
 	p.useState = useStateSend
-	p.extraDataType = extraDataType
+	p.extraDataType = ExtraDataTypeUUID
 
-	// 非普通附加数据类型时
-	if extraDataType != ExtraDataTypeNormal {
-		p.extraData[0] = byte(extraData >> 56)
-		p.extraData[1] = byte(extraData >> 48)
-		p.extraData[2] = byte(extraData >> 40)
-		p.extraData[3] = byte(extraData >> 32)
-		p.extraData[4] = byte(extraData >> 24)
-		p.extraData[5] = byte(extraData >> 16)
-		p.extraData[6] = byte(extraData >> 8)
-		p.extraData[7] = byte(extraData)
-	}
+	p.extraData[0] = byte(extraData >> 56)
+	p.extraData[1] = byte(extraData >> 48)
+	p.extraData[2] = byte(extraData >> 40)
+	p.extraData[3] = byte(extraData >> 32)
+	p.extraData[4] = byte(extraData >> 24)
+	p.extraData[5] = byte(extraData >> 16)
+	p.extraData[6] = byte(extraData >> 8)
+	p.extraData[7] = byte(extraData)
+}
+
+// SetExtraDataNormal 发送协议前, 必须设置附加数据类型及数据, 为发送而申请的协议, 其默认附加数据类型是ExtraDataTypeNormal
+//	extraData: 附加数据
+func (p *Proto) SetExtraDataNormal() {
+	p.useState = useStateSend
+	p.extraDataType = ExtraDataTypeNormal
 }
 
 // SetCacheWaitDispatch 协议被缓存以待分发
