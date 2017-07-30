@@ -1,40 +1,68 @@
 package tcpclient
 
 import (
+	"ffCommon/log/log"
 	"ffCommon/net/base"
 	"ffCommon/pool"
+	"ffCommon/uuid"
+	"sync"
 )
 
 const (
-	// initTotalClientNetEventDataCount 初始默认创建多少 clientNetEventData(供本进程所有tcpClient使用)
-	initTotalClientNetEventDataCount = 32
+	// DefaultTotalClientNetEventDataCount 初始默认创建多少clientNetEventData(供本进程所有tcpClient使用)
+	DefaultTotalClientNetEventDataCount = 32
 
-	// initClientNetEventDataChanCount 一个 tcpClient.chNetEventDataInner 的缓存有多大
-	initClientNetEventDataChanCount = 8
+	// DefaultClientNetEventDataChanCount 一个tcpClient.chNetEventDataInner的缓存有多大
+	DefaultClientNetEventDataChanCount = 8
 )
 
-// 客户端数量
-var clientCount int
+// 客户端
+var mutexClient sync.Mutex
+var mapClients = make(map[uuid.UUID]*tcpClient, 1)
+var uuidGenerator uuid.Generator
 
 // eventDataPool clientNetEventData Pool
 var eventDataPool *clientNetEventDataPool
 
 // Init 初始tcpclient模块
 func Init() (err error) {
+	uuidGenerator, err = uuid.NewGeneratorSafe(0)
+	if err != nil {
+		return err
+	}
+
 	funcCreateClientNetEventData := func() interface{} {
 		return newClientNetEventData()
 	}
 
 	eventDataPool = &clientNetEventDataPool{
-		pool: pool.New("tcpclient.eventDataPool", true, funcCreateClientNetEventData, initTotalClientNetEventDataCount, 50),
+		pool: pool.New("tcpclient.eventDataPool", true, funcCreateClientNetEventData, DefaultTotalClientNetEventDataCount, 50),
 	}
 
 	return
 }
 
-// NewClient create new base.Client
+// PrintModule 输出tcpsession模块信息
+func PrintModule() {
+	runLogger := log.RunLogger
+	runLogger.Println("PrintModule Start[tcpclient]:")
+
+	runLogger.Println("tcpclient.eventDataPool:")
+	runLogger.Println(eventDataPool)
+
+	runLogger.Println("tcpclient.mapClients:")
+	for uuid, client := range mapClients {
+		runLogger.Printf("tcpclient uuid[%v]: %v", uuid, client)
+	}
+
+	runLogger.Printf("PrintModule End [tcpclient]\n\n")
+}
+
+// NewClient 创建一个base.Client
 //	addr: 监听地址
 func NewClient(addr string) (c base.Client, err error) {
-	clientCount++
-	return newClient(addr, clientCount)
+	mutexClient.Lock()
+	defer mutexClient.Unlock()
+
+	return newClient(addr, uuidGenerator.Gen())
 }

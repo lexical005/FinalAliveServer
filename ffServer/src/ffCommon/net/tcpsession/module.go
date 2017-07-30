@@ -8,6 +8,12 @@ import (
 	"fmt"
 )
 
+const (
+
+	// DefaultTotalSessionNetEventDataCount 初始默认创建多少sessionNetEventData, 供本进程所有tcpSession使用
+	DefaultTotalSessionNetEventDataCount = 256
+)
+
 // 没有网络包进入的最大间隔(秒)
 var readDeadtime int
 
@@ -16,18 +22,27 @@ var sessPool *sessionPool
 var eventDataPool *sessionNetEventDataPool
 
 // Init 初始session模块
-// _readDeadtime: 没有网络包进入的最大间隔(秒)，超过此时限，则认为对端关闭了
-// _onlineCount: 预计多少Session同时连接
-func Init(_readDeadtime int, _onlineCount int) (err error) {
+// 	_readDeadtime: 没有网络包进入的最大间隔(秒), 超过此时限, 则认为对端关闭了. 必须大于等于30
+// 	_onlineCount: 预计多少Session同时连接
+// 	_totalSessionNetEventDataCount: 初始创建多少sessionNetEventData, 供本进程所有tcpSession使用
+func Init(
+	_readDeadtime int,
+	_onlineCount int,
+	_totalSessionNetEventDataCount int) (err error) {
 	if _readDeadtime < 30 {
-		return fmt.Errorf("tcpsession.Init: invalid _readDeadtime[%v]", _readDeadtime)
+		return fmt.Errorf("tcpsession.Init invalid _readDeadtime[%v], must not less than 30", _readDeadtime)
 	}
 
 	if _onlineCount < 1 {
-		return fmt.Errorf("tcpsession.Init: invalid _onlineCount[%v]", _onlineCount)
+		return fmt.Errorf("tcpsession.Init invalid _onlineCount[%v], must not less than 1", _onlineCount)
 	}
 
-	uuidGenerator, err := uuid.NewGenerator(0)
+	if _totalSessionNetEventDataCount < DefaultTotalSessionNetEventDataCount {
+		return fmt.Errorf("tcpsession.Init invalid _totalSessionNetEventDataCount[%v], must not less than %v",
+			_totalSessionNetEventDataCount, DefaultTotalSessionNetEventDataCount)
+	}
+
+	uuidGenerator, err := uuid.NewGeneratorSafe(0)
 	if err != nil {
 		return err
 	}
@@ -49,7 +64,7 @@ func Init(_readDeadtime int, _onlineCount int) (err error) {
 	}
 
 	eventDataPool = &sessionNetEventDataPool{
-		pool: pool.New("tcpsession.eventDataPool", true, funcCreateSessionNetEventData, _onlineCount/2, 50),
+		pool: pool.New("tcpsession.eventDataPool", true, funcCreateSessionNetEventData, _totalSessionNetEventDataCount, 50),
 	}
 
 	return nil
@@ -60,7 +75,7 @@ func Apply() (s base.Session) {
 	return sessPool.apply()
 }
 
-// PrintModule 输出session模块信息
+// PrintModule 输出tcpsession模块信息
 func PrintModule() {
 	runLogger := log.RunLogger
 	runLogger.Println("PrintModule Start[tcpsession]:")

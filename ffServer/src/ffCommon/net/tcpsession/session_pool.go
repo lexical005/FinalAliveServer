@@ -9,7 +9,7 @@ import (
 type sessionPool struct {
 	pool *pool.Pool
 
-	uuidGenerator *uuid.Generator
+	uuidGenerator uuid.Generator
 }
 
 func (sp *sessionPool) apply() base.Session {

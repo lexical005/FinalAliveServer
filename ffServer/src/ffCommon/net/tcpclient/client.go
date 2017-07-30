@@ -5,6 +5,7 @@ import (
 	"ffCommon/net/base"
 	"ffCommon/net/tcpsession"
 	"ffCommon/util"
+	"ffCommon/uuid"
 	"ffProto"
 
 	"fmt"
@@ -16,7 +17,7 @@ import (
 type tcpClient struct {
 	tcpAddr *net.TCPAddr // 地址信息
 
-	clientid int // 唯一标识
+	uuid uuid.UUID // 唯一标识
 
 	recvProtoExtraDataType ffProto.ExtraDataType // 此客户端接收到的协议, 附加数据类型限定
 
@@ -66,7 +67,7 @@ func (c *tcpClient) SendProto(p *ffProto.Proto) {
 func (c *tcpClient) Start(chNetEventData chan base.NetEventData, recvProtoExtraDataType ffProto.ExtraDataType) error {
 	c.chNetEventDataOuter, c.recvProtoExtraDataType = chNetEventData, recvProtoExtraDataType
 
-	c.chNetEventDataInner = make(chan base.NetEventData, initTotalClientNetEventDataCount/2)
+	c.chNetEventDataInner = make(chan base.NetEventData, DefaultClientNetEventDataChanCount)
 	c.chNtfWorkExit = make(chan struct{})
 	c.chReConnect = make(chan struct{}, 2)
 
@@ -84,8 +85,8 @@ func (c *tcpClient) ReConnect() {
 
 // String 返回Client的自我描述
 func (c *tcpClient) String() string {
-	return fmt.Sprintf(`clientid[%v] tcpAddr[%v] recvProtoExtraDataType[%v]`,
-		c.clientid, c.tcpAddr, c.recvProtoExtraDataType)
+	return fmt.Sprintf(`uuid[%v] tcpAddr[%v] recvProtoExtraDataType[%v]`,
+		c.uuid, c.tcpAddr, c.recvProtoExtraDataType)
 }
 
 func (c *tcpClient) mainLoop(params ...interface{}) {
@@ -213,20 +214,28 @@ func (c *tcpClient) back() {
 
 	close(c.chReConnect)
 	c.chReConnect = nil
+
+	mutexClient.Lock()
+	defer mutexClient.Unlock()
+	delete(mapClients, c.uuid)
 }
 
 // newClient 新建一个 tcpClient
-func newClient(addr string, clientid int) (s *tcpClient, err error) {
+func newClient(addr string, uuid uuid.UUID) (s *tcpClient, err error) {
 	// 监听地址有效性
 	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
 	if err != nil {
-		return nil, fmt.Errorf("tcpClient.newClient ResolveTCPAddr failed, clientid[%d] addr[%v] err[%v]",
-			s.clientid, addr, err)
+		return nil, fmt.Errorf("tcpClient.newClient ResolveTCPAddr failed, uuid[%d] addr[%v] err[%v]",
+			s.uuid, addr, err)
 	}
 
-	return &tcpClient{
+	client := &tcpClient{
 		tcpAddr: tcpAddr,
 
-		clientid: clientid,
-	}, nil
+		uuid: uuid,
+	}
+
+	mapClients[uuid] = client
+
+	return client, nil
 }
