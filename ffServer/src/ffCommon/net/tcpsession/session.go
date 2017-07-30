@@ -151,7 +151,7 @@ func (s *tcpSession) mainSend(params ...interface{}) {
 }
 
 func (s *tcpSession) doSend(p *ffProto.Proto) bool {
-	defer ffProto.BackProtoAfterSend(p)
+	defer p.BackAfterSend()
 
 	err := p.Marshal(s.sendProtoHeader)
 	if err != nil {
@@ -301,7 +301,7 @@ func (s *tcpSession) back() {
 	// 清理内部数据
 	close(s.chSendPool)
 	for p := range s.chSendPool {
-		ffProto.BackProtoAfterSend(p)
+		p.BackAfterSend()
 	}
 	s.chSendPool = nil
 	s.sendLeft = s.sendLeft[:0]

@@ -167,6 +167,7 @@ func (c *tcpClient) mainLoop(params ...interface{}) {
 					break
 				}
 			}
+
 		} else {
 			log.RunLogger.Printf("tcpClient.mainLoop err[%v]: %v", err, c)
 

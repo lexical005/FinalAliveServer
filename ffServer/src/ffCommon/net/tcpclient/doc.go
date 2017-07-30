@@ -1,4 +1,5 @@
 // Package tcpclient 实现了 tcpClient, 使用步骤:
+// 0.	进程启动时, 执行本模块的 Init 方法, 以初始化本模块
 // 1.	使用者 通过 本模块的 NewClient 方法, 创建 tcpClient 实例
 // 2.	使用者 调用 tcpClient 实例的 Start 方法, 开始连接服务器, 异步
 // 3.	使用者 处理 事件回调

@@ -36,7 +36,7 @@ func Init() (err error) {
 	}
 
 	eventDataPool = &clientNetEventDataPool{
-		pool: pool.New("tcpclient.eventDataPool", true, funcCreateClientNetEventData, DefaultTotalClientNetEventDataCount, 50),
+		pool: pool.New("tcpclient.eventDataPool", false, funcCreateClientNetEventData, DefaultTotalClientNetEventDataCount, 50),
 	}
 
 	return
@@ -51,8 +51,8 @@ func PrintModule() {
 	runLogger.Println(eventDataPool)
 
 	runLogger.Println("tcpclient.mapClients:")
-	for uuid, client := range mapClients {
-		runLogger.Printf("tcpclient uuid[%v]: %v", uuid, client)
+	for _, client := range mapClients {
+		runLogger.Printf("tcpclient: %v", client)
 	}
 
 	runLogger.Printf("PrintModule End [tcpclient]\n\n")

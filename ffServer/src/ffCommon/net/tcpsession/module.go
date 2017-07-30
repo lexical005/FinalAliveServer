@@ -17,7 +17,7 @@ const (
 // 没有网络包进入的最大间隔(秒)
 var readDeadtime int
 
-// Session缓存
+// 缓存
 var sessPool *sessionPool
 var eventDataPool *sessionNetEventDataPool
 
@@ -64,7 +64,7 @@ func Init(
 	}
 
 	eventDataPool = &sessionNetEventDataPool{
-		pool: pool.New("tcpsession.eventDataPool", true, funcCreateSessionNetEventData, _totalSessionNetEventDataCount, 50),
+		pool: pool.New("tcpsession.eventDataPool", false, funcCreateSessionNetEventData, _totalSessionNetEventDataCount, 50),
 	}
 
 	return nil

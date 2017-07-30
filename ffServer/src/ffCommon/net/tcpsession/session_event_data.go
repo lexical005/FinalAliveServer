@@ -17,7 +17,7 @@ type sessionNetEventData struct {
 func (s *sessionNetEventData) Back() {
 	// 回收proto
 	if s.eventType == base.NetEventProto {
-		ffProto.BackProtoAfterDispatch(s.proto)
+		s.proto.BackAfterDispatch()
 	}
 	s.proto = nil
 
