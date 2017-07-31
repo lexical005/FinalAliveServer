@@ -65,8 +65,10 @@ func (s *tcpSession) Close(delayMillisecond int64) {
 }
 
 // SendProto 发送Proto到对端, 外界只应该在收到连接建立完成事件之后再调用此接口, 异步
-func (s *tcpSession) SendProto(p *ffProto.Proto) {
-	s.chSendPool <- p
+func (s *tcpSession) SendProto(proto *ffProto.Proto) {
+	log.RunLogger.Printf("tcpSession.SendProto proto[%v]: %v", proto, s)
+
+	s.chSendPool <- proto
 }
 
 // Start 主循环
@@ -85,9 +87,9 @@ func (s *tcpSession) Start(conn net.Conn, chNetEventData chan base.NetEventData,
 	s.chNtfRecvSendGoroutineExit = make(chan struct{})
 	s.onceClose.Reset()
 
-	s.working = true
-
 	s.conn, s.chNetEventData = conn, chNetEventData
+
+	s.working = true
 
 	log.RunLogger.Printf("tcpSession.Start: %v", s)
 
@@ -107,6 +109,8 @@ func (s *tcpSession) String() string {
 
 func (s *tcpSession) mainSend(params ...interface{}) {
 	defer func() {
+		log.RunLogger.Printf("tcpSession.mainSend end: %v", s)
+
 		if err := recover(); err != nil {
 			util.PrintPanicStack(err, "tcpSession.mainSend", s)
 		}
@@ -197,6 +201,8 @@ func (s *tcpSession) doSendBuf(buf []byte) bool {
 
 func (s *tcpSession) mainRecv(params ...interface{}) {
 	defer func() {
+		log.RunLogger.Printf("tcpSession.mainRecv end: %v", s)
+
 		if err := recover(); err != nil {
 			util.PrintPanicStack(err, "tcpSession.mainRecv", s)
 		}
@@ -298,6 +304,8 @@ func (s *tcpSession) doClose(manual bool) {
 
 // back 外界已停止引用Session, 可安全回收了
 func (s *tcpSession) back() {
+	log.RunLogger.Printf("tcpSession.back: %v", s)
+
 	// 清理内部数据
 	close(s.chSendPool)
 	for p := range s.chSendPool {

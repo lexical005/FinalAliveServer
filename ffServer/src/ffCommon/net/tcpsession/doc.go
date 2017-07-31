@@ -10,4 +10,5 @@
 // 7.1	tcpSession 实例 向外抛出 NetEventOff 事件, 外界处理到该事件后, 不可再发送 Proto
 // 7.2	tcpSession 实例 等待发送和接收协程退出
 // 7.3	tcpSession 实例 向外抛出 NetEventEnd 事件, 外界处理到该事件后, 不可再引用 tcpSession 实例
+// 7.4	外界处理完毕 NetEventEnd, 执行到 tcpSession 实例的 back 方法, 在此 tcpSession 实例 将被回收
 package tcpsession

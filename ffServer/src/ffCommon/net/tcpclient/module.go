@@ -26,6 +26,8 @@ var eventDataPool *clientNetEventDataPool
 
 // Init 初始tcpclient模块
 func Init() (err error) {
+	log.RunLogger.Printf("tcpclient.Init")
+
 	uuidGenerator, err = uuid.NewGeneratorSafe(0)
 	if err != nil {
 		return err

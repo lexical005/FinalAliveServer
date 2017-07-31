@@ -15,9 +15,10 @@ type clientNetEventData struct {
 
 // Back 回收
 func (c *clientNetEventData) Back() {
-	if c.NetEventType() == base.NetEventOff {
+	eventType := c.NetEventType()
+	if eventType == base.NetEventOff {
 		c.client.onSessionClosed()
-	} else if c.NetEventType() == base.NetEventEnd {
+	} else if eventType == base.NetEventEnd {
 		c.client.back()
 	}
 	c.client = nil
@@ -36,7 +37,10 @@ func (c *clientNetEventData) Client() base.Client {
 
 // NetEventType 获取事件类型
 func (c *clientNetEventData) NetEventType() base.NetEventType {
-	return c.data.NetEventType()
+	if c.eventType == base.NetEventInvalid {
+		return c.data.NetEventType()
+	}
+	return c.eventType
 }
 
 // ManualClose 当NetEvent为NetEventOff时有效, 返回是不是主动关闭引发的Session断开

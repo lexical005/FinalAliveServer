@@ -29,6 +29,10 @@ func Init(
 	_readDeadtime int,
 	_onlineCount int,
 	_totalSessionNetEventDataCount int) (err error) {
+
+	log.RunLogger.Printf("tcpsession.Init _readDeadtime[%v] _onlineCount[%v] _totalSessionNetEventDataCount[%v]",
+		_readDeadtime, _onlineCount, _totalSessionNetEventDataCount)
+
 	if _readDeadtime < 30 {
 		return fmt.Errorf("tcpsession.Init invalid _readDeadtime[%v], must not less than 30", _readDeadtime)
 	}

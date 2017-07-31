@@ -73,6 +73,8 @@ func (c *tcpClient) Start(chNetEventData chan base.NetEventData, recvProtoExtraD
 
 	c.working = true
 
+	log.RunLogger.Printf("tcpClient.Start: %v", c)
+
 	go util.SafeGo(c.mainLoop)
 
 	return nil
@@ -80,6 +82,8 @@ func (c *tcpClient) Start(chNetEventData chan base.NetEventData, recvProtoExtraD
 
 // ReConnect 重连, 只能在外界处理到NetEventOff事件时, 如果需要恢复连接, 才可调用此接口, 一次NetEventOff事件对应一次ReConnect调用, 异步
 func (c *tcpClient) ReConnect() {
+	log.RunLogger.Printf("tcpClient.ReConnect: %v", c)
+
 	c.chReConnect <- struct{}{}
 }
 
@@ -92,6 +96,8 @@ func (c *tcpClient) String() string {
 func (c *tcpClient) mainLoop(params ...interface{}) {
 	// 协程退出时记录
 	defer func() {
+		log.RunLogger.Printf("tcpClient.mainLoop end: %v", c)
+
 		if err := recover(); err != nil {
 			util.PrintPanicStack(err, "tcpClient.mainLoop", c)
 		}
@@ -191,13 +197,18 @@ func (c *tcpClient) mainLoop(params ...interface{}) {
 	}
 }
 
+// doClose 执行外界的要求: 关闭client
 func (c *tcpClient) doClose() {
+	log.RunLogger.Printf("tcpClient.doClose: %v", c)
+
 	// 通知退出
 	close(c.chNtfWorkExit)
 }
 
-// 外界处理完毕连接断开事件
+// onSessionClosed 外界处理完毕连接断开事件
 func (c *tcpClient) onSessionClosed() {
+	log.RunLogger.Printf("tcpClient.onSessionClosed: %v", c)
+
 	// 当前连接结束
 	c.sess = nil
 
@@ -205,12 +216,13 @@ func (c *tcpClient) onSessionClosed() {
 	c.chReConnect <- struct{}{}
 }
 
-// 回收
+// back 回收
 func (c *tcpClient) back() {
+	log.RunLogger.Printf("tcpClient.back: %v", c)
+
 	close(c.chNetEventDataInner)
 	c.chNetEventDataInner = nil
 
-	close(c.chNtfWorkExit)
 	c.chNtfWorkExit = nil
 
 	close(c.chReConnect)
@@ -223,6 +235,8 @@ func (c *tcpClient) back() {
 
 // newClient 新建一个 tcpClient
 func newClient(addr string, uuid uuid.UUID) (s *tcpClient, err error) {
+	log.RunLogger.Printf("tcpclient.newClient: addr[%v] uuid[%v]", addr, uuid)
+
 	// 监听地址有效性
 	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
 	if err != nil {

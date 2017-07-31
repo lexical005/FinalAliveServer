@@ -26,7 +26,9 @@ type Client interface {
 	// SendProto 发送Proto到对端, 只应该在收到连接建立事件之后再调用, 异步
 	SendProto(p *ffProto.Proto)
 
-	// Close 关闭, 一次性, 同步
+	// Close 关闭, 一次性, 外界以处理到NetEventEnd作为Client结束的最后一个事件, 异步
+	// 内部确保只有首次调用时有效
+	// 	delayMillisecond: 延迟多少毫秒关闭
 	Close(delayMillisecond int64)
 
 	String() string

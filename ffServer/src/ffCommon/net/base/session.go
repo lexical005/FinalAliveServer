@@ -12,7 +12,7 @@ type SessionNetEventData interface {
 	// NetEventData 将NetEventData定义组合进来
 	NetEventData
 
-	// Session Session
+	// Session 事件关联的session
 	Session() Session
 }
 
