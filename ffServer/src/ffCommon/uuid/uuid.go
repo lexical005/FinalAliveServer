@@ -1,5 +1,9 @@
 package uuid
 
+import (
+	"fmt"
+)
+
 const (
 	// InvalidUUID 无效UUID
 	InvalidUUID = 0
@@ -39,6 +43,23 @@ func (u UUID) Requester() uint16 {
 // Timestamp 时间戳（毫秒）
 func (u UUID) Timestamp() uint64 {
 	return (uint64(u) >> timestampBitOffset) & timestampBitMask
+}
+
+// Value uint64值
+func (u UUID) Value() uint64 {
+	return uint64(u)
+}
+
+// String
+func (u UUID) String() string {
+	// 生成 UUID
+	// 0.............0	0.............0	0......0
+	// 32bit timestamp	12bit requester	20bit sn
+	v := u.Value()
+	timestampOffset := (v >> timestampBitOffset) & timestampBitMask
+	requester := (v >> requesterBitOffset) & requesterBitMask
+	sn := (v >> snBitOffset) & snBitMask
+	return fmt.Sprintf("%d-%d-%d", timestampOffset, requester, sn)
 }
 
 // Generator uuid生成器
