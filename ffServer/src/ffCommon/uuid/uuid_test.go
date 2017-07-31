@@ -120,7 +120,7 @@ func Test_UUIDAsync_1(t *testing.T) {
 	var wg sync.WaitGroup
 	for i := 0; i < goCount; i++ {
 		wg.Add(1)
-		go util.SafeGo(genUUIDAsync, t, u1, loopCount, result1, &wg, &muLock)
+		go util.SafeGo(genUUIDAsync, nil, t, u1, loopCount, result1, &wg, &muLock)
 	}
 
 	wg.Wait()

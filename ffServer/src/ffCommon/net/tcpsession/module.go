@@ -9,9 +9,14 @@ import (
 )
 
 const (
+	// DefaultReadDeadTime 没有网络包进入的默认最大间隔(秒), 超过此时限, 则认为对端关闭了
+	DefaultReadDeadTime = 60
 
-	// DefaultTotalSessionNetEventDataCount 初始默认创建多少sessionNetEventData, 供本进程所有tcpSession使用
-	DefaultTotalSessionNetEventDataCount = 256
+	// DefaultOnlineCount 默认多少Session同时连接
+	DefaultOnlineCount = 60
+
+	// DefaultInitSessionNetEventDataCount 初始默认创建多少sessionNetEventData, 供本进程所有tcpSession使用
+	DefaultInitSessionNetEventDataCount = 256
 )
 
 // 没有网络包进入的最大间隔(秒)
@@ -22,28 +27,30 @@ var sessPool *sessionPool
 var eventDataPool *sessionNetEventDataPool
 
 // Init 初始session模块
-// 	_readDeadtime: 没有网络包进入的最大间隔(秒), 超过此时限, 则认为对端关闭了. 必须大于等于30
-// 	_onlineCount: 预计多少Session同时连接
-// 	_totalSessionNetEventDataCount: 初始创建多少sessionNetEventData, 供本进程所有tcpSession使用
+// 	_readDeadtime: 没有网络包进入的最大间隔(秒), 超过此时限, 则认为对端关闭了. >= DefaultReadDeadTime
+// 	_onlineCount: 预计多少Session同时连接. >= 1
+// 	_initSessionNetEventDataCount: 初始创建多少sessionNetEventData, 供本进程所有tcpSession使用. >=DefaultInitSessionNetEventDataCount
 func Init(
 	_readDeadtime int,
 	_onlineCount int,
-	_totalSessionNetEventDataCount int) (err error) {
+	_initSessionNetEventDataCount int) (err error) {
 
-	log.RunLogger.Printf("tcpsession.Init _readDeadtime[%v] _onlineCount[%v] _totalSessionNetEventDataCount[%v]",
-		_readDeadtime, _onlineCount, _totalSessionNetEventDataCount)
+	log.RunLogger.Printf("tcpsession.Init _readDeadtime[%v] _onlineCount[%v] _initSessionNetEventDataCount[%v]",
+		_readDeadtime, _onlineCount, _initSessionNetEventDataCount)
 
-	if _readDeadtime < 30 {
-		return fmt.Errorf("tcpsession.Init invalid _readDeadtime[%v], must not less than 30", _readDeadtime)
+	if _readDeadtime < DefaultReadDeadTime {
+		return fmt.Errorf("tcpsession.Init invalid _readDeadtime[%v], must not less than %v",
+			_readDeadtime, DefaultReadDeadTime)
 	}
 
 	if _onlineCount < 1 {
-		return fmt.Errorf("tcpsession.Init invalid _onlineCount[%v], must not less than 1", _onlineCount)
+		return fmt.Errorf("tcpsession.Init invalid _onlineCount[%v], must not less than 1",
+			_onlineCount)
 	}
 
-	if _totalSessionNetEventDataCount < DefaultTotalSessionNetEventDataCount {
-		return fmt.Errorf("tcpsession.Init invalid _totalSessionNetEventDataCount[%v], must not less than %v",
-			_totalSessionNetEventDataCount, DefaultTotalSessionNetEventDataCount)
+	if _initSessionNetEventDataCount < DefaultInitSessionNetEventDataCount {
+		return fmt.Errorf("tcpsession.Init invalid _initSessionNetEventDataCount[%v], must not less than %v",
+			_initSessionNetEventDataCount, DefaultInitSessionNetEventDataCount)
 	}
 
 	uuidGenerator, err := uuid.NewGeneratorSafe(0)
@@ -68,7 +75,7 @@ func Init(
 	}
 
 	eventDataPool = &sessionNetEventDataPool{
-		pool: pool.New("tcpsession.eventDataPool", false, funcCreateSessionNetEventData, _totalSessionNetEventDataCount, 50),
+		pool: pool.New("tcpsession.eventDataPool", false, funcCreateSessionNetEventData, _initSessionNetEventDataCount, 50),
 	}
 
 	return nil

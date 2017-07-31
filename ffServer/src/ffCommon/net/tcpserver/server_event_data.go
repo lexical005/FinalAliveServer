@@ -60,11 +60,11 @@ func (s *serverNetEventData) Proto() *ffProto.Proto {
 }
 
 func (s *serverNetEventData) String() string {
-	return fmt.Sprintf(`server[%v] data[%v]`,
-		s.server, s.data)
+	return fmt.Sprintf(`uuidServer[%v] dataSession[%v]`,
+		s.server.uuid, s.data)
 }
 
-func newClientNetEventData() *serverNetEventData {
+func newServerNetEventData() *serverNetEventData {
 	return &serverNetEventData{}
 }
 
@@ -74,7 +74,7 @@ func newServerNetEventDataFromSessionNetEventData(server *tcpServer, dataSession
 	return dataServer
 }
 
-func newClientNetEventDataEnd(server *tcpServer) *serverNetEventData {
+func newServerNetEventDataEnd(server *tcpServer) *serverNetEventData {
 	dataServer := eventDataPool.apply()
 	dataServer.server, dataServer.data, dataServer.eventType = server, nil, base.NetEventEnd
 	return dataServer

@@ -55,7 +55,7 @@ func (c *tcpClient) Close(delayMillisecond int64) {
 				c.doClose()
 			})
 		}
-	})
+	}, nil)
 }
 
 // SendProto 发送Proto到对端, 只应该在收到连接建立事件之后再调用, 异步
@@ -75,7 +75,7 @@ func (c *tcpClient) Start(chNetEventData chan base.NetEventData, recvProtoExtraD
 
 	log.RunLogger.Printf("tcpClient.Start: %v", c)
 
-	go util.SafeGo(c.mainLoop)
+	go util.SafeGo(c.mainLoop, c.mainLoopEnd)
 
 	return nil
 }
@@ -94,19 +94,10 @@ func (c *tcpClient) String() string {
 }
 
 func (c *tcpClient) mainLoop(params ...interface{}) {
-	// 协程退出时记录
-	defer func() {
-		log.RunLogger.Printf("tcpClient.mainLoop end: %v", c)
-
-		if err := recover(); err != nil {
-			util.PrintPanicStack(err, "tcpClient.mainLoop", c)
-		}
-	}()
-
 	for {
 		conn, err := net.DialTCP("tcp", nil, c.tcpAddr)
 		if err == nil {
-			log.RunLogger.Printf("tcpClient.mainLoop success: %v", c)
+			log.RunLogger.Printf("tcpClient.mainLoop connect success: %v", c)
 
 			// 本次连接主循环
 			{
@@ -195,6 +186,9 @@ func (c *tcpClient) mainLoop(params ...interface{}) {
 			}
 		}
 	}
+}
+func (c *tcpClient) mainLoopEnd() {
+	log.RunLogger.Printf("tcpClient.mainLoopEnd: %v", c)
 }
 
 // doClose 执行外界的要求: 关闭client

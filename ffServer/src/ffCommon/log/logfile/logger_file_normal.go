@@ -283,7 +283,7 @@ func newFileLoggerNormal(filePath string, filePrefix string, fileLenLimit int) (
 	}
 
 	if err = f.switchOut(); err == nil {
-		go util.SafeGo(f.goWrite)
+		go util.SafeGo(f.goWrite, nil)
 	}
 
 	return f, err

@@ -40,8 +40,6 @@ type tcpServer struct {
 
 // Start 开始监听, 等候客户端连接, 只应调用一次
 func (s *tcpServer) Start(chNetEventData chan base.NetEventData, recvProtoExtraDataType ffProto.ExtraDataType) (err error) {
-	log.RunLogger.Printf("tcpServer.Start: %v", s)
-
 	// 建立监听
 	listener, err := net.ListenTCP("tcp", s.tcpAddr)
 	if err != nil {
@@ -58,9 +56,11 @@ func (s *tcpServer) Start(chNetEventData chan base.NetEventData, recvProtoExtraD
 
 	s.working = true
 
+	log.RunLogger.Printf("tcpServer.Start: %v", s)
+
 	// tcpServer loop
-	go util.SafeGo(s.mainAccept)
-	go util.SafeGo(s.mainSession)
+	go util.SafeGo(s.mainAccept, s.mainAcceptEnd)
+	go util.SafeGo(s.mainSession, s.mainSessionEnd)
 
 	return
 }
@@ -113,7 +113,7 @@ func (s *tcpServer) Close(delayMillisecond int64) {
 				s.doClose()
 			})
 		}
-	})
+	}, nil)
 }
 
 // doClose 关闭服务器
@@ -130,7 +130,7 @@ func (s *tcpServer) doClose() {
 	<-s.chWaitWorkExit
 
 	// 结束了
-	s.chNetEventDataOuter <- newClientNetEventDataEnd(s)
+	s.chNetEventDataOuter <- newServerNetEventDataEnd(s)
 }
 
 // back 外界处理完毕Server关闭事件
@@ -155,18 +155,6 @@ func (s *tcpServer) back() {
 
 // 接受客户端连接请求
 func (s *tcpServer) mainAccept(params ...interface{}) {
-	// 协程退出时记录
-	defer func() {
-		log.RunLogger.Printf("tcpServer.mainAccept end: %v", s)
-
-		if err := recover(); err != nil {
-			util.PrintPanicStack(err, "tcpServer.mainAccept", s)
-		}
-
-		// 完成了退出
-		s.chWaitWorkExit <- struct{}{}
-	}()
-
 	var tempDelay time.Duration
 	for {
 		conn, err := s.listener.Accept()
@@ -208,21 +196,15 @@ func (s *tcpServer) mainAccept(params ...interface{}) {
 		s.chNewSession <- sess
 	}
 }
+func (s *tcpServer) mainAcceptEnd() {
+	log.RunLogger.Printf("tcpServer.mainAcceptEnd: %v", s)
+
+	// 完成了退出
+	s.chWaitWorkExit <- struct{}{}
+}
 
 // 处理连接事宜
 func (s *tcpServer) mainSession(params ...interface{}) {
-	// 协程退出时记录
-	defer func() {
-		log.RunLogger.Printf("tcpServer.mainSession end: %v", s)
-
-		if err := recover(); err != nil {
-			util.PrintPanicStack(err, "tcpServer.mainSession", s)
-		}
-
-		// 完成了退出
-		s.chWaitWorkExit <- struct{}{}
-	}()
-
 	// 主循环
 	{
 	mainLoop:
@@ -257,6 +239,12 @@ func (s *tcpServer) mainSession(params ...interface{}) {
 			}
 		}
 	}
+}
+func (s *tcpServer) mainSessionEnd() {
+	log.RunLogger.Printf("tcpServer.mainSessionEnd: %v", s)
+
+	// 完成了退出
+	s.chWaitWorkExit <- struct{}{}
 }
 
 // closeAllSession 关闭所有连接

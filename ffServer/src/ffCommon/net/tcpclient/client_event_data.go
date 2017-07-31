@@ -54,8 +54,8 @@ func (c *clientNetEventData) Proto() *ffProto.Proto {
 }
 
 func (c *clientNetEventData) String() string {
-	return fmt.Sprintf(`client[%v] data[%v]`,
-		c.client, c.data)
+	return fmt.Sprintf(`uuidClient[%v] dataSession[%v]`,
+		c.client.uuid, c.data)
 }
 
 func newClientNetEventData() *clientNetEventData {

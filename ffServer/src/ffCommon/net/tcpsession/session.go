@@ -61,7 +61,7 @@ func (s *tcpSession) Close(delayMillisecond int64) {
 				s.doClose(true)
 			})
 		}
-	})
+	}, nil)
 }
 
 // SendProto 发送Proto到对端, 外界只应该在收到连接建立完成事件之后再调用此接口, 异步
@@ -96,10 +96,10 @@ func (s *tcpSession) Start(conn net.Conn, chNetEventData chan base.NetEventData,
 	s.chNetEventData <- newSessionNetEventOn(s)
 
 	// start recv goroutine
-	go util.SafeGo(s.mainRecv)
+	go util.SafeGo(s.mainRecv, s.mainRecvEnd)
 
 	// start send goroutine
-	go util.SafeGo(s.mainSend)
+	go util.SafeGo(s.mainSend, s.mainSendEnd)
 }
 
 func (s *tcpSession) String() string {
@@ -108,20 +108,6 @@ func (s *tcpSession) String() string {
 }
 
 func (s *tcpSession) mainSend(params ...interface{}) {
-	defer func() {
-		log.RunLogger.Printf("tcpSession.mainSend end: %v", s)
-
-		if err := recover(); err != nil {
-			util.PrintPanicStack(err, "tcpSession.mainSend", s)
-		}
-
-		s.chWaitRecvSendGoroutineExit <- struct{}{}
-
-		s.onceClose.Do(func() {
-			s.doClose(false)
-		})
-	}()
-
 	for {
 		select {
 		case <-s.chNtfRecvSendGoroutineExit:
@@ -152,6 +138,16 @@ func (s *tcpSession) mainSend(params ...interface{}) {
 			}
 		}
 	}
+}
+
+func (s *tcpSession) mainSendEnd() {
+	log.RunLogger.Printf("tcpSession.mainSendEnd: %v", s)
+
+	s.chWaitRecvSendGoroutineExit <- struct{}{}
+
+	s.onceClose.Do(func() {
+		s.doClose(false)
+	})
 }
 
 func (s *tcpSession) doSend(p *ffProto.Proto) bool {
@@ -200,20 +196,6 @@ func (s *tcpSession) doSendBuf(buf []byte) bool {
 }
 
 func (s *tcpSession) mainRecv(params ...interface{}) {
-	defer func() {
-		log.RunLogger.Printf("tcpSession.mainRecv end: %v", s)
-
-		if err := recover(); err != nil {
-			util.PrintPanicStack(err, "tcpSession.mainRecv", s)
-		}
-
-		s.chWaitRecvSendGoroutineExit <- struct{}{}
-
-		s.onceClose.Do(func() {
-			s.doClose(false)
-		})
-	}()
-
 	var err error
 	for {
 		// 接收
@@ -229,6 +211,15 @@ func (s *tcpSession) mainRecv(params ...interface{}) {
 		default:
 		}
 	}
+}
+func (s *tcpSession) mainRecvEnd() {
+	log.RunLogger.Printf("tcpSession.mainRecvEnd: %v", s)
+
+	s.chWaitRecvSendGoroutineExit <- struct{}{}
+
+	s.onceClose.Do(func() {
+		s.doClose(false)
+	})
 }
 
 func (s *tcpSession) doRecv() error {
