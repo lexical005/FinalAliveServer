@@ -1,6 +1,6 @@
 package ffProto
 
-var listProtoID = []MessageType{
+var listMessageID = []MessageType{
 	MessageType_ServerRegister,
 	MessageType_ServerKeepAlive,
 	MessageType_PrepareLoginPlatformUniqueID,

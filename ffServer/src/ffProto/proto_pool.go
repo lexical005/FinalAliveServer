@@ -30,7 +30,7 @@ func newProtoPool(initCount int) *pool.Pool {
 
 // ApplyProtoForRecv apply a Proto from pool for recv
 func ApplyProtoForRecv(header *ProtoHeader) (p *Proto) {
-	bufLengthLimit := protoHeaderLength + header.contentLength + getExtraDataLength(ExtraDataType(header.recvExtraDataType))
+	bufLengthLimit := protoHeaderLength + header.contentLength + header.recvExtraDataType.BufferLength()
 	buf := applyBuffer(bufLengthLimit)
 
 	p, _ = protoPool.Apply().(*Proto)

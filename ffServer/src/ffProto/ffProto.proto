@@ -21,8 +21,6 @@ enum MessageType {
 	EnterGameWorld = 7;
 	AgentDisConnect = 8;
 	KeepAlive = 9;
-	SessionConnect = -1;
-	SessionDisConnect = -2;
 }
 
 message MsgServerRegister{

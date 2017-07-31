@@ -69,6 +69,19 @@ const (
 	useStateCacheWaitSend useState = 4
 )
 
+// useStateDesc useState的文本描述
+var useStateDesc = [...]string{
+	"useStateNone",
+	"useStateRecv",
+	"useStateSend",
+	"useStateCacheWaitDispatch",
+	"useStateCacheWaitSend",
+}
+
+func (u useState) String() string {
+	return useStateDesc[u]
+}
+
 // ExtraDataType 附加数量类型
 type ExtraDataType byte
 
@@ -92,16 +105,29 @@ const (
 	extraDataMaxLength = 8
 )
 
-var errCheckSerial = fmt.Errorf("ffProto check serial number failed")
+// extraDataTypeDesc ExtraDataType的文本描述
+var extraDataTypeDesc = [extraDataTypeCount]string{
+	"ExtraDataTypeNormal",
+	"ExtraDataTypeUUID",
+}
 
-var extraDataLengthConfig = [extraDataTypeCount]int{
+var extraDataTypeBufferLength = [extraDataTypeCount]int{
 	extraDataNormalLength,
 	extraDataUUIDLength,
 }
 
-func getExtraDataLength(extraDataType ExtraDataType) int {
-	if extraDataType < extraDataTypeCount {
-		return extraDataLengthConfig[extraDataType]
-	}
-	return 0
+func (e ExtraDataType) String() string {
+	return extraDataTypeDesc[e]
 }
+
+// BufferLength ExtraDataType类型的数据, 占据的字节长度
+func (e ExtraDataType) BufferLength() int {
+	return extraDataTypeBufferLength[e]
+}
+
+// Value ExtraDataType类型的数值
+func (e ExtraDataType) Value() byte {
+	return byte(e)
+}
+
+var errCheckSerial = fmt.Errorf("ffProto check serial number failed")

@@ -76,7 +76,7 @@ func (p *Proto) resetForRecv(header *ProtoHeader, bufLengthLimit int) {
 
 	header.marshalHeader(p.buf, true)
 
-	p.extraDataType = ExtraDataType(header.recvExtraDataType)
+	p.extraDataType = header.recvExtraDataType
 
 	p.msg = applyMessage(p.protoID)
 }
@@ -108,7 +108,7 @@ func (p *Proto) BytesForRecv() []byte {
 
 // OnRecvAllBytes 本协议的所有字节流接收完毕
 func (p *Proto) OnRecvAllBytes(header *ProtoHeader) error {
-	extraDataLen := getExtraDataLength(p.extraDataType)
+	extraDataLen := p.extraDataType.BufferLength()
 	extraDataOffset := protoHeaderLength + header.contentLength
 
 	// 校验并记录附加数据
@@ -167,7 +167,7 @@ func (p *Proto) Marshal(header *ProtoHeader) (err error) {
 	}
 
 	contentLen := len(contentBuf)
-	extraDataLen := getExtraDataLength(p.extraDataType)
+	extraDataLen := p.extraDataType.BufferLength()
 	bufLengthLimit := protoHeaderLength + contentLen + extraDataLen
 
 	// 将接收到的协议转发时, 必然满足 bufLengthLimit <= cap(p.buf)
@@ -255,6 +255,6 @@ func (p *Proto) SetCacheWaitSend() {
 
 // String 返回Proto的自我描述
 func (p *Proto) String() string {
-	return fmt.Sprintf("protoID[%v:%v] useState[%v] msg[%v] extraDataType[%v] extraData[%v] len(buf)[%v] cap(buf)[%v] buf:\n[%v]",
-		p.protoID, MessageType_name[int32(p.protoID)], p.useState, p.msg, p.extraDataType, p.extraData, len(p.buf), cap(p.buf), p.buf)
+	return fmt.Sprintf("protoID[%v] useState[%v] msg[%v] extraDataType[%v] extraData[%v] buf[%v:%v:%v]",
+		p.protoID, p.useState, p.msg, p.extraDataType, p.extraData, len(p.buf), cap(p.buf), p.buf)
 }

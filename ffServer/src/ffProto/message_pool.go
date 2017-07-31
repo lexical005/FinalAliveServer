@@ -10,16 +10,15 @@ import (
 var messagePool []*pool.Pool
 
 func init() {
-	maxProtoID := len(listProtoID)
-	for _, v := range listProtoID {
-		if maxProtoID < int(v) {
-			maxProtoID = int(v)
-		}
-	}
-
+	maxProtoID := int(listMessageID[len(listMessageID)-1])
 	messagePool = make([]*pool.Pool, maxProtoID+1, maxProtoID+1)
-	for i, protoID := range listProtoID {
-		messagePool[protoID] = pool.New(fmt.Sprintf("ffProto.message_pool.messagePool_%d", i), false, mapMessageCreator[protoID], 10, 50)
+	for _, protoID := range listMessageID {
+		messagePool[protoID] = pool.New(
+			fmt.Sprintf("ffProto.message_pool.messagePool_%v", protoID),
+			false,
+			mapMessageCreator[protoID],
+			10,
+			50)
 	}
 }
 

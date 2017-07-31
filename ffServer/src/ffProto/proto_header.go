@@ -7,7 +7,7 @@ type ProtoHeader struct {
 	protoID       int32 // 协议号
 	contentLength int   // 协议体的长度
 
-	recvExtraDataType byte // 用于接收时, 限定的附加数据的类型
+	recvExtraDataType ExtraDataType // 用于接收时, 限定的附加数据的类型
 
 	lastRecvExtraDataNormal []byte // 上一次接收到的附加数据
 	lastSendExtraDataNormal []byte // 上一次发送的附加数据
@@ -17,9 +17,9 @@ type ProtoHeader struct {
 // 将底层收到的字节流, 记录到协议头内
 func (ph *ProtoHeader) Unmarshal(buf []byte) error {
 	// 附加数据类型限定
-	if ph.recvExtraDataType != buf[protoHeaderExtraDataTypeOffset] {
-		return fmt.Errorf("ffProto.ProtoHeader.Unmarshal: ExtraDataType not match[%v:%v]",
-			ph.recvExtraDataType, buf[protoHeaderExtraDataTypeOffset])
+	if ph.recvExtraDataType.Value() != buf[protoHeaderExtraDataTypeOffset] {
+		return fmt.Errorf("ffProto.ProtoHeader.Unmarshal: ExtraDataType not match[%v(%v):%v]",
+			ph.recvExtraDataType, ph.recvExtraDataType.Value(), buf[protoHeaderExtraDataTypeOffset])
 	}
 
 	// 协议号有效性
@@ -43,7 +43,7 @@ func (ph *ProtoHeader) Unmarshal(buf []byte) error {
 
 // ResetForRecv 重置, 以便再次使用
 func (ph *ProtoHeader) ResetForRecv(recvExtraDataType ExtraDataType) {
-	ph.recvExtraDataType = byte(recvExtraDataType)
+	ph.recvExtraDataType = recvExtraDataType
 
 	ph.lastRecvExtraDataNormal[0] = 0xFF
 	ph.lastSendExtraDataNormal[0] = 0xFF
@@ -68,7 +68,7 @@ func (ph *ProtoHeader) marshalHeader(buf []byte, marshalExtraDataType bool) {
 
 	// 附加数据类型
 	if marshalExtraDataType {
-		buf[protoHeaderExtraDataTypeOffset] = ph.recvExtraDataType
+		buf[protoHeaderExtraDataTypeOffset] = ph.recvExtraDataType.Value()
 	}
 }
 

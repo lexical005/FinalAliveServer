@@ -14,8 +14,6 @@ configfile.close()
 
 msg_types = []
 custom_msg = [
-	["SessionConnect", -1],
-	["SessionDisConnect", -2],
 ]
 
 def parse(text, ismsg):
@@ -103,7 +101,7 @@ def save_go():
 	'''
 
 
-	t1 = 'var listProtoID = []MessageType{\n'
+	t1 = 'var listMessageID = []MessageType{\n'
 	t2 = 'var mapMessageCreator = map[MessageType]func() interface{}{\n'
 	for mt in msg_types:
 		t1 += 'MessageType_' + mt + ',\n'
