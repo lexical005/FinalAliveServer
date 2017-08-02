@@ -6,6 +6,7 @@ import (
 	"ffCommon/pool"
 	"ffCommon/uuid"
 	"fmt"
+	"net"
 )
 
 const (
@@ -16,7 +17,7 @@ const (
 	DefaultOnlineCount = 60
 
 	// DefaultInitSessionNetEventDataCount 初始默认创建多少sessionNetEventData, 供本进程所有tcpSession使用
-	DefaultInitSessionNetEventDataCount = 256
+	DefaultInitSessionNetEventDataCount = 2
 )
 
 // 没有网络包进入的最大间隔(秒)
@@ -82,8 +83,10 @@ func Init(
 }
 
 // Apply 申请一个空闲session, session将在连接断开后, 自动缓存到sp. 该方法不是多goroutine安全的.
-func Apply() (s base.Session) {
-	return sessPool.apply()
+func Apply(conn net.Conn) (s base.Session) {
+	sess := sessPool.apply()
+	sess.SetConn(conn)
+	return sess
 }
 
 // PrintModule 输出tcpsession模块信息

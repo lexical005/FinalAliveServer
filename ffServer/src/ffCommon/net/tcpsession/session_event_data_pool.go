@@ -14,7 +14,7 @@ func (s *sessionNetEventDataPool) apply() *sessionNetEventData {
 	return eventData
 }
 
-func (s *sessionNetEventDataPool) back(eventData base.SessionNetEventData) {
+func (s *sessionNetEventDataPool) back(eventData base.NetEventData) {
 	s.pool.Back(eventData)
 }
 

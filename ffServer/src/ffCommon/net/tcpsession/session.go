@@ -26,13 +26,14 @@ type tcpSession struct {
 	conn           net.Conn               // 底层连接
 	chNetEventData chan base.NetEventData // 外界接收事件数据的管道
 
-	uuid    uuid.UUID // UUID
-	working bool      // 是否正常工作状态
+	uuid uuid.UUID // UUID
 
-	chSendPool                  chan *ffProto.Proto // 待发送协议管道
+	chSendProto                 chan *ffProto.Proto // 待发送协议管道
 	chWaitRecvSendGoroutineExit chan struct{}       // 等待发送/接收协程退出
 	chNtfRecvSendGoroutineExit  chan struct{}       // 通知发送/接收协程退出
 	onceClose                   util.Once           // 用于只执行一次关闭tcpsession
+
+	manualClose bool // 是否主动断开连接
 }
 
 // UUID UUID
@@ -40,39 +41,13 @@ func (s *tcpSession) UUID() uuid.UUID {
 	return s.uuid
 }
 
-// Close 异步关闭Session
-// delayMillisecond: 延迟多少毫秒关闭
-func (s *tcpSession) Close(delayMillisecond int64) {
-	log.RunLogger.Printf("tcpSession.Close delayMillisecond[%d]: %v", delayMillisecond, s)
-
-	// 立即标识停止工作
-	s.working = false
-
-	go util.SafeGo(func(params ...interface{}) {
-		if delayMillisecond > 0 {
-			select {
-			case <-time.After(time.Duration(delayMillisecond) * time.Millisecond):
-				s.onceClose.Do(func() {
-					s.doClose(true)
-				})
-			}
-		} else {
-			s.onceClose.Do(func() {
-				s.doClose(true)
-			})
-		}
-	}, nil)
-}
-
-// SendProto 发送Proto到对端, 外界只应该在收到连接建立完成事件之后再调用此接口, 异步
-func (s *tcpSession) SendProto(proto *ffProto.Proto) {
-	log.RunLogger.Printf("tcpSession.SendProto proto[%v]: %v", proto, s)
-
-	s.chSendPool <- proto
+// UUID UUID
+func (s *tcpSession) SetConn(conn net.Conn) {
+	s.conn = conn
 }
 
 // Start 主循环
-func (s *tcpSession) Start(conn net.Conn, chNetEventData chan base.NetEventData, recvProtoExtraDataType ffProto.ExtraDataType) {
+func (s *tcpSession) Start(chSendProto chan *ffProto.Proto, chNetEventData chan base.NetEventData, recvProtoExtraDataType ffProto.ExtraDataType) {
 	// 重新开始
 	if s.sendLeft != nil {
 		s.sendLeft = s.sendLeft[:0]
@@ -82,14 +57,11 @@ func (s *tcpSession) Start(conn net.Conn, chNetEventData chan base.NetEventData,
 	s.sendProtoHeader.ResetForSend()
 	s.recvProtoHeader.ResetForRecv(recvProtoExtraDataType)
 
-	s.chSendPool = make(chan *ffProto.Proto, 4)
 	s.chWaitRecvSendGoroutineExit = make(chan struct{}, 2)
 	s.chNtfRecvSendGoroutineExit = make(chan struct{})
 	s.onceClose.Reset()
 
-	s.conn, s.chNetEventData = conn, chNetEventData
-
-	s.working = true
+	s.chNetEventData, s.chSendProto = chNetEventData, chSendProto
 
 	log.RunLogger.Printf("tcpSession.Start: %v", s)
 
@@ -102,9 +74,19 @@ func (s *tcpSession) Start(conn net.Conn, chNetEventData chan base.NetEventData,
 	go util.SafeGo(s.mainSend, s.mainSendEnd)
 }
 
+// Close 在执行Start之前, 就直接关闭连接, 用于外界已决定关闭服务时新建立的连接需要立即关闭
+func (s *tcpSession) Close() {
+	s.onceClose.Do(func() {
+		// 关闭底层连接
+		s.conn.Close()
+
+		// 归还
+		sessPool.back(s)
+	})
+}
+
 func (s *tcpSession) String() string {
-	return fmt.Sprintf(`uuid[%v] working[%v] sendLeft[%v] chSendPool[%v]`,
-		s.uuid, s.working, len(s.sendLeft), len(s.chSendPool))
+	return fmt.Sprintf(`uuid[%v]`, s.uuid)
 }
 
 func (s *tcpSession) mainSend(params ...interface{}) {
@@ -113,15 +95,19 @@ func (s *tcpSession) mainSend(params ...interface{}) {
 		case <-s.chNtfRecvSendGoroutineExit:
 			// 关闭
 			return
-		case p := <-s.chSendPool:
+		case proto := <-s.chSendProto:
 			// 发送
-			if p == nil || !s.doSend(p) {
+			if proto == nil {
+				// 标识主动退出
+				s.manualClose = true
+				return
+			} else if !s.doSend(proto) {
 				return
 			}
 		}
 
 		// 有未发送完毕的数据, 且当前没有等待发送的协议
-		for len(s.sendLeft) > 0 && len(s.chSendPool) == 0 {
+		for len(s.sendLeft) > 0 && len(s.chSendProto) == 0 {
 			// 等待2毫秒
 			<-time.After(2 * time.Microsecond)
 
@@ -146,7 +132,7 @@ func (s *tcpSession) mainSendEnd() {
 	s.chWaitRecvSendGoroutineExit <- struct{}{}
 
 	s.onceClose.Do(func() {
-		s.doClose(false)
+		s.doClose()
 	})
 }
 
@@ -200,8 +186,10 @@ func (s *tcpSession) mainRecv(params ...interface{}) {
 	for {
 		// 接收
 		if err = s.doRecv(); err != nil {
-			log.RunLogger.Printf("tcpSession.mainRecv err[%v]: %v", err, s)
-			break
+			if !s.manualClose {
+				log.RunLogger.Printf("tcpSession.mainRecv err[%v]: %v", err, s)
+			}
+			return
 		}
 
 		// 是否关闭
@@ -209,6 +197,7 @@ func (s *tcpSession) mainRecv(params ...interface{}) {
 		case <-s.chNtfRecvSendGoroutineExit:
 			return
 		default:
+			break
 		}
 	}
 }
@@ -218,7 +207,7 @@ func (s *tcpSession) mainRecvEnd() {
 	s.chWaitRecvSendGoroutineExit <- struct{}{}
 
 	s.onceClose.Do(func() {
-		s.doClose(false)
+		s.doClose()
 	})
 }
 
@@ -266,31 +255,21 @@ func (s *tcpSession) doRecv() error {
 }
 
 // doClose Session本次有效期间, 只会被执行一次
-func (s *tcpSession) doClose(manual bool) {
+func (s *tcpSession) doClose() {
 	log.RunLogger.Printf("tcpSession.doClose: %v", s)
-
-	// 连接异常导致关闭时, 标识停止工作
-	if !manual {
-		s.working = false
-	}
 
 	// 关闭结束管道, 触发发送/接收协程退出
 	close(s.chNtfRecvSendGoroutineExit)
 
 	// 关闭底层连接
-	if s.conn != nil {
-		s.conn.Close()
-	}
-
-	// 连接断开事件
-	s.chNetEventData <- newSessionNetEventOff(s, manual)
+	s.conn.Close()
 
 	// 等待发送和接收协程退出
 	<-s.chWaitRecvSendGoroutineExit
 	<-s.chWaitRecvSendGoroutineExit
 
-	// 连接结束事件
-	s.chNetEventData <- newSessionNetEventEnd(s)
+	// 连接断开事件
+	s.chNetEventData <- newSessionNetEventOff(s, s.manualClose)
 }
 
 // back 外界已停止引用Session, 可安全回收了
@@ -298,11 +277,7 @@ func (s *tcpSession) back() {
 	log.RunLogger.Printf("tcpSession.back: %v", s)
 
 	// 清理内部数据
-	close(s.chSendPool)
-	for p := range s.chSendPool {
-		p.BackAfterSend()
-	}
-	s.chSendPool = nil
+	s.chSendProto = nil
 	s.sendLeft = s.sendLeft[:0]
 	s.conn, s.chNetEventData = nil, nil
 

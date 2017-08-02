@@ -12,7 +12,7 @@ type sessionPool struct {
 	uuidGenerator uuid.Generator
 }
 
-func (sp *sessionPool) apply() base.Session {
+func (sp *sessionPool) apply() *tcpSession {
 	s, _ := sp.pool.Apply().(*tcpSession)
 	s.uuid = sp.uuidGenerator.Gen()
 	return s

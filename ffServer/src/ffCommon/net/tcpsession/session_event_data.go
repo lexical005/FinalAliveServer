@@ -22,7 +22,7 @@ func (s *sessionNetEventData) Back() {
 	s.proto = nil
 
 	// 回收tcpsession
-	if s.eventType == base.NetEventEnd {
+	if s.eventType == base.NetEventOff {
 		s.session.back()
 	}
 	s.session = nil
@@ -60,27 +60,21 @@ func newSessionNetEventData() *sessionNetEventData {
 	return &sessionNetEventData{}
 }
 
-func newSessionNetEventOn(session *tcpSession) base.SessionNetEventData {
+func newSessionNetEventOn(session *tcpSession) base.NetEventData {
 	data := eventDataPool.apply()
 	data.session, data.eventType = session, base.NetEventOn
 	return data
 }
 
-func newSessionNetEventOff(session *tcpSession, manualClose bool) base.SessionNetEventData {
+func newSessionNetEventOff(session *tcpSession, manualClose bool) base.NetEventData {
 	data := eventDataPool.apply()
 	data.session, data.eventType, data.manualClose = session, base.NetEventOff, manualClose
 	return data
 }
 
-func newSessionNetEventProto(session *tcpSession, proto *ffProto.Proto) base.SessionNetEventData {
+func newSessionNetEventProto(session *tcpSession, proto *ffProto.Proto) base.NetEventData {
 	data := eventDataPool.apply()
 	data.session, data.eventType, data.proto = session, base.NetEventProto, proto
 	proto.SetCacheWaitDispatch()
-	return data
-}
-
-func newSessionNetEventEnd(session *tcpSession) base.SessionNetEventData {
-	data := eventDataPool.apply()
-	data.session, data.eventType = session, base.NetEventEnd
 	return data
 }

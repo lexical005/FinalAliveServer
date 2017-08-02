@@ -1,40 +1,21 @@
 package base
 
-import (
-	"ffCommon/uuid"
-	"ffProto"
-)
-
-// ServerNetEventData 向外界通知的事件数据, 事件处理完毕后, 必须执行Back方法, 以回收所有相关资源
-type ServerNetEventData interface {
-	// NetEventData 将NetEventData定义组合进来
-	NetEventData
-
-	// SessionUUID 事件关联的session的UUID, 当NetEventType为NetEventEnd时无效
-	SessionUUID() uuid.UUID
-
-	// Server 事件关联的server
-	Server() Server
-}
-
-// Server Server自身, 未实现多goroutine安全, 由使用者确保
+// Server 在指定配置上监听用户连接, 有新连接建立时, 通过管道, 向外界汇报
+//	关闭服务器流程:
+//		先执行StopAccept, 让Server结束监听
+//		外界关闭现有所有连接
+//		当所有连接都已关闭后, 执行Back, 回收Server
 type Server interface {
-	// Start 启动 Server 监听 Client 链接
-	Start(chNetEventData chan NetEventData, recvProtoExtraDataType ffProto.ExtraDataType) error
+	// Start 启动Server, 开始监听用户连接, 一次性, 同步
+	//	chNewSession: 外界接收新连接被创建事件的管道, Server仅有写入权
+	//	chServerClosed: 用于向外界通知关闭完成的管道, Server仅有写入权
+	Start(chNewSession chan Session, chServerClosed chan struct{}) error
 
-	// SendProto 发送Proto到指定对端, 异步
-	SendProto(uuidSession uuid.UUID, p *ffProto.Proto) error
+	// StopAccept 停止接受连接请求, 只应在Start成功前提下希望关闭服务器时执行, 一次性, 同步
+	StopAccept()
 
-	// Close 关闭, 一次性, 外界以处理到NetEventEnd作为Session结束的最后一个事件, 异步
-	// 内部确保只有首次调用时有效
-	//	uuidSession: 要关闭的连接
-	// 	delayMillisecond: 延迟多少毫秒关闭
-	CloseSession(uuidSession uuid.UUID, delayMillisecond int64)
-
-	// Close 关闭, 一次性, 外界以处理到NetEventEnd作为Server结束的最后一个事件, 异步
-	// 内部确保只有首次调用时有效
-	// 	delayMillisecond: 延迟多少毫秒关闭
-	Close(delayMillisecond int64)
+	// Back 回收服务器资源, 只应在Start失败或者所有连接均已完成关闭情况下执行, 一次性, 同步
+	Back()
 
 	String() string
 }
