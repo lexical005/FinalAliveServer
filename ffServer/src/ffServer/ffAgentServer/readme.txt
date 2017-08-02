@@ -1,14 +1,14 @@
 代理服务器
 直接与用户交互的服务器，后端服务器与用户之间交流的中转站
 
-C1->AS->L1
-C2->AS->L1
+Client1->AgentServer->LoginServer1
+Client2->AgentServer->LoginServer1
 
-C1->AS->G1
-C2->AS->G1
+Client1->AgentServer->GameServer1
+Client2->AgentServer->GameServer1
 
-G1->AS->C1
-G1->AS->C2
+GameServer1->AgentServer->Client1
+GameServer1->AgentServer->Client2
 
 Client连接建立
 Client请求登录校验

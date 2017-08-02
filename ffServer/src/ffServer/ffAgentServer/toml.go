@@ -6,28 +6,38 @@ import (
 	"github.com/lexical005/toml"
 )
 
-// server配置
-type serverConfig struct {
-	ServerType string
-	ServerID   int
-}
-
 // 连接配置
 type sessionConfig struct {
-	ReadDeadTime int // 读取超时N秒
-	OnlineCount  int // 默认的同时在线连接数
+	ReadDeadTime          int // ReadDeadTime 读取超时N秒. 为0时, 使用系统默认配置值60
+	InitNetEventDataCount int // InitNetEventDataCount 初始创建多少网络事件数据缓存. 为0时, 使用的值为OnlineCount/4. 最小为2
+	InitOnlineCount       int // InitOnlineCount 初始创建多少连接缓存, 必须配置. >=2
 }
 
-// 客户端监听配置
-type clientListenConfig struct {
-	ClientType string // 客户端类型
-	ListenAddr string // 监听地址
-}
+// serverUserConfig 为用户提供服务的配置
+type serverUserConfig struct {
+	// ListenTarget 监听目标
+	ListenTarget string
 
-// 服务端监听配置
-type serverListenConfig struct {
-	ServerType string // 服务端类型
-	ListenAddr string // 监听地址
+	// ListenAddr 监听地址
+	ListenAddr string
+
+	// InitOnlineCount 初始多少同时连接存在
+	InitOnlineCount int
+
+	// SendExtraDataType 发送的协议的附加数据类型
+	SendExtraDataType string
+
+	// RecvExtraDataType 接收的协议的附加数据类型
+	RecvExtraDataType string
+
+	// AcceptNewSessionCache 接受新连接的管道的缓存大小. 影响接受新连接速度.
+	AcceptNewSessionCache int
+
+	// SessionNetEventDataCache 用户网络事件管道的缓存大小. 影响处理网络事件的速度.
+	SessionNetEventDataCache int
+
+	// SessionSendProtoCache 用户待发送协议管道的缓存大小. 影响发送协议的速度
+	SessionSendProtoCache int
 }
 
 // 文本日志配置
@@ -40,15 +50,14 @@ type fileLoggerConfig struct {
 
 // 服务器配置
 type applicationConfig struct {
-	ServerConfig serverConfig
+	// Session 连接配置
+	Session *sessionConfig
 
-	Session sessionConfig
+	// ServerUser 服务用户的配置
+	ServerUser *serverUserConfig
 
-	ClientListen clientListenConfig
-
-	ServerListen serverListenConfig
-
-	Logger fileLoggerConfig
+	// Logger 日志配置
+	Logger *fileLoggerConfig
 }
 
 func readToml() error {
