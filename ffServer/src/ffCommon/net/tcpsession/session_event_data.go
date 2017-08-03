@@ -1,6 +1,7 @@
 package tcpsession
 
 import (
+	"ffCommon/log/log"
 	"ffCommon/net/base"
 	"ffProto"
 	"fmt"
@@ -16,6 +17,7 @@ type sessionNetEventData struct {
 
 // Back 回收
 func (s *sessionNetEventData) Back() {
+	log.RunLogger.Printf("sessionNetEventData.Back: %v", s)
 
 	if s.eventType == base.NetEventProto { // 回收proto
 		s.proto.BackAfterDispatch()
@@ -52,10 +54,10 @@ func (s *sessionNetEventData) Proto() *ffProto.Proto {
 }
 
 func (s *sessionNetEventData) String() string {
-	return fmt.Sprintf(`eventType[%v] uuidSession[%v]`, s.eventType, s.session.uuid)
+	return fmt.Sprintf(`%p eventType[%v] uuidSession[%v]`, s, s.eventType, s.session.uuid)
 }
 
-func newSessionNetEventData() *sessionNetEventData {
+func newSessionNetEvent() *sessionNetEventData {
 	return &sessionNetEventData{}
 }
 
@@ -74,6 +76,5 @@ func newSessionNetEventOff(session *tcpSession, manualClose bool) base.NetEventD
 func newSessionNetEventProto(session *tcpSession, proto *ffProto.Proto) base.NetEventData {
 	data := eventDataPool.apply()
 	data.session, data.eventType, data.proto = session, base.NetEventProto, proto
-	proto.SetCacheWaitDispatch()
 	return data
 }

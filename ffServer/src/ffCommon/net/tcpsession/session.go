@@ -61,6 +61,8 @@ func (s *tcpSession) Start(chSendProto chan *ffProto.Proto, chNetEventData chan 
 	s.chNtfRecvSendGoroutineExit = make(chan struct{})
 	s.onceClose.Reset()
 
+	s.manualClose = false
+
 	s.chNetEventData, s.chSendProto = chNetEventData, chSendProto
 
 	log.RunLogger.Printf("tcpSession.Start: %v", s)
@@ -68,10 +70,10 @@ func (s *tcpSession) Start(chSendProto chan *ffProto.Proto, chNetEventData chan 
 	s.chNetEventData <- newSessionNetEventOn(s)
 
 	// start recv goroutine
-	go util.SafeGo(s.mainRecv, s.mainRecvEnd)
+	go util.SafeGo(s.mainRecv, s.mainRecvEnd, s.uuid)
 
 	// start send goroutine
-	go util.SafeGo(s.mainSend, s.mainSendEnd)
+	go util.SafeGo(s.mainSend, s.mainSendEnd, s.uuid)
 }
 
 // Close 在执行Start之前, 就直接关闭连接, 用于外界已决定关闭服务时新建立的连接需要立即关闭
@@ -86,7 +88,7 @@ func (s *tcpSession) Close() {
 }
 
 func (s *tcpSession) String() string {
-	return fmt.Sprintf(`uuidSession[%v]`, s.uuid)
+	return fmt.Sprintf(`%p uuidSession[%v]`, s, s.uuid)
 }
 
 func (s *tcpSession) mainSend(params ...interface{}) {
@@ -102,6 +104,7 @@ func (s *tcpSession) mainSend(params ...interface{}) {
 			if proto == nil {
 				// 标识主动退出
 				s.manualClose = true
+				log.RunLogger.Printf("tcpSession.mainSend start quit: %v", s)
 				return
 			} else if !s.doSend(proto) {
 				return
@@ -191,9 +194,7 @@ func (s *tcpSession) mainRecv(params ...interface{}) {
 	for {
 		// 接收
 		if err = s.doRecv(); err != nil {
-			if !s.manualClose {
-				log.RunLogger.Printf("tcpSession.mainRecv err[%v]: %v", err, s)
-			}
+			log.RunLogger.Printf("tcpSession.mainRecv err[%v] manualClose[%v]: %v", err, s.manualClose, s)
 			return
 		}
 
@@ -216,7 +217,27 @@ func (s *tcpSession) mainRecvEnd() {
 	})
 }
 
-func (s *tcpSession) doRecv() error {
+func (s *tcpSession) doRecv() (err error) {
+	// 接收协议头
+	err = s.doRecvHeader()
+	if err != nil {
+		return
+	}
+
+	// 接收协议内容
+	data, err := s.doRecvContent()
+	if err != nil {
+		return
+	}
+
+	// 协议事件
+	s.chNetEventData <- data
+
+	return nil
+}
+
+// doRecvHeader 接收协议头
+func (s *tcpSession) doRecvHeader() error {
 	// solve dead link problem:
 	// physical disconnection without any communcation between client and server
 	// will cause the read to block FOREVER, so a timeout is a rescue.
@@ -225,24 +246,40 @@ func (s *tcpSession) doRecv() error {
 	// read Proto header
 	_, err := io.ReadFull(s.conn, s.recvHeaderBuf)
 	if err != nil {
+		log.RunLogger.Printf("tcpSession.doRecvHeader ReadFull header error[%v]: %v", err, s)
 		return err
 	}
 
-	log.RunLogger.Printf("tcpSession.doRecv recvHeaderBuf[%v]: %v", s.recvHeaderBuf, s)
+	log.RunLogger.Printf("tcpSession.doRecvHeader recvHeaderBuf[%v]: %v", s.recvHeaderBuf, s)
 
 	// 协议头解析
 	err = s.recvProtoHeader.Unmarshal(s.recvHeaderBuf)
 	if err != nil {
+		log.RunLogger.Printf("tcpSession.doRecvHeader recvProtoHeader.Unmarshal error[%v]: %v", err, s)
 		return err
 	}
 
+	return nil
+}
+
+// doRecvContent 接收协议内容
+func (s *tcpSession) doRecvContent() (data base.NetEventData, err error) {
 	// 接收剩余部分
 	p := ffProto.ApplyProtoForRecv(s.recvProtoHeader)
 
+	defer p.BackAfterRecv()
+
 	buf := p.BytesForRecv()
+
+	// solve dead link problem:
+	// physical disconnection without any communcation between client and server
+	// will cause the read to block FOREVER, so a timeout is a rescue.
+	s.conn.SetReadDeadline(time.Now().Add(time.Duration(readDeadtime) * time.Second))
+
 	_, err = io.ReadFull(s.conn, buf)
 	if err != nil {
-		return err
+		log.RunLogger.Printf("tcpSession.doRecv ReadFull content error[%v]: %v", err, s)
+		return
 	}
 
 	log.RunLogger.Printf("tcpSession.doRecv recvProtoData[%v]: %v", buf, s)
@@ -250,13 +287,14 @@ func (s *tcpSession) doRecv() error {
 	// 数据接收完毕, 通知校验
 	err = p.OnRecvAllBytes(s.recvProtoHeader)
 	if err != nil {
-		return err
+		log.RunLogger.Printf("tcpSession.doRecv proto[%v] OnRecvAllBytes error[%v]: %v", p, err, s)
+		return
 	}
 
-	// 协议事件
-	s.chNetEventData <- newSessionNetEventProto(s, p)
+	// 设置Proto状态为等待分发
+	p.SetCacheWaitDispatch()
 
-	return nil
+	return newSessionNetEventProto(s, p), nil
 }
 
 // doClose Session本次有效期间, 只会被执行一次

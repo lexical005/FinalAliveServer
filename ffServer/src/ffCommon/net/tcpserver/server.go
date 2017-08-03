@@ -90,7 +90,7 @@ func (s *tcpServer) UUID() uuid.UUID {
 
 // String 返回Server的自我描述
 func (s *tcpServer) String() string {
-	return fmt.Sprintf(`uuidServer[%v]`, s.uuid)
+	return fmt.Sprintf(`%p uuidServer[%v]`, s, s.uuid)
 }
 
 // mainAccept 接受客户端连接请求

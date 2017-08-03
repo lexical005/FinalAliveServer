@@ -68,7 +68,7 @@ func (c *tcpClient) UUID() uuid.UUID {
 
 // String 返回Client的自我描述
 func (c *tcpClient) String() string {
-	return fmt.Sprintf(`uuidClient[%v]`, c.uuid)
+	return fmt.Sprintf(`%p uuidClient[%v]`, c, c.uuid)
 }
 
 func (c *tcpClient) mainLoop(params ...interface{}) {

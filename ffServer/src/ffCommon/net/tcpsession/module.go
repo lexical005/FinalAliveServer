@@ -72,7 +72,7 @@ func Init(
 	}
 
 	funcCreateSessionNetEventData := func() interface{} {
-		return newSessionNetEventData()
+		return newSessionNetEvent()
 	}
 
 	eventDataPool = &sessionNetEventDataPool{
