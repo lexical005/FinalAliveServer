@@ -80,8 +80,8 @@ func (ph *ProtoHeader) marshalSendExtraDataNormal(buf []byte) {
 
 // String 返回ProtoHeader的自我描述
 func (ph *ProtoHeader) String() string {
-	return fmt.Sprintf("protoID[%v:%v] contentLength[%v] recvExtraDataType[%b] lastRecvExtraDataNormal[%v] lastSendExtraDataNormal[%v]",
-		ph.protoID, MessageType_name[int32(ph.protoID)], ph.contentLength, ph.recvExtraDataType, ph.lastRecvExtraDataNormal, ph.lastSendExtraDataNormal)
+	return fmt.Sprintf("protoID[%v] contentLength[%v] recvExtraDataType[%b] lastRecvExtraDataNormal[%v] lastSendExtraDataNormal[%v]",
+		MessageType_name[int32(ph.protoID)], ph.contentLength, ph.recvExtraDataType, ph.lastRecvExtraDataNormal, ph.lastSendExtraDataNormal)
 }
 
 // NewProtoHeader 新建一个协议头

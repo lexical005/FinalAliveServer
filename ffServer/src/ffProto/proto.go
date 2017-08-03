@@ -1,7 +1,11 @@
 package ffProto
 
-import "fmt"
-import "github.com/golang/protobuf/proto"
+import (
+	"ffCommon/log/log"
+	"fmt"
+
+	"github.com/golang/protobuf/proto"
+)
 
 // Proto proto
 type Proto struct {
@@ -24,14 +28,18 @@ func (p *Proto) setBuf(buf []byte) {
 }
 
 func (p *Proto) back() {
+	log.RunLogger.Printf("Proto.back: %v", p)
+
 	if p.msg != nil {
+		p.useState = useStateNone
+
 		backMessage(p.protoID, p.msg)
 		p.msg = nil
 
-		backProto(p)
 		backBuffer(p.buf)
-
 		p.setBuf(nil)
+
+		backProto(p)
 	}
 }
 
@@ -255,6 +263,6 @@ func (p *Proto) SetCacheWaitSend() {
 
 // String 返回Proto的自我描述
 func (p *Proto) String() string {
-	return fmt.Sprintf("protoID[%v] useState[%v] msg[%v] extraDataType[%v] extraData[%v] buf[%v:%v:%v]",
-		p.protoID, p.useState, p.msg, p.extraDataType, p.extraData, len(p.buf), cap(p.buf), p.buf)
+	return fmt.Sprintf("%p protoID[%v] useState[%v] msg[%v] extraDataType[%v] extraData[%v] buf[%v:%v:%v:%p]",
+		p, p.protoID, p.useState, p.msg, p.extraDataType, p.extraData, len(p.buf), cap(p.buf), p.buf, p.buf)
 }
