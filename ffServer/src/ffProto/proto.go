@@ -2,6 +2,7 @@ package ffProto
 
 import (
 	"ffCommon/log/log"
+	"ffCommon/util"
 	"fmt"
 
 	"github.com/golang/protobuf/proto"
@@ -35,6 +36,7 @@ func (p *Proto) back() {
 
 		backMessage(p.protoID, p.msg)
 		p.msg = nil
+		p.msgNeedMarshal = false
 
 		backBuffer(p.buf)
 		p.setBuf(nil)
@@ -43,8 +45,17 @@ func (p *Proto) back() {
 	}
 }
 
+// BackAfterRecv 在接收完协议后, 尝试回收(比如解析失败时)
+func (p *Proto) BackAfterRecv() {
+	log.RunLogger.Printf("Proto.BackAfterRecv: %v", p)
+	if p.useState == useStateRecv && p.msg != nil {
+		p.back()
+	}
+}
+
 // BackAfterSend 在底层发送协议后, 尝试回收
 func (p *Proto) BackAfterSend() {
+	log.RunLogger.Printf("Proto.BackAfterSend: %v", p)
 	if p.useState == useStateSend && p.msg != nil {
 		p.back()
 	}
@@ -52,6 +63,7 @@ func (p *Proto) BackAfterSend() {
 
 // BackAfterDispatch 缓存分发后, 不再需要时, 尝试回收
 func (p *Proto) BackAfterDispatch() {
+	log.RunLogger.Printf("Proto.BackAfterDispatch: %v", p)
 	if p.useState == useStateCacheWaitDispatch && p.msg != nil {
 		p.back()
 	}
@@ -59,6 +71,7 @@ func (p *Proto) BackAfterDispatch() {
 
 // BackForce 强制回收, 慎用!!
 func (p *Proto) BackForce() {
+	log.RunLogger.Printf("Proto.BackForce: %v", p)
 	p.back()
 }
 
