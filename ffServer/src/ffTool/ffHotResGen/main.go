@@ -273,7 +273,7 @@ func genResult() (needUpload bool, result []interface{}, err error) {
 }
 
 func main() {
-	util.PanicProtect()
+	defer util.PanicProtect()
 
 	defer func() {
 		// 清理生成目录

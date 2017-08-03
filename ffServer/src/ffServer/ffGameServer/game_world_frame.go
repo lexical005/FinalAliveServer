@@ -127,7 +127,7 @@ func (gwf *gameWorldFrame) onRecvProto(p *ffProto.Proto) {
 // dispatchProto 处理接收到协议
 func (gwf *gameWorldFrame) dispatchProto(p *ffProto.Proto) {
 	// 分发完毕后，尝试回收协议
-	defer ffProto.BackProtoAfterDispatch(p)
+	defer p.BackAfterDispatch()
 
 	// 由具体逻辑处理协议
 	world.DispatchProto(uuid.UUID(p.ExtraData()), p)

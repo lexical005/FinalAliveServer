@@ -15,7 +15,7 @@ var mysql = &mysqlManager{}
 
 func main() {
 	// 异常保护
-	util.PanicProtect()
+	defer util.PanicProtect()
 
 	// 读取配置文件
 	var err error

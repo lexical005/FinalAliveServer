@@ -165,7 +165,7 @@ func (vivo *sdkChannelVIVO) onPay(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// 异常保护
-	util.PanicProtect()
+	defer util.PanicProtect()
 
 	// 成功
 	defer func() {

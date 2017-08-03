@@ -97,7 +97,7 @@ func (as *agentServer) sendProto(p *ffProto.Proto, extraDataUUID uint64) bool {
 	log.RunLogger.Printf("agentServer.sendProto: uuidAgent[%x] proto[%v] serverState[%d]",
 		extraDataUUID, p, -1)
 
-	ffProto.BackProtoAfterSend(p)
+	p.BackAfterSend()
 	return false
 }
 

@@ -18,7 +18,7 @@ func (mm *mysqlManager) start() {
 	mm.dbm = ffMySQL.NewMysqlManager()
 	mm.dbm.Open("toml/sql.toml")
 
-	go util.SafeGo(mm.dispatchMySQL)
+	go util.SafeGo(mm.dispatchMySQL, nil)
 }
 
 func (mm *mysqlManager) close() {

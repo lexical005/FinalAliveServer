@@ -36,7 +36,6 @@ func (conn *mysqlConn) addQuery(req *mysqlQueryRequest) {
 
 // dbQueryLoop 数据库查询循环
 func (conn *mysqlConn) queryLoop(params ...interface{}) {
-	defer conn.wgClose.Done()
 	conn.wgClose.Add(1)
 
 deadLoop:
@@ -48,4 +47,7 @@ deadLoop:
 			break deadLoop
 		}
 	}
+}
+func (conn *mysqlConn) queryLoopEnd() {
+	conn.wgClose.Done()
 }

@@ -61,7 +61,7 @@ func (db *mysqlDB) initConn() {
 			chQueryRequest: make(chan *mysqlQueryRequest, appMysqlConfig.MaxQueryCount/connCount),
 		}
 
-		go util.SafeGo(db.dbConns[index].queryLoop)
+		go util.SafeGo(db.dbConns[index].queryLoop, db.dbConns[index].queryLoopEnd)
 	}
 }
 

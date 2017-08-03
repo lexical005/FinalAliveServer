@@ -3,7 +3,7 @@ package main
 import (
 	"ffCommon/log/log"
 	"ffCommon/log/logfile"
-	"ffCommon/net/session"
+	"ffCommon/net/tcpsession"
 	"fmt"
 )
 
@@ -41,7 +41,7 @@ func startup() (err error) {
 	}
 
 	// 初始化Session
-	err = session.Init(appConfig.Session.ReadDeadTime, appConfig.Session.OnlineCount)
+	err = tcpsession.Init(appConfig.Session.ReadDeadTime, appConfig.Session.OnlineCount, tcpsession.DefaultInitSessionNetEventDataCount)
 	if err != nil {
 		return err
 	}

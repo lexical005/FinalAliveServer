@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	util.PanicProtect("ffGameServer.main")
+	defer util.PanicProtect("ffGameServer.main")
 
 	// 初始化
 	err := startup()
