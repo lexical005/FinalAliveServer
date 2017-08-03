@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"runtime"
 	"time"
 
 	"ffCommon/log/log"
@@ -210,36 +209,37 @@ func (l *loggerFileFatal) logAsync(s string, stdout bool) bool {
 // Printf calls l.logAsync to print to the loggerFileFatal.
 // Arguments are handled in the manner of fmt.Printf.
 func (l *loggerFileFatal) Printf(format string, v ...interface{}) {
+	s := log.Stack()
+
 	l.logAsync(fmt.Sprintf(format, v...), true)
-	l.DumpStack()
+	l.logAsync(s, true)
+
+	log.RunLogger.Printf(format, v...)
+	log.RunLogger.Println(s)
 }
 
 // Print calls l.logAsync to print to the loggerFileFatal.
 // Arguments are handled in the manner of fmt.Print.
 func (l *loggerFileFatal) Print(v ...interface{}) {
+	s := log.Stack()
+
 	l.logAsync(fmt.Sprint(v...), true)
-	l.DumpStack()
+	l.logAsync(s, true)
+
+	log.RunLogger.Print(v...)
+	log.RunLogger.Println(s)
 }
 
 // Println calls l.logAsync to print to the loggerFileFatal.
 // Arguments are handled in the manner of fmt.Println.
 func (l *loggerFileFatal) Println(v ...interface{}) {
-	l.logAsync(fmt.Sprintln(v...), true)
-	l.DumpStack()
-}
+	s := log.Stack()
 
-// DumpStack dump caller function call stack
-func (l *loggerFileFatal) DumpStack() {
-	s := fmt.Sprintf("DumpStack\n")
-	i := 0
-	funcName, file, line, ok := runtime.Caller(i)
-	for ok {
-		s += fmt.Sprintf("[%d, %s, %s, %d]\n", i, runtime.FuncForPC(funcName).Name(), file, line)
-		i++
-		funcName, file, line, ok = runtime.Caller(i)
-	}
-	s += "\n"
+	l.logAsync(fmt.Sprintln(v...), true)
 	l.logAsync(s, true)
+
+	log.RunLogger.Println(v...)
+	log.RunLogger.Println(s)
 }
 
 // Stop stop or recover output. fatal not support.

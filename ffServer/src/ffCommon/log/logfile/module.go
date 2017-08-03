@@ -16,6 +16,9 @@ const (
 
 	// DefaultLogFileFatalPrefix 致命日志文件的前缀
 	DefaultLogFileFatalPrefix = "fatal"
+
+	// DefaultLogFileRunPrefix 运行日志文件的前缀
+	DefaultLogFileRunPrefix = "run"
 )
 
 var lrq *logRequestPool

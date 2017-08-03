@@ -1,6 +1,5 @@
 package log
 
-import "runtime"
 import "fmt"
 
 type loggerConsoleNormal struct {
@@ -32,18 +31,6 @@ func (l *loggerConsoleNormal) Println(v ...interface{}) {
 	if l.run {
 		fmt.Println(v...)
 	}
-}
-
-// DumpStack dump caller function call stack
-func (l *loggerConsoleNormal) DumpStack() {
-	i := 0
-	funcName, file, line, ok := runtime.Caller(i)
-	for ok {
-		fmt.Printf("[%d, %s, %s, %d]\n", i, runtime.FuncForPC(funcName).Name(), file, line)
-		i++
-		funcName, file, line, ok = runtime.Caller(i)
-	}
-	fmt.Println()
 }
 
 // Stop stop or recover output. fatal not support.

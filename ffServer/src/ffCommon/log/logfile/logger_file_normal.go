@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path"
-	"runtime"
 	"time"
 
 	"ffCommon/log/log"
@@ -238,20 +237,6 @@ func (l *loggerFileNormal) Println(v ...interface{}) {
 	if l.run {
 		l.logAsync(fmt.Sprintln(v...), false)
 	}
-}
-
-// DumpStack dump caller function call stack
-func (l *loggerFileNormal) DumpStack() {
-	s := fmt.Sprintf("DumpStack\n")
-	i := 0
-	funcName, file, line, ok := runtime.Caller(i)
-	for ok {
-		s += fmt.Sprintf("[%d, %s, %s, %d]\n", i, runtime.FuncForPC(funcName).Name(), file, line)
-		i++
-		funcName, file, line, ok = runtime.Caller(i)
-	}
-	s += "\n"
-	l.logAsync(s, true)
 }
 
 // Stop stop or recover output. fatal not support.

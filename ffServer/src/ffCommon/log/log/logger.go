@@ -7,9 +7,6 @@ type Logger interface {
 	Print(v ...interface{})
 	Println(v ...interface{})
 
-	// DumpStack dump stack
-	DumpStack()
-
 	// Stop stop or recover output
 	Stop(stop bool)
 
