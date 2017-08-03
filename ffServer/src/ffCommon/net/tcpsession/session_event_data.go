@@ -7,25 +7,25 @@ import (
 )
 
 type sessionNetEventData struct {
+	eventType base.NetEventType
+
 	session     *tcpSession
-	eventType   base.NetEventType
 	manualClose bool
 	proto       *ffProto.Proto
 }
 
 // Back 回收
 func (s *sessionNetEventData) Back() {
-	// 回收proto
-	if s.eventType == base.NetEventProto {
-		s.proto.BackAfterDispatch()
-	}
-	s.proto = nil
 
-	// 回收tcpsession
-	if s.eventType == base.NetEventOff {
+	if s.eventType == base.NetEventProto { // 回收proto
+		s.proto.BackAfterDispatch()
+		s.proto = nil
+	} else if s.eventType == base.NetEventOff { // 回收tcpsession
 		s.session.back()
+		s.session = nil
 	}
-	s.session = nil
+
+	s.eventType = base.NetEventInvalid
 
 	// 回收自身
 	eventDataPool.back(s)
