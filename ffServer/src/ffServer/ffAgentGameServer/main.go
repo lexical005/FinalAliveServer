@@ -2,7 +2,10 @@ package main
 
 import (
 	"ffCommon/log/log"
+	"ffCommon/net/tcpserver"
+	"ffCommon/net/tcpsession"
 	"ffCommon/util"
+	"ffProto"
 	"fmt"
 	"sync/atomic"
 	"time"
@@ -46,6 +49,9 @@ quitLoop:
 			closeTime++
 			log.RunLogger.Printf("closing %v", closeTime)
 			log.RunLogger.Printf("useragent_server[%s]", agentServerUser.Status())
+			tcpsession.PrintModule()
+			tcpserver.PrintModule()
+			ffProto.PrintModule()
 
 			if atomic.LoadInt32(&waitServerQuit) == 0 {
 				break quitLoop

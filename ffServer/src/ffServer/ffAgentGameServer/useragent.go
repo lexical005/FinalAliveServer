@@ -12,7 +12,7 @@ import (
 
 // 用户连接到本服务器后的agent
 type userAgent struct {
-	uuidSessiont uuid.UUID
+	uuidSession uuid.UUID
 
 	sendExtraDataType ffProto.ExtraDataType  // 发送的Proto的附加数据类型
 	chSendProto       chan *ffProto.Proto    // 待发送协议管道
@@ -25,10 +25,12 @@ type userAgent struct {
 }
 
 func (agent *userAgent) String() string {
-	return fmt.Sprintf("uuidSessiont:%v", agent.uuidSessiont)
+	return fmt.Sprintf("uuidUserAgent[%v]", agent.uuidSession)
 }
 
 func (agent *userAgent) mainLoop(params ...interface{}) {
+	log.RunLogger.Printf("userAgent.mainLoop: %v", agent)
+
 	// 主循环
 	{
 		for {
@@ -41,6 +43,10 @@ func (agent *userAgent) mainLoop(params ...interface{}) {
 				}
 
 			case <-agent.chClose: // 外界通知关闭
+
+				log.RunLogger.Printf("userAgent.mainLoop start close: %v", agent)
+
+				agent.chSendProto <- nil
 
 				for {
 					select {
@@ -75,15 +81,20 @@ func (agent *userAgent) onNetEventData(data base.NetEventData) bool {
 
 // onConnect 连接建立
 func (agent *userAgent) onConnect(data base.NetEventData) {
+	log.RunLogger.Printf("userAgent.onConnect data[%v]: %v", data, agent)
 }
 
 // onDisConnect 连接断开
 func (agent *userAgent) onDisConnect(data base.NetEventData) {
+	log.RunLogger.Printf("userAgent.onDisConnect data[%v]: %v", data, agent)
+
 	agent.chAgentClosed <- agent
 }
 
 // onProto 收到Proto
 func (agent *userAgent) onProto(data base.NetEventData) {
+	log.RunLogger.Printf("userAgent.onProto data[%v]: %v", data, agent)
+
 	proto := data.Proto()
 	protoID := proto.ProtoID()
 
@@ -95,6 +106,8 @@ func (agent *userAgent) onProto(data base.NetEventData) {
 		return
 	}
 
+	log.RunLogger.Printf("userAgent.onProto proto[%v]: %v", proto, agent)
+
 	switch protoID {
 	case ffProto.MessageType_EnterGameWorld:
 		agent.onProtoEnterGameWorld(proto)
@@ -105,22 +118,12 @@ func (agent *userAgent) onProtoEnterGameWorld(proto *ffProto.Proto) {
 	message, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
 	message.Result = ffError.ErrNone.Code()
 
-	agent.doSendProto(proto)
-}
-
-func (agent *userAgent) doSendProto(proto *ffProto.Proto) {
-	if agent.sendExtraDataType == ffProto.ExtraDataTypeNormal {
-		proto.SetExtraDataNormal()
-	} else if agent.sendExtraDataType == ffProto.ExtraDataTypeUUID {
-		proto.SetExtraDataUUID(agent.uuidSessiont.Value())
-	}
-
-	agent.chSendProto <- proto
+	agent.SendProto(proto)
 }
 
 // Start 初始化, 然后开始收发协议并处理
 func (agent *userAgent) Start(sess base.Session, agentServer *userAgentServer) {
-	agent.uuidSessiont = sess.UUID()
+	agent.uuidSession = sess.UUID()
 	agent.sendExtraDataType, agent.chAgentClosed = agentServer.sendExtraDataType, agentServer.chAgentClosed
 
 	agent.chSendProto = make(chan *ffProto.Proto, agentServer.config.SessionSendProtoCache)
@@ -144,7 +147,13 @@ func (agent *userAgent) Close() {
 
 // SendProto 发送Proto
 func (agent *userAgent) SendProto(proto *ffProto.Proto) {
-	agent.doSendProto(proto)
+	if agent.sendExtraDataType == ffProto.ExtraDataTypeNormal {
+		proto.SetExtraDataNormal()
+	} else if agent.sendExtraDataType == ffProto.ExtraDataTypeUUID {
+		proto.SetExtraDataUUID(agent.uuidSession.Value())
+	}
+
+	agent.chSendProto <- proto
 }
 
 // Back 可安全回收了

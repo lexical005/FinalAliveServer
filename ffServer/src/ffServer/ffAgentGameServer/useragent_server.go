@@ -4,6 +4,7 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/net/base"
 	"ffCommon/net/tcpserver"
+	"ffCommon/util"
 	"ffCommon/uuid"
 	"ffProto"
 	"fmt"
@@ -16,14 +17,15 @@ type userAgentServer struct {
 	sendExtraDataType ffProto.ExtraDataType // 发送的协议的附加数据类型
 	recvExtraDataType ffProto.ExtraDataType // 接收的协议的附加数据类型
 
-	server base.Server // server 底层server
+	server     base.Server // server 底层server
+	uuidServer uuid.UUID   // uuidServer server的UUID
 
-	chNewSession   chan base.Session // chNewSession 新连接
+	chNewSession   chan base.Session // 用于接收新连接事件
 	chServerClosed chan struct{}     // 用于接收服务器退出事件
-	chAgentClosed  chan *userAgent   // 用于接收userAgent关闭事件
 
-	mapUserAgent map[uuid.UUID]*userAgent // 所有连接用户
-	agentPool    *userAgentPool           // 所有用户缓存
+	chAgentClosed chan *userAgent          // 用于接收userAgent关闭事件
+	mapUserAgent  map[uuid.UUID]*userAgent // 所有连接用户
+	agentPool     *userAgentPool           // 所有用户缓存
 }
 
 func (agentServer *userAgentServer) Status() string {
@@ -31,9 +33,31 @@ func (agentServer *userAgentServer) Status() string {
 		len(agentServer.chNewSession), len(agentServer.chAgentClosed), len(agentServer.mapUserAgent), agentServer.agentPool)
 }
 
+func (agentServer *userAgentServer) String() string {
+	return fmt.Sprintf("uuidUserAgentServer[%v]", agentServer.uuidServer)
+}
+
+func (agentServer *userAgentServer) doClear() {
+	close(agentServer.chNewSession)
+	agentServer.chNewSession = nil
+
+	close(agentServer.chServerClosed)
+	agentServer.chServerClosed = nil
+
+	close(agentServer.chAgentClosed)
+	agentServer.chAgentClosed = nil
+}
+
+func (agentServer *userAgentServer) onBaseServerClosed() {
+	log.RunLogger.Printf("userAgentServer.onBaseServerClosed: %v", agentServer)
+
+	agentServer.server.Back()
+	agentServer.server = nil
+}
+
 // onNewSession 新连接
 func (agentServer *userAgentServer) onNewSession(sess base.Session) {
-	log.RunLogger.Printf("userAgentServer.onNewSession sess[%v]", sess)
+	log.RunLogger.Printf("userAgentServer.onNewSession sess[%v]: %v", sess, agentServer)
 
 	agent := agentServer.agentPool.apply()
 	agentServer.mapUserAgent[sess.UUID()] = agent
@@ -42,9 +66,9 @@ func (agentServer *userAgentServer) onNewSession(sess base.Session) {
 
 // onAgentClosed userAgent关闭
 func (agentServer *userAgentServer) onAgentClosed(agent *userAgent) {
-	log.RunLogger.Printf("userAgentServer.onAgentClosed %v", agent)
+	log.RunLogger.Printf("userAgentServer.onAgentClosed %v: %v", agent, agentServer)
 
-	delete(agentServer.mapUserAgent, agent.uuidSessiont)
+	delete(agentServer.mapUserAgent, agent.uuidSession)
 
 	// 回收清理
 	agent.Back()
@@ -55,6 +79,8 @@ func (agentServer *userAgentServer) onAgentClosed(agent *userAgent) {
 
 // mainLoop
 func (agentServer *userAgentServer) mainLoop(params ...interface{}) {
+	log.RunLogger.Printf("userAgentServer.mainLoop start: %v", agentServer)
+
 	atomic.AddInt32(&waitServerQuit, 1)
 
 	// 主循环
@@ -75,10 +101,16 @@ func (agentServer *userAgentServer) mainLoop(params ...interface{}) {
 		}
 	}
 
+	log.RunLogger.Printf("userAgentServer.mainLoop start application quit: %v", agentServer)
+
 	// 等待底层服务器退出完成
 	{
 		<-agentServer.chServerClosed
+
+		agentServer.onBaseServerClosed()
 	}
+
+	log.RunLogger.Printf("userAgentServer.mainLoop application quit step 1: recv base.Server closed: %v", agentServer)
 
 	// 继续处理新连接(直接关闭)
 	{
@@ -95,6 +127,8 @@ func (agentServer *userAgentServer) mainLoop(params ...interface{}) {
 		}
 	}
 
+	log.RunLogger.Printf("userAgentServer.mainLoop application quit step 2: close all new wait session: %v", agentServer)
+
 	// 关闭所有已建立的连接
 	{
 		if len(agentServer.mapUserAgent) > 0 {
@@ -102,6 +136,8 @@ func (agentServer *userAgentServer) mainLoop(params ...interface{}) {
 			for _, agent := range agentServer.mapUserAgent {
 				agent.Close()
 			}
+
+			log.RunLogger.Printf("userAgentServer.mainLoop application quit step 3: notify user agent close: %v", agentServer)
 
 			// 等待全部退出
 		endSession:
@@ -117,6 +153,8 @@ func (agentServer *userAgentServer) mainLoop(params ...interface{}) {
 				}
 			}
 		}
+
+		log.RunLogger.Printf("userAgentServer.mainLoop application quit step 4: all user agent closed: %v", agentServer)
 	}
 }
 
@@ -159,11 +197,14 @@ func (agentServer *userAgentServer) start(config *serverUserConfig) (err error) 
 
 	agentServer.config = config
 
-	agentServer.server = server
+	agentServer.server, agentServer.uuidServer = server, server.UUID()
 	agentServer.chNewSession, agentServer.chServerClosed = chNewSession, chServerClosed
 
+	agentServer.chAgentClosed = make(chan *userAgent, 2)
 	agentServer.mapUserAgent = make(map[uuid.UUID]*userAgent, config.InitOnlineCount)
 	agentServer.agentPool = newUserAgentPool(config.InitOnlineCount)
+
+	go util.SafeGo(agentServer.mainLoop, agentServer.mainLoopEnd)
 
 	return nil
 }

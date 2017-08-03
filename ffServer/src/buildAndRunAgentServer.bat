@@ -1,8 +1,8 @@
 @echo off
 go install ffServer\ffAgentServer
 
-move /y ..\bin\ffAgentServer.exe ..\..\ffbin\ffServerBin\ffAgentGameServer\ffAgentGameServer.exe
+move /y ..\bin\ffAgentGameServer.exe ..\..\..\FinalAlive\Server\ffAgentGameServer\ffAgentGameServer.exe
 
-cd ..\..\ffbin\ffServerBin\ffAgentGameServer
+cd ..\..\..\FinalAlive\Server\ffAgentGameServer
 
 ffAgentGameServer.exe
