@@ -28,8 +28,6 @@ deadloop:
 		log.RunLogger.Printf("handleUserInput: %v", input)
 
 		if input == "close" {
-			// 标识退出状态
-			applicationQuit = true
 			// 通知goroutine, 进程要退出
 			close(chApplicationQuit)
 			break deadloop

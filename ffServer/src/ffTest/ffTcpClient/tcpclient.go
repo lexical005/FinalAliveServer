@@ -1,12 +1,15 @@
 package main
 
 import (
+	"ffAutoGen/ffError"
 	"ffCommon/log/log"
 	"ffCommon/net/base"
 	"ffCommon/net/tcpclient"
 	"ffCommon/util"
 	"ffProto"
+	"fmt"
 	"sync/atomic"
+	"time"
 )
 
 type tcpClient struct {
@@ -19,6 +22,9 @@ type tcpClient struct {
 	chSendProto       chan *ffProto.Proto
 	chNetEventData    chan base.NetEventData
 	sendExtraDataType ffProto.ExtraDataType
+
+	number             int32
+	keepAliveStartTime time.Time
 }
 
 func (client *tcpClient) mainLoop(params ...interface{}) {
@@ -40,6 +46,8 @@ func (client *tcpClient) mainLoopEnd() {
 }
 
 func (client *tcpClient) onNetEventData(data base.NetEventData) {
+	defer data.Back()
+
 	switch data.NetEventType() {
 	case base.NetEventOn:
 		{
@@ -54,7 +62,60 @@ func (client *tcpClient) onNetEventData(data base.NetEventData) {
 		}
 	case base.NetEventOff:
 	case base.NetEventProto:
+		client.onProto(data)
 	}
+}
+func (client *tcpClient) onProto(data base.NetEventData) {
+	proto := data.Proto()
+	protoID := proto.ProtoID()
+
+	log.RunLogger.Printf("tcpClient.onProto proto[%v]", proto)
+
+	if err := proto.Unmarshal(); err != nil {
+		log.FatalLogger.Printf("tcpClient.onProto proto[%v] Unmarshal error[%v]: %v", proto, err, client)
+		client.close()
+		return
+	}
+
+	switch protoID {
+	case ffProto.MessageType_EnterGameWorld:
+		client.onProtoEnterGameWorld(proto)
+	case ffProto.MessageType_KeepAlive:
+		client.onProtoKeepAlive(proto)
+	}
+}
+
+func (client *tcpClient) onProtoEnterGameWorld(proto *ffProto.Proto) {
+	msgEnterGameWorld, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
+	if msgEnterGameWorld.Result != ffError.ErrNone.Code() {
+		log.RunLogger.Printf("tcpClient.onProtoEnterGameWorld Result[%v]", ffError.ErrByCode(msgEnterGameWorld.Result))
+		return
+	}
+
+	client.number = 1
+	client.keepAliveStartTime = time.Now()
+
+	proto = ffProto.ApplyProtoForSend(ffProto.MessageType_KeepAlive)
+	message, _ := proto.Message().(*ffProto.MsgKeepAlive)
+	message.Number = client.number
+	client.sendProto(proto)
+}
+
+func (client *tcpClient) onProtoKeepAlive(proto *ffProto.Proto) {
+	message, _ := proto.Message().(*ffProto.MsgKeepAlive)
+	if client.number != message.Number {
+		log.RunLogger.Printf("tcpClient.onProtoKeepAlive number not match[%v-%v]", message.Number, client.number)
+		client.close()
+		return
+	} else if message.Number%10 == 0 {
+		println(message.Number)
+		nanosecond := time.Now().Sub(client.keepAliveStartTime)
+		fmt.Printf("average go-back net lag is %v %v\n", nanosecond, int32(nanosecond.Nanoseconds())/message.Number/int32(time.Microsecond.Nanoseconds()))
+	}
+
+	client.number++
+	message.Number = client.number
+	client.sendProto(proto)
 }
 
 func (client *tcpClient) sendProto(proto *ffProto.Proto) {
@@ -65,6 +126,10 @@ func (client *tcpClient) sendProto(proto *ffProto.Proto) {
 	}
 
 	client.chSendProto <- proto
+}
+
+func (client *tcpClient) close() {
+	fmt.Printf("close\n")
 }
 
 func (client *tcpClient) start(addr string) {

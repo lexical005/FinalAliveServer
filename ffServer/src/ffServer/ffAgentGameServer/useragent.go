@@ -111,6 +111,8 @@ func (agent *userAgent) onProto(data base.NetEventData) {
 	switch protoID {
 	case ffProto.MessageType_EnterGameWorld:
 		agent.onProtoEnterGameWorld(proto)
+	case ffProto.MessageType_KeepAlive:
+		agent.onProtoKeepAlive(proto)
 	}
 }
 
@@ -118,6 +120,10 @@ func (agent *userAgent) onProtoEnterGameWorld(proto *ffProto.Proto) {
 	message, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
 	message.Result = ffError.ErrNone.Code()
 
+	agent.SendProto(proto)
+}
+
+func (agent *userAgent) onProtoKeepAlive(proto *ffProto.Proto) {
 	agent.SendProto(proto)
 }
 

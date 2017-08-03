@@ -2,9 +2,11 @@ package main
 
 import (
 	"ffCommon/log/log"
+	"ffCommon/log/logfile"
 	"ffCommon/net/tcpclient"
 	"ffCommon/net/tcpsession"
 	"ffCommon/util"
+	"ffProto"
 	"fmt"
 	"sync/atomic"
 	"time"
@@ -18,6 +20,8 @@ func main() {
 		util.PanicProtect("main")
 		<-time.After(time.Second)
 	}()
+
+	logfile.InitRunLog("", logfile.DefaultLogFileLengthLimit, logfile.DefaultLogFileRunPrefix)
 
 	tcpsession.Init(tcpsession.DefaultReadDeadTime, tcpsession.DefaultOnlineCount, tcpsession.DefaultInitSessionNetEventDataCount)
 	tcpclient.Init()
@@ -52,4 +56,10 @@ quitLoop:
 	}
 
 	fmt.Println("close complete")
+}
+
+func printStatus() {
+	tcpsession.PrintModule()
+	tcpclient.PrintModule()
+	ffProto.PrintModule()
 }

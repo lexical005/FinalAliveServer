@@ -2,6 +2,7 @@ package main
 
 import (
 	"ffCommon/log/log"
+	"ffCommon/net/tcpclient"
 	"ffCommon/net/tcpserver"
 	"ffCommon/net/tcpsession"
 	"ffCommon/util"
@@ -60,4 +61,10 @@ quitLoop:
 	}
 
 	fmt.Println("close complete")
+}
+
+func printStatus() {
+	tcpsession.PrintModule()
+	tcpclient.PrintModule()
+	ffProto.PrintModule()
 }
