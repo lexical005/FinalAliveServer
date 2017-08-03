@@ -52,8 +52,7 @@ func (s *sessionNetEventData) Proto() *ffProto.Proto {
 }
 
 func (s *sessionNetEventData) String() string {
-	return fmt.Sprintf(`uuidSession[%v] eventType[%v] manualClose[%v] proto[%v]`,
-		s.session.uuid, s.eventType, s.manualClose, s.proto)
+	return fmt.Sprintf(`eventType[%v] uuidSession[%v]`, s.eventType, s.session.uuid)
 }
 
 func newSessionNetEventData() *sessionNetEventData {

@@ -3,7 +3,6 @@ package tcpserver
 import (
 	"ffCommon/log/log"
 	"ffCommon/net/base"
-	"ffCommon/pool"
 	"ffCommon/uuid"
 	"sync"
 )
@@ -17,41 +16,26 @@ const (
 	DefaultServerNetEventDataChanCount = 64
 )
 
-// 缓存
-var eventDataPool *serverNetEventDataPool
-
 // 客户端
 var mutexServer sync.Mutex
 var mapServers = make(map[uuid.UUID]*tcpServer, 1)
 var uuidGenerator uuid.Generator
 
-// Init 初始tcpserver模块
-func Init() (err error) {
+// init 初始tcpserver模块
+func init() {
 	log.RunLogger.Printf("tcpserver.Init")
 
+	var err error
 	uuidGenerator, err = uuid.NewGeneratorSafe(0)
 	if err != nil {
-		return err
+		log.FatalLogger.Printf("tcpserver init failed: %v", err)
 	}
-
-	funcCreateServerNetEventData := func() interface{} {
-		return newServerNetEventData()
-	}
-
-	eventDataPool = &serverNetEventDataPool{
-		pool: pool.New("tcpserver.eventDataPool", false, funcCreateServerNetEventData, DefaultTotalServerNetEventDataCount, 50),
-	}
-
-	return
 }
 
 // PrintModule 输出tcpsession模块信息
 func PrintModule() {
 	runLogger := log.RunLogger
 	runLogger.Println("PrintModule Start[tcpserver]:")
-
-	runLogger.Println("tcpserver.eventDataPool:")
-	runLogger.Println(eventDataPool)
 
 	runLogger.Println("tcpserver.mapServers:")
 	for _, server := range mapServers {

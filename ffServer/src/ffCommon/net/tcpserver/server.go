@@ -18,7 +18,7 @@ type tcpServer struct {
 	listener net.Listener // listener
 
 	chNewSession   chan base.Session // 外界接收新连接被创建事件的管道
-	chServerClosed chan struct{}     // 完成完毕时, 向外界通知
+	chServerClosed chan struct{}     // 完成关闭时, 向外界通知
 
 	uuid uuid.UUID // 唯一标识
 
@@ -67,12 +67,15 @@ func (s *tcpServer) StopAccept() {
 	})
 }
 
-// Back 回收服务器资源
+// Back 回收Server资源, 只应在Start失败或者所有连接均已完成关闭情况下执行
 func (s *tcpServer) Back() {
 	log.RunLogger.Printf("tcpServer.mainSession Back: %v", s)
 
 	// 不再引用外界管道
 	s.chNewSession, s.chServerClosed = nil, nil
+
+	// 数据清理
+	s.tcpAddr = nil
 
 	// 移除记录
 	mutexServer.Lock()
@@ -80,8 +83,20 @@ func (s *tcpServer) Back() {
 	delete(mapServers, s.uuid)
 }
 
+// UUID 唯一标识
+func (s *tcpServer) UUID() uuid.UUID {
+	return s.uuid
+}
+
+// String 返回Server的自我描述
+func (s *tcpServer) String() string {
+	return fmt.Sprintf(`uuidServer[%v]`, s.uuid)
+}
+
 // mainAccept 接受客户端连接请求
 func (s *tcpServer) mainAccept(params ...interface{}) {
+	log.RunLogger.Printf("tcpServer.mainAccept: %v", s)
+
 	var tempDelay time.Duration
 	for {
 		conn, err := s.listener.Accept()
@@ -119,6 +134,8 @@ func (s *tcpServer) mainAccept(params ...interface{}) {
 		// 创建session
 		sess := tcpsession.Apply(conn)
 
+		log.RunLogger.Printf("tcpServer.mainAccept accept session[%v]: %v", sess, s)
+
 		// 向外界通知
 		s.chNewSession <- sess
 	}
@@ -130,11 +147,6 @@ func (s *tcpServer) mainAcceptEnd() {
 
 	// 退出完成
 	s.chServerClosed <- struct{}{}
-}
-
-// String 返回Server的自我描述
-func (s *tcpServer) String() string {
-	return fmt.Sprintf(`uuid[%v]`, s.uuid)
 }
 
 // newServer 新建一个 tcpServer

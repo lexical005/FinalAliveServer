@@ -92,6 +92,9 @@ const (
 	// ExtraDataTypeUUID 服务端与服务端之间交互的附加数据, 8字节UUID
 	ExtraDataTypeUUID ExtraDataType = 1
 
+	// ExtraDataTypeInvalid 无效值
+	ExtraDataTypeInvalid ExtraDataType = 0xFF
+
 	// 附加数据类型数量
 	extraDataTypeCount = 2
 
@@ -128,6 +131,17 @@ func (e ExtraDataType) BufferLength() int {
 // Value ExtraDataType类型的数值
 func (e ExtraDataType) Value() byte {
 	return byte(e)
+}
+
+// GetExtraDataType 根据字符串获取对应的ExtraDataType
+func GetExtraDataType(str string) (ExtraDataType, error) {
+	for i, v := range extraDataTypeDesc {
+		if v == str {
+			return ExtraDataType(i), nil
+		}
+	}
+
+	return ExtraDataTypeInvalid, fmt.Errorf("ffProto.GetExtraDataType invalid input str[%v]", str)
 }
 
 var errCheckSerial = fmt.Errorf("ffProto check serial number failed")

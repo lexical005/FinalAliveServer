@@ -86,10 +86,12 @@ func (s *tcpSession) Close() {
 }
 
 func (s *tcpSession) String() string {
-	return fmt.Sprintf(`uuid[%v]`, s.uuid)
+	return fmt.Sprintf(`uuidSession[%v]`, s.uuid)
 }
 
 func (s *tcpSession) mainSend(params ...interface{}) {
+	log.RunLogger.Printf("tcpSession.mainSend: %v", s)
+
 	for {
 		select {
 		case <-s.chNtfRecvSendGoroutineExit:
@@ -107,6 +109,7 @@ func (s *tcpSession) mainSend(params ...interface{}) {
 		}
 
 		// 有未发送完毕的数据, 且当前没有等待发送的协议
+	loopSendLeft:
 		for len(s.sendLeft) > 0 && len(s.chSendProto) == 0 {
 			// 等待2毫秒
 			<-time.After(2 * time.Microsecond)
@@ -120,7 +123,7 @@ func (s *tcpSession) mainSend(params ...interface{}) {
 				// 关闭
 				return
 			default:
-				break
+				break loopSendLeft
 			}
 		}
 	}
@@ -182,6 +185,8 @@ func (s *tcpSession) doSendBuf(buf []byte) bool {
 }
 
 func (s *tcpSession) mainRecv(params ...interface{}) {
+	log.RunLogger.Printf("tcpSession.mainRecv: %v", s)
+
 	var err error
 	for {
 		// 接收

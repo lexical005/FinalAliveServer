@@ -1,5 +1,7 @@
 package base
 
+import "ffCommon/uuid"
+
 // Server 在指定配置上监听用户连接, 有新连接建立时, 通过管道, 向外界汇报
 //	关闭服务器流程:
 //		先执行StopAccept, 让Server结束监听
@@ -14,8 +16,11 @@ type Server interface {
 	// StopAccept 停止接受连接请求, 只应在Start成功前提下希望关闭服务器时执行, 一次性, 同步
 	StopAccept()
 
-	// Back 回收服务器资源, 只应在Start失败或者所有连接均已完成关闭情况下执行, 一次性, 同步
+	// Back 回收Server资源, 只应在Start失败或者所有连接均已完成关闭情况下执行, 一次性, 同步
 	Back()
+
+	// UUID 唯一标识
+	UUID() uuid.UUID
 
 	String() string
 }

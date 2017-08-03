@@ -3,26 +3,14 @@ package tcpclient
 import (
 	"ffCommon/log/log"
 	"ffCommon/net/base"
-	"ffCommon/pool"
 	"ffCommon/uuid"
 	"sync"
-)
-
-const (
-	// DefaultTotalClientNetEventDataCount 初始默认创建多少clientNetEventData(供本进程所有tcpClient使用)
-	DefaultTotalClientNetEventDataCount = 32
-
-	// DefaultClientNetEventDataChanCount 一个tcpClient.chNetEventDataInner的缓存有多大
-	DefaultClientNetEventDataChanCount = 8
 )
 
 // 客户端
 var mutexClient sync.Mutex
 var mapClients = make(map[uuid.UUID]*tcpClient, 1)
 var uuidGenerator uuid.Generator
-
-// eventDataPool clientNetEventData Pool
-var eventDataPool *clientNetEventDataPool
 
 // Init 初始tcpclient模块
 func Init() (err error) {
@@ -33,14 +21,6 @@ func Init() (err error) {
 		return err
 	}
 
-	funcCreateClientNetEventData := func() interface{} {
-		return newClientNetEventData()
-	}
-
-	eventDataPool = &clientNetEventDataPool{
-		pool: pool.New("tcpclient.eventDataPool", false, funcCreateClientNetEventData, DefaultTotalClientNetEventDataCount, 50),
-	}
-
 	return
 }
 
@@ -48,9 +28,6 @@ func Init() (err error) {
 func PrintModule() {
 	runLogger := log.RunLogger
 	runLogger.Println("PrintModule Start[tcpclient]:")
-
-	runLogger.Println("tcpclient.eventDataPool:")
-	runLogger.Println(eventDataPool)
 
 	runLogger.Println("tcpclient.mapClients:")
 	for _, client := range mapClients {
