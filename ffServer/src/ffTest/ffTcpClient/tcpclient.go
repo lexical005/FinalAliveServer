@@ -108,9 +108,8 @@ func (client *tcpClient) onProtoKeepAlive(proto *ffProto.Proto) {
 		client.close()
 		return
 	} else if message.Number%10 == 0 {
-		println(message.Number)
 		nanosecond := time.Now().Sub(client.keepAliveStartTime)
-		fmt.Printf("average go-back net lag is %v %v\n", nanosecond, int32(nanosecond.Nanoseconds())/message.Number/int32(time.Microsecond.Nanoseconds()))
+		fmt.Printf("average go-back net lag is %v %v %v\n", nanosecond, message.Number, nanosecond.Nanoseconds()/time.Microsecond.Nanoseconds())
 	}
 
 	client.number++
