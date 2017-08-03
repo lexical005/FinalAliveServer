@@ -20,7 +20,7 @@ func (mm *mysqlManager) start() {
 	mm.dbm = ffMySQL.NewMysqlManager()
 	mm.dbm.Open("toml/sql.toml")
 
-	go util.SafeGo(mm.dispatchMySQL)
+	go util.SafeGo(mm.dispatchMySQL, nil)
 }
 
 func (mm *mysqlManager) close() {
@@ -141,7 +141,7 @@ var exitLock int
 
 func main() {
 	// 异常保护
-	util.PanicProtect()
+	defer util.PanicProtect()
 
 	// 数据库配置
 	mysql.start()

@@ -20,9 +20,7 @@ func triggerPanic(params ...interface{}) {
 }
 
 func main() {
-	defer util.PanicProtect("main")
-
-	go util.SafeGo(triggerPanic, "triggerPanic")
+	go util.SafeGo(triggerPanic, nil, "triggerPanic")
 
 	// 等待结束
 	select {}
