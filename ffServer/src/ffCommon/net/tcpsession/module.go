@@ -85,7 +85,7 @@ func Init(
 // Apply 申请一个空闲session, session将在连接断开后, 自动缓存到sp. 该方法不是多goroutine安全的.
 func Apply(conn net.Conn) (s base.Session) {
 	sess := sessPool.apply()
-	sess.SetConn(conn)
+	sess.setConn(conn)
 	return sess
 }
 

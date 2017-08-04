@@ -49,7 +49,7 @@ func (c *tcpClient) Stop() {
 	})
 }
 
-// Back 回收Client资源, 只应在连接已完成关闭情况下执行
+// Back 回收Client资源, 只应在外界通过chServerClose接收到可回收事件之后下执行
 func (c *tcpClient) Back() {
 	log.RunLogger.Printf("tcpClient.Back: %v", c)
 

@@ -67,7 +67,7 @@ func (s *tcpServer) StopAccept() {
 	})
 }
 
-// Back 回收Server资源, 只应在Start失败或者所有连接均已完成关闭情况下执行
+// Back 回收Server资源, 只应在Start失败或者外界通过chServerClose接收到可回收事件之后下执行
 func (s *tcpServer) Back() {
 	log.RunLogger.Printf("tcpServer.mainSession Back: %v", s)
 

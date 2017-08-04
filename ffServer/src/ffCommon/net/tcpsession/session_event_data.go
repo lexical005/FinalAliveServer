@@ -10,24 +10,22 @@ import (
 type sessionNetEventData struct {
 	eventType base.NetEventType
 
-	session     *tcpSession
 	manualClose bool
-	proto       *ffProto.Proto
+
+	session *tcpSession    // 事件对应的Session引用, 如果是NetEventOff事件, 则在回收事件的同时, 执行Session的back方法
+	proto   *ffProto.Proto // 只有引用, 回收操作, 由事件处理者负责
 }
 
 // Back 回收
 func (s *sessionNetEventData) Back() {
 	log.RunLogger.Printf("sessionNetEventData.Back: %v", s)
 
-	if s.eventType == base.NetEventProto { // 回收proto
-		s.proto.BackAfterDispatch()
-		s.proto = nil
-	} else if s.eventType == base.NetEventOff { // 回收tcpsession
+	if s.eventType == base.NetEventOff { // 回收tcpsession
 		s.session.back()
-		s.session = nil
 	}
 
 	s.eventType = base.NetEventInvalid
+	s.proto, s.session = nil, nil
 
 	// 回收自身
 	eventDataPool.back(s)

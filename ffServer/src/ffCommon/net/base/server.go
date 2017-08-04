@@ -13,10 +13,10 @@ type Server interface {
 	//	chServerClosed: 用于向外界通知关闭完成的管道, Server仅有写入权
 	Start(chNewSession chan Session, chServerClosed chan struct{}) error
 
-	// StopAccept 停止接受连接请求, 只应在Start成功前提下希望关闭服务器时执行, 一次性, 同步
+	// StopAccept 停止接受连接请求, 只应在Start成功之后希望关停服务器时执行, 一次性, 同步
 	StopAccept()
 
-	// Back 回收Server资源, 只应在Start失败或者所有连接均已完成关闭情况下执行, 一次性, 同步
+	// Back 回收Server资源, 只应在Start失败或者外界通过chServerClose接收到可回收事件之后下执行, 一次性, 同步
 	Back()
 
 	// UUID 唯一标识

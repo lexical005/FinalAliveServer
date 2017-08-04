@@ -12,7 +12,7 @@ type Client interface {
 	// Stop 停止连接
 	Stop()
 
-	// Back 回收Client资源, 只应在连接已完成关闭情况下执行, 一次性, 同步
+	// Back 回收Client资源, 只应在外界通过chServerClose接收到可回收事件之后下执行, 一次性, 同步
 	Back()
 
 	// UUID 唯一标识

@@ -1,12 +1,19 @@
 // Package tcpclient 实现了 tcpClient, 使用步骤:
-// 0.	进程启动时, 执行本模块的 Init 方法, 以初始化本模块
-// 1.	使用者 通过 本模块的 NewClient 方法, 创建 tcpClient 实例
-// 2.	使用者 调用 tcpClient 实例的 Start 方法, 开始连接服务器, 异步
-// 3.	使用者 处理 事件回调
-// 4.	使用者 处理到 NetEventOn 事件后, 表明连接已建立, 可发送 Proto
-// 5.	使用者 调用 tcpClient 实例的 SendProto 方法, 发送协议, 异步
-// 6.	使用者 处理 NetEventProto 事件, 以响应 Proto 处理
-// 7.	使用者 处理到 NetEventOff 事件时, 如果需要重连, 则可执行 tcpClient 实例的 ReConnect 方法
-// 8.	使用者 调用 tcpClient 实例的 Close 方法, 关闭 tcpClient 实例, 异步
-// 9.	使用者 处理到 NetEventEnd 事件时, 表明 tcpClient 关闭完成, 使用者不应再引用该 tcpClient 实例, 该实例也将随着事件处理完成(事件.Back())而回收
+// tcpClient: 对象通过管道转交给其他goroutine后, 不再对其做任何操作, 不与其他goroutine同时共享同一个对象
+// 	外界执行Start, 开启连接到指定Server的goroutine
+// 		连接失败
+// 			延迟一秒
+// 			检查chNtfWorkExit是否关闭了, 如果是, 则退出goroutine
+// 		连接成功
+// 			通过chNewSession向外界通知新连接Session建立, Client不维护Session
+// 			等待chNtfWorkExit关闭或者chReConnect重连
+// 				chNtfWorkExit关闭: 外界调用了Close, 关停Client
+// 				chReConnect重连:  上一连接关闭了, 继续重连
+// 	外界执行Stop, 开始关停Client
+// 		连接到指定Server的goroutine, 总是会退出
+// 			阅读上一节Start, 即可知晓缘由
+// 		连接到指定Server的goroutine退出时
+// 			通过chClientClosed像外界通知通知Client关闭完成, 可执行清理操作Back
+// 	外界执行Back, 回收Client资源
+// 		只应在外界通过chServerClose接收到可回收事件之后下执行
 package tcpclient

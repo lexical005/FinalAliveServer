@@ -41,11 +41,6 @@ func (s *tcpSession) UUID() uuid.UUID {
 	return s.uuid
 }
 
-// UUID UUID
-func (s *tcpSession) SetConn(conn net.Conn) {
-	s.conn = conn
-}
-
 // Start 主循环
 func (s *tcpSession) Start(chSendProto chan *ffProto.Proto, chNetEventData chan base.NetEventData, recvProtoExtraDataType ffProto.ExtraDataType) {
 	// 重新开始
@@ -89,6 +84,11 @@ func (s *tcpSession) Close() {
 
 func (s *tcpSession) String() string {
 	return fmt.Sprintf(`%p uuidSession[%v]`, s, s.uuid)
+}
+
+// setConn 设置底层连接对象
+func (s *tcpSession) setConn(conn net.Conn) {
+	s.conn = conn
 }
 
 func (s *tcpSession) mainSend(params ...interface{}) {
