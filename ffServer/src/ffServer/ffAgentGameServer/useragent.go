@@ -10,6 +10,13 @@ import (
 	"fmt"
 )
 
+// 协议回调函数
+//	返回值表明接收到的Proto是否进入了发送逻辑(如果未正确设置返回值, 将导致泄露或者异常)
+var mapProtoCallback = map[ffProto.MessageType]func(agent *userAgent, proto *ffProto.Proto) bool{
+	ffProto.MessageType_EnterGameWorld: onProtoEnterGameWorld,
+	ffProto.MessageType_KeepAlive:      onProtoKeepAlive,
+}
+
 // 用户连接到本服务器后的agent
 type userAgent struct {
 	uuidSession uuid.UUID
@@ -95,8 +102,17 @@ func (agent *userAgent) onDisConnect(data base.NetEventData) {
 func (agent *userAgent) onProto(data base.NetEventData) {
 	log.RunLogger.Printf("userAgent.onProto data[%v]: %v", data, agent)
 
+	changedToSendState := false
+
 	proto := data.Proto()
 	protoID := proto.ProtoID()
+
+	// 如果协议在处理完毕后, 未进入发送逻辑, 则回收
+	defer func() {
+		if !changedToSendState {
+			proto.BackAfterDispatch()
+		}
+	}()
 
 	// todo: 区分协议号, 有些协议直接转发的
 	// 反序列化
@@ -108,23 +124,11 @@ func (agent *userAgent) onProto(data base.NetEventData) {
 
 	log.RunLogger.Printf("userAgent.onProto proto[%v]: %v", proto, agent)
 
-	switch protoID {
-	case ffProto.MessageType_EnterGameWorld:
-		agent.onProtoEnterGameWorld(proto)
-	case ffProto.MessageType_KeepAlive:
-		agent.onProtoKeepAlive(proto)
+	if callback, ok := mapProtoCallback[protoID]; ok {
+		changedToSendState = callback(agent, proto)
+	} else {
+		log.FatalLogger.Printf("userAgent.onProto unknown protoID[%v]: %v", protoID, agent)
 	}
-}
-
-func (agent *userAgent) onProtoEnterGameWorld(proto *ffProto.Proto) {
-	message, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
-	message.Result = ffError.ErrNone.Code()
-
-	agent.SendProto(proto)
-}
-
-func (agent *userAgent) onProtoKeepAlive(proto *ffProto.Proto) {
-	agent.SendProto(proto)
 }
 
 // Start 初始化, 然后开始收发协议并处理
@@ -182,6 +186,21 @@ func (agent *userAgent) Back() {
 	// 关闭
 	close(agent.chClose)
 	agent.chClose = nil
+}
+
+func onProtoEnterGameWorld(agent *userAgent, proto *ffProto.Proto) bool {
+	message, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
+	message.Result = ffError.ErrNone.Code()
+
+	proto.ChangeLimitStateRecvToSend()
+	agent.SendProto(proto)
+	return true
+}
+
+func onProtoKeepAlive(agent *userAgent, proto *ffProto.Proto) bool {
+	proto.ChangeLimitStateRecvToSend()
+	agent.SendProto(proto)
+	return true
 }
 
 func newUserAgent() *userAgent {

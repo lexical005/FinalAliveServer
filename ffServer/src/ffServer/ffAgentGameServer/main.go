@@ -66,5 +66,6 @@ quitLoop:
 func printStatus() {
 	tcpsession.PrintModule()
 	tcpclient.PrintModule()
+	tcpserver.PrintModule()
 	ffProto.PrintModule()
 }

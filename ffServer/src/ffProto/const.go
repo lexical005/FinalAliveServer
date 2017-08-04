@@ -82,6 +82,32 @@ func (u useState) String() string {
 	return useStateDesc[u]
 }
 
+// limitState 协议被限定状态
+type limitState byte
+
+const (
+	// limitStateInvalid 无效, 禁止手动转换useState状态, 只能在resetForSend和resetForRecv中修改
+	limitStateInvalid limitState = 0
+
+	// limitStateRecv 协议被限定在接收逻辑里使用, 可手动转换到limitStateSend
+	limitStateRecv limitState = 1
+
+	// limitStateSend 协议被限定在发送逻辑里使用, 禁止转换到limitStateRecv
+	//	一旦进行了SetExtraDataXXX设置, 则自动进入limitStateInvalid, 无法再在任何逻辑里使用
+	limitStateSend limitState = 2
+)
+
+// limitStateDesc limitState的文本描述
+var limitStateDesc = [...]string{
+	"limitStateInvalid",
+	"limitStateRecv",
+	"limitStateSend",
+}
+
+func (u limitState) String() string {
+	return limitStateDesc[u]
+}
+
 // ExtraDataType 附加数量类型
 type ExtraDataType byte
 

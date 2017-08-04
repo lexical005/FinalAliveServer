@@ -12,6 +12,13 @@ import (
 	"time"
 )
 
+// 协议回调函数
+//	返回值表明接收到的Proto是否进入了发送逻辑
+var mapProtoCallback = map[ffProto.MessageType]func(agent *tcpClient, proto *ffProto.Proto) bool{
+	ffProto.MessageType_EnterGameWorld: onProtoEnterGameWorld,
+	ffProto.MessageType_KeepAlive:      onProtoKeepAlive,
+}
+
 type tcpClient struct {
 	c base.Client
 
@@ -66,10 +73,18 @@ func (client *tcpClient) onNetEventData(data base.NetEventData) {
 	}
 }
 func (client *tcpClient) onProto(data base.NetEventData) {
+	log.RunLogger.Printf("tcpClient.onProto data[%v]: %v", data, client)
+
+	changedToSendState := false
 	proto := data.Proto()
 	protoID := proto.ProtoID()
 
-	log.RunLogger.Printf("tcpClient.onProto proto[%v]", proto)
+	// 如果协议在处理完毕后, 未进入发送逻辑, 则回收
+	defer func() {
+		if !changedToSendState {
+			proto.BackAfterDispatch()
+		}
+	}()
 
 	if err := proto.Unmarshal(); err != nil {
 		log.FatalLogger.Printf("tcpClient.onProto proto[%v] Unmarshal error[%v]: %v", proto, err, client)
@@ -77,19 +92,21 @@ func (client *tcpClient) onProto(data base.NetEventData) {
 		return
 	}
 
-	switch protoID {
-	case ffProto.MessageType_EnterGameWorld:
-		client.onProtoEnterGameWorld(proto)
-	case ffProto.MessageType_KeepAlive:
-		client.onProtoKeepAlive(proto)
+	log.RunLogger.Printf("tcpClient.onProto proto[%v]", proto)
+
+	if callback, ok := mapProtoCallback[protoID]; ok {
+		changedToSendState = callback(client, proto)
+	} else {
+		log.FatalLogger.Printf("tcpClient.onProto unknown protoID[%v]: %v", protoID, client)
 	}
 }
 
-func (client *tcpClient) onProtoEnterGameWorld(proto *ffProto.Proto) {
+func onProtoEnterGameWorld(client *tcpClient, proto *ffProto.Proto) bool {
 	msgEnterGameWorld, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
 	if msgEnterGameWorld.Result != ffError.ErrNone.Code() {
 		log.RunLogger.Printf("tcpClient.onProtoEnterGameWorld Result[%v]", ffError.ErrByCode(msgEnterGameWorld.Result))
-		return
+		client.close()
+		return false
 	}
 
 	client.number = 1
@@ -98,23 +115,28 @@ func (client *tcpClient) onProtoEnterGameWorld(proto *ffProto.Proto) {
 	proto = ffProto.ApplyProtoForSend(ffProto.MessageType_KeepAlive)
 	message, _ := proto.Message().(*ffProto.MsgKeepAlive)
 	message.Number = client.number
+
 	client.sendProto(proto)
+	return false
 }
 
-func (client *tcpClient) onProtoKeepAlive(proto *ffProto.Proto) {
+func onProtoKeepAlive(client *tcpClient, proto *ffProto.Proto) bool {
 	message, _ := proto.Message().(*ffProto.MsgKeepAlive)
 	if client.number != message.Number {
 		log.RunLogger.Printf("tcpClient.onProtoKeepAlive number not match[%v-%v]", message.Number, client.number)
 		client.close()
-		return
+		return false
 	} else if message.Number%10 == 0 {
 		nanosecond := time.Now().Sub(client.keepAliveStartTime)
-		fmt.Printf("average go-back net lag is %v %v %v\n", nanosecond, message.Number, nanosecond.Nanoseconds()/time.Microsecond.Nanoseconds())
+		fmt.Printf("average go-back net lag is %v %v %v\n", nanosecond, message.Number, uint64(nanosecond.Nanoseconds()/time.Microsecond.Nanoseconds())/uint64(message.Number))
 	}
 
 	client.number++
 	message.Number = client.number
+
+	proto.ChangeLimitStateRecvToSend()
 	client.sendProto(proto)
+	return true
 }
 
 func (client *tcpClient) sendProto(proto *ffProto.Proto) {
