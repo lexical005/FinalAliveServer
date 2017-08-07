@@ -3,8 +3,8 @@ package ffProto
 var listMessageID = []MessageType{
 	MessageType_ServerRegister,
 	MessageType_ServerKeepAlive,
-	MessageType_PrepareLoginPlatformUniqueID,
-	MessageType_LoginPlatformUniqueID,
+	MessageType_PrepareLoginPlatformUniqueId,
+	MessageType_LoginPlatformUniqueId,
 	MessageType_LoginPlatformSidToken,
 	MessageType_ReLogin,
 	MessageType_Kick,
@@ -20,11 +20,11 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	MessageType_ServerKeepAlive: func() interface{} {
 		return &MsgServerKeepAlive{}
 	},
-	MessageType_PrepareLoginPlatformUniqueID: func() interface{} {
-		return &MsgPrepareLoginPlatformUniqueID{}
+	MessageType_PrepareLoginPlatformUniqueId: func() interface{} {
+		return &MsgPrepareLoginPlatformUniqueId{}
 	},
-	MessageType_LoginPlatformUniqueID: func() interface{} {
-		return &MsgLoginPlatformUniqueID{}
+	MessageType_LoginPlatformUniqueId: func() interface{} {
+		return &MsgLoginPlatformUniqueId{}
 	},
 	MessageType_LoginPlatformSidToken: func() interface{} {
 		return &MsgLoginPlatformSidToken{}
