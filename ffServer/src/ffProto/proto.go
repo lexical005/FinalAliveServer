@@ -195,18 +195,18 @@ func (p *Proto) Marshal(header *ProtoHeader) (err error) {
 	extraDataLen := p.extraDataType.BufferLength()
 	bufLengthLimit := protoHeaderLength + contentLen + extraDataLen
 
-	// 将接收到的协议转发时, 必然满足 bufLengthLimit <= cap(p.buf)
 	if bufLengthLimit > cap(p.buf) {
 		// 协议体的缓冲区，进行了重新分配
 		if cap(contentBuf) >= bufLengthLimit {
 			copy(contentBuf[protoHeaderLength:protoHeaderLength+contentLen], contentBuf[0:contentLen])
+			backBuffer(p.buf[:0]) // 缓存之前的buf
 			p.buf = contentBuf[0:bufLengthLimit]
 		} else {
 			bufCapLimit := upperProtoBufferLength(bufLengthLimit)
 			buf := make([]byte, bufLengthLimit, bufCapLimit)
 			buf[protoHeaderExtraDataTypeOffset] = p.buf[protoHeaderExtraDataTypeOffset]
 			copy(buf[protoHeaderLength:protoHeaderLength+contentLen], contentBuf[0:contentLen])
-			// todo: 此处, 之前的p.buf将不会被任何地方引用, 将被回收, 是否增加buf缓存?
+			backBuffer(p.buf[:0]) // 缓存之前的buf
 			p.buf = buf
 		}
 	} else {
