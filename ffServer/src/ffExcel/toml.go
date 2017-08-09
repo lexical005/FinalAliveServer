@@ -2,7 +2,7 @@ package ffExcel
 
 import "fmt"
 
-func genToml(excel *excel, exportConfig *ExportConfig) (tomlDef string, tomlData string, err error) {
+func checkToml(excel *excel) (err error) {
 	// check excel name, sheet name, field name
 	shortExcelName := getShortName(excel.name)
 	if shortExcelName == "" {
@@ -20,7 +20,7 @@ func genToml(excel *excel, exportConfig *ExportConfig) (tomlDef string, tomlData
 		}
 
 		for _, line := range sheet.header.lines {
-			if line.exportToServer() && !line.isMapKey() {
+			if !line.ignore() && !line.isMapKey() {
 				shortFieldName := getShortName(line.lineName)
 				if shortFieldName == "" {
 					if err != nil {
@@ -32,12 +32,11 @@ func genToml(excel *excel, exportConfig *ExportConfig) (tomlDef string, tomlData
 			}
 		}
 	}
+	return
+}
 
-	if err != nil {
-		return "", "", err
-	}
-
-	tomlDef = genTomlDef(excel, exportConfig)
-	tomlData = genTomlData(excel, exportConfig)
+func genToml(excel *excel, exportConfig *ExportConfig) (tomlDataServerReader string, tomlData string) {
+	tomlDataServerReader = genTomlDataReadCode(excel, exportConfig, "server")
+	tomlData = genTomlData(excel, exportConfig, "server")
 	return
 }

@@ -23,7 +23,7 @@ var fmtFieldStruct = `%v = %v
 var fmtFieldSplitMap = "\n"
 var fmtSheetSplit = "\n"
 
-func genTomlData(excel *excel, exportConfig *ExportConfig) string {
+func genTomlData(excel *excel, exportConfig *ExportConfig, exportLimit string) string {
 	result := ""
 	for _, sheet := range excel.sheets {
 		if sheet.sheetType == sheetTypeMap {
@@ -49,7 +49,7 @@ func genTomlData(excel *excel, exportConfig *ExportConfig) string {
 
 			exportedLines := make(map[string]bool, len(sheet.header.lines))
 			for _, line := range sheet.header.lines {
-				if line.exportToServer() && !line.isMapKey() {
+				if (exportLimit == "server" && line.exportToServer() || exportLimit == "client" && line.exportToClient()) && !line.isMapKey() {
 					if _, ok := exportedLines[line.lineName]; !ok {
 						exportedLines[line.lineName] = true
 						result += fmt.Sprintf(fmtFieldList, line.lineName, row.rowData[line.lineName].ValueToml())

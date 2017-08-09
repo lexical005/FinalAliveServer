@@ -11,37 +11,29 @@ import (
 )
 
 // ExportConfig 导出配置
+//	服务端代码语言: go, 配置文件: toml
+//	客户端最终代码语言: c#, 配置文件: protobuf字节流(客户端使用临时语言go和配置文件toml, 最终生成最终所需的代码文件和配置文件)
 type ExportConfig struct {
-	// ServerExportDefPath 服务端导出的定义文件, 相对导出程序的路径, 为空时或者系统环境变量中未配置GOPATH时, 不导出
-	ServerExportDefPath string
-	// ServerExportDataType 服务端导出的配置文件的类型
-	ServerExportDataType string
+	// ServerExportCodePath 服务端导出的代码文件, 相对导出程序的路径, 为空时或者系统环境变量中未配置GOPATH时, 不导出
+	ServerExportCodePath string
 	// ServerExportDataPath 服务端导出的配置文件, 相对导出程序的路径
 	ServerExportDataPath string
 	// ServerReadDataPath 服务端导出的配置文件, 相对读取程序的路径
 	ServerReadDataPath string
 
-	// ClientExportDataType 客户端导出的配置文件的类型, 相对导出程序的路径, 为空时, 不导出
-	ClientExportDataType string
+	// ClientExportCodePath 服务端导出的代码文件, 相对导出程序的路径, 为空时, 不导出
+	ClientExportCodePath string
 	// ClientExportDataPath 客户端导出的配置文件, 相对导出程序的路径
 	ClientExportDataPath string
 
 	hasGoEnv    bool   // 是否有go环境
-	packageName string // 根据ServerExportDefPath推导出来的包名
+	packageName string // 根据ServerExportCodePath推导出来的包名
 }
 
 func (ec *ExportConfig) check() error {
 	ec.hasGoEnv = os.Getenv("GOPATH") != ""
 
-	if len(ec.ServerExportDataType) > 0 && ec.ServerExportDataType != "toml" {
-		return fmt.Errorf("ExportConfig ServerExportDataType[%v] not support", ec.ServerExportDataType)
-	}
-
-	if len(ec.ClientExportDataType) > 0 && ec.ClientExportDataType != "lua" {
-		return fmt.Errorf("ExportConfig ClientExportDataType[%v] not support", ec.ClientExportDataType)
-	}
-
-	_, ec.packageName = path.Split(ec.ServerExportDefPath)
+	_, ec.packageName = path.Split(ec.ServerExportCodePath)
 
 	return nil
 }
@@ -69,16 +61,12 @@ func (ec *ExportConfig) clearPath() bool {
 
 func (ec *ExportConfig) String() string {
 	return fmt.Sprintf(`[
-	ServerExportDefPath:%v
-	ServerExportDataType:%v
+	ServerExportCodePath:%v
 	ServerExportDataPath:%v
-	ClientExportDataType:%v
 	ClientExportDataPath:%v
 ]`,
-		ec.ServerExportDefPath,
-		ec.ServerExportDataType,
+		ec.ServerExportCodePath,
 		ec.ServerExportDataPath,
-		ec.ClientExportDataType,
 		ec.ClientExportDataPath)
 }
 
@@ -90,41 +78,73 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 		}
 	}()
 
+	// 解析Excel
 	excel, err := parseExcel(excelFilePath)
 	if err != nil {
 		return err
 	}
 
-	if exportConfig.ServerExportDataType == "toml" {
-		tomlDef, tomlData, err := genToml(excel, exportConfig)
-		if err != nil {
-			return err
-		}
+	// 检查Excel是否满足导出为toml格式
+	if err = checkToml(excel); err != nil {
+		return err
+	}
 
-		gofilename := excel.name
-		tomlfilename := excel.name
-
-		// 导出定义
-		if exportConfig.hasGoEnv && exportConfig.ServerExportDefPath != "" {
-			// 输出到临时目录
-			defFilePath := path.Join(exportConfig.ServerExportDefPath, gofilename+".go")
-			err = util.WriteFile(defFilePath, []byte(tomlDef))
+	// 导出服务端
+	{
+		// 导出服务端读取代码
+		tomlDataServerReadCode := genTomlDataReadCode(excel, exportConfig, "server")
+		if exportConfig.hasGoEnv && exportConfig.ServerExportCodePath != "" {
+			defFilePath := path.Join(exportConfig.ServerExportCodePath, excel.name+".go")
+			err = util.WriteFile(defFilePath, []byte(tomlDataServerReadCode))
 			if err != nil {
 				return err
 			}
 			log.RunLogger.Println(defFilePath)
 		}
 
-		// 导出配置
-		dataFilePath := path.Join(exportConfig.ServerExportDataPath, tomlfilename+".toml")
-		err = util.WriteFile(dataFilePath, []byte(tomlData))
+		// 导出服务端配置
+		tomlDataServer := genTomlData(excel, exportConfig, "server")
+		dataFilePath := path.Join(exportConfig.ServerExportDataPath, excel.name+".toml")
+		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
 		if err != nil {
 			return err
 		}
 		log.RunLogger.Println(dataFilePath)
+
+		dataFilePath = path.Join("toml", "server", excel.name+".toml")
+		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
+		if err != nil {
+			return err
+		}
 	}
 
-	if exportConfig.ClientExportDataType == "lua" {
+	// 导出客户端
+	{
+		// // 导出客户端读取代码
+		// tomlDataServerReadCode := genTomlDataReadCode(excel, exportConfig, "client")
+		// if exportConfig.hasGoEnv && exportConfig.ClientExportDataPath != "" {
+		// 	defFilePath := path.Join(exportConfig.ClientExportDataPath, excel.name+".go")
+		// 	err = util.WriteFile(defFilePath, []byte(tomlDataServerReadCode))
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// 	log.RunLogger.Println(defFilePath)
+		// }
+
+		// 导出客户端配置
+		tomlDataServer := genTomlData(excel, exportConfig, "client")
+		dataFilePath := path.Join(exportConfig.ClientExportDataPath, excel.name+".toml")
+		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
+		if err != nil {
+			return err
+		}
+		log.RunLogger.Println(dataFilePath)
+
+		dataFilePath = path.Join("toml", "client", excel.name+".toml")
+		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
