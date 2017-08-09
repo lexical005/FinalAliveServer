@@ -242,12 +242,20 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 	}
 
 	// read excel
-	result += fmt.Sprintf(fmtReadFunc,
-		excelName, excelName,
-		excelName, shortExcelName, excelName,
-		path.Join(exportConfig.ServerReadDataPath, fmt.Sprintf("%v.toml", excelName)),
-		shortExcelName, excelName,
-		shortExcelName)
-
+	if exportLimit == "server" {
+		result += fmt.Sprintf(fmtReadFunc,
+			excelName, excelName,
+			excelName, shortExcelName, excelName,
+			path.Join(exportConfig.ServerReadTomlDataPath, fmt.Sprintf("%v.toml", excelName)),
+			shortExcelName, excelName,
+			shortExcelName)
+	} else if exportLimit == "client" {
+		result += fmt.Sprintf(fmtReadFunc,
+			excelName, excelName,
+			excelName, shortExcelName, excelName,
+			path.Join("toml", "client", fmt.Sprintf("%v.toml", excelName)),
+			shortExcelName, excelName,
+			shortExcelName)
+	}
 	return result
 }

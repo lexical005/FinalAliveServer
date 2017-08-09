@@ -31,8 +31,6 @@ func main() {
 	// 遍历go文件
 	golangFiles := make([]string, 0, 10)
 	if fi, err := os.Stat(ffGameConfigPath); err != nil && os.IsExist(err) || fi != nil && fi.IsDir() {
-		log.RunLogger.Printf("walk dir[%v]", *dir)
-
 		err := util.Walk(ffGameConfigPath, func(f os.FileInfo) error {
 			// 忽略文件夹以及非go文件
 			name := f.Name()
@@ -40,7 +38,6 @@ func main() {
 				return nil
 			}
 
-			log.RunLogger.Printf(name)
 			golangFiles = append(golangFiles, name[0:len(name)-len(".go")])
 
 			return nil
