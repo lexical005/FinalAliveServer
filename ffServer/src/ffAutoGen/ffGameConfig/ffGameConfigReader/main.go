@@ -3,12 +3,17 @@ package main
 import (
 	"ffAutoGen/ffGameConfig"
 	"ffCommon/log/log"
+	"ffCommon/util"
 )
 
 func main() {
+	defer util.PanicProtect()
+
 	var err error
-	_, err = ffGameConfig.ReadMall()
+
+	_, err = ffGameConfig.ReadExcelExportTest()
 	if err != nil {
-		log.RunLogger.Printf("ReadMall get error[%v]", err)
+		log.RunLogger.Printf("ReadExcelExportTest get error[%v]", err)
 	}
+
 }

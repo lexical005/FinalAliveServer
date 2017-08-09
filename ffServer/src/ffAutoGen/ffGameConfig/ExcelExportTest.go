@@ -9,32 +9,32 @@ import (
 	"github.com/lexical005/toml"
 )
 
-// Mall excel Mall
-type Mall struct {
+// ExcelExportTest excel ExcelExportTest
+type ExcelExportTest struct {
 	VIPmap    map[int]VIPmap
 	VIPstruct VIPstruct
 	VIPlist   []VIPlist
 }
 
-func (m Mall) String() string {
+func (e ExcelExportTest) String() string {
 	s := ""
 	s += "VIPmap"
-	for k, v := range m.VIPmap {
+	for k, v := range e.VIPmap {
 		s += fmt.Sprintf("%v:%v\n", k, v)
 	}
 
 	s += "VIPstruct"
-	s += fmt.Sprintf("%v\n", m.VIPstruct)
+	s += fmt.Sprintf("%v\n", e.VIPstruct)
 
 	s += "VIPlist"
-	for _, row := range m.VIPlist {
+	for _, row := range e.VIPlist {
 		s += fmt.Sprintf("%v\n", row)
 	}
 
 	return s
 }
 
-// VIPmap sheet VIPmap of excel Mall
+// VIPmap sheet VIPmap of excel ExcelExportTest
 type VIPmap struct {
 	InfoInt       int
 	InfoStr       string
@@ -58,7 +58,7 @@ func (vip VIPmap) String() string {
 	return s
 }
 
-// VIPstruct sheet VIPstruct of excel Mall
+// VIPstruct sheet VIPstruct of excel ExcelExportTest
 type VIPstruct struct {
 	InfoInt       int
 	InfoStr       string
@@ -80,7 +80,7 @@ func (vip VIPstruct) String() string {
 	return s
 }
 
-// VIPlist sheet VIPlist of excel Mall
+// VIPlist sheet VIPlist of excel ExcelExportTest
 type VIPlist struct {
 	InfoInt       int
 	InfoStr       string
@@ -102,17 +102,17 @@ func (vip VIPlist) String() string {
 	return s
 }
 
-// ReadMall read excel Mall
-func ReadMall() (m *Mall, err error) {
+// ReadExcelExportTest read excel ExcelExportTest
+func ReadExcelExportTest() (e *ExcelExportTest, err error) {
 	// 读取文件内容
-	fileContent, err := util.ReadFile("toml/game/Mall.toml")
+	fileContent, err := util.ReadFile("toml/game/ExcelExportTest.toml")
 	if err != nil {
 		return
 	}
 
 	// 解析
-	m = &Mall{}
-	err = toml.Unmarshal(fileContent, m)
+	e = &ExcelExportTest{}
+	err = toml.Unmarshal(fileContent, e)
 	if err != nil {
 		return
 	}

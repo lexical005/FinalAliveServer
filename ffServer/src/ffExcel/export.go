@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 )
 
 // ExportConfig 导出配置
@@ -102,7 +101,7 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 			return err
 		}
 
-		gofilename := strings.ToLower(excel.name)
+		gofilename := excel.name
 		tomlfilename := excel.name
 
 		// 导出定义
