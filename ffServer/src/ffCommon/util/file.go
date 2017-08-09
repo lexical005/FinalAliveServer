@@ -235,48 +235,84 @@ func RemoveFile(name string) error {
 	return os.Remove(name)
 }
 
-// ClearPath 清空指定目录路径下的所有元素
-func ClearPath(target string) error {
+// ClearPath 按条件清空指定目录路径
+//	targetDir: 要清空的文件夹
+//	clearSubDir: 是否清空子目录. 清空子目录时, 但又由于fileSuffixLimit限制, 导致子目录下某些文件未被删除时, 将导致函数执行失败
+//	fileSuffixLimit: 要删除文件的后缀, 不限定时, 即全部删除
+func ClearPath(targetDir string, clearSubDir bool, fileSuffixLimit []string) error {
 	// 路径不存在时，创建
 	// 路径存在且访问报错，则返回错误
 	// 路径存在且正常访问，则遍历删除其中的所有元素
-	if ok, err := IsPathExist(target); err != nil {
+	if ok, err := IsPathExist(targetDir); err != nil {
 		return err
 	} else if !ok {
-		return CreatePath(target)
+		return CreatePath(targetDir)
 	}
 
-	target, err := filepath.Abs(target)
+	targetDir, err := filepath.Abs(targetDir)
 	if err != nil {
 		return nil
 	}
 
 	// 遍历源
-	waitDelSubDirs := make([]string, 0, 1)
+	var waitDelSubDirs []string
 	waitDelFiles := make([]string, 0, 1)
-	err = filepath.Walk(target, func(p string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		p, err = filepath.Abs(p)
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			// 记录子目录，待删除
-			if p != target {
-				waitDelSubDirs = append(waitDelSubDirs, p)
+	if clearSubDir {
+		// 清除子目录
+		waitDelSubDirs = make([]string, 0, 1)
+		err = filepath.Walk(targetDir, func(p string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
 			}
+
+			p, err = filepath.Abs(p)
+			if err != nil {
+				return err
+			}
+
+			if info.IsDir() {
+				// 记录子目录，待删除
+				if p != targetDir {
+					waitDelSubDirs = append(waitDelSubDirs, p)
+				}
+				return nil
+			}
+
+			// 文件添加到待待删除文件列表内
+			if fileSuffixLimit != nil {
+				for _, limit := range fileSuffixLimit {
+					if len(limit) > 0 && strings.HasSuffix(info.Name(), limit) {
+						waitDelFiles = append(waitDelFiles, p)
+					}
+				}
+			} else {
+				waitDelFiles = append(waitDelFiles, p)
+			}
+
+			return err
+		})
+
+	} else {
+
+		// 不遍历子目录
+		err = Walk(targetDir, func(info os.FileInfo) error {
+			if info.IsDir() {
+				return nil
+			}
+
+			if fileSuffixLimit != nil {
+				for _, limit := range fileSuffixLimit {
+					if len(limit) > 0 && strings.HasSuffix(info.Name(), limit) {
+						waitDelFiles = append(waitDelFiles, filepath.Join(targetDir, info.Name()))
+					}
+				}
+			} else {
+				waitDelFiles = append(waitDelFiles, filepath.Join(targetDir, info.Name()))
+			}
+
 			return nil
-		}
-
-		// 文件添加到待待删除文件列表内
-		waitDelFiles = append(waitDelFiles, p)
-
-		return err
-	})
+		})
+	}
 
 	for _, f := range waitDelFiles {
 		err = os.Remove(f)
@@ -285,10 +321,12 @@ func ClearPath(target string) error {
 		}
 	}
 
-	for _, d := range waitDelSubDirs {
-		err = os.Remove(d)
-		if err != nil {
-			return err
+	if waitDelSubDirs != nil {
+		for _, d := range waitDelSubDirs {
+			err = os.Remove(d)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
