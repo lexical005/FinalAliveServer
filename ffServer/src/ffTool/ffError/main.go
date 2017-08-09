@@ -13,7 +13,7 @@ import (
 )
 
 type errConfig struct {
-	ffExcel.ExportConfig
+	Common ffExcel.ExportConfig
 
 	ErrCodeExportDefPath string
 }
@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// 将excel配置转换为程序读取的配置
-	err = ffExcel.ExportExcelDir("excel", &errConfig.ExportConfig)
+	err = ffExcel.ExportExcelDir("excel", &errConfig.Common)
 	if err != nil {
 		log.RunLogger.Println(err)
 
@@ -66,7 +66,7 @@ func main() {
 	}
 
 	// 读取导出的toml配置
-	fileContent, err = util.ReadFile(path.Join(errConfig.ServerExportDataPath, "Error.toml"))
+	fileContent, err = util.ReadFile(path.Join(errConfig.Common.ServerExportDataPath, "Error.toml"))
 	if err != nil {
 		log.RunLogger.Println(err)
 		return
@@ -81,9 +81,6 @@ func main() {
 	}
 
 	// 服务端错误枚举
-	errGoDef := genTomlDef(errReasonToml)
+	errGoDef := tomlToGolang(errReasonToml)
 	util.WriteFile(path.Join(errConfig.ErrCodeExportDefPath, "error.go"), []byte(errGoDef))
-
-	// 删除导出的toml目录
-	util.RemovePath(errConfig.ServerExportDataPath)
 }
