@@ -10,10 +10,10 @@ type loggerConsoleNormal struct {
 // Arguments are handled in the manner of fmt.Printf.
 func (l *loggerConsoleNormal) Printf(format string, v ...interface{}) {
 	if l.run {
-		if len(format) > 0 && format[len(format)-1] != '\n' {
-			format += "\n"
-		}
 		fmt.Printf(format, v...)
+		if len(format) > 0 && format[len(format)-1] != '\n' {
+			fmt.Println()
+		}
 	}
 }
 

@@ -10,11 +10,11 @@ type loggerConsoleFatal struct {
 func (l *loggerConsoleFatal) Printf(format string, v ...interface{}) {
 	s := Stack()
 
-	if len(format) > 0 && format[len(format)-1] != '\n' {
-		format += "\n"
-	}
 	fmt.Println("Fatal:")
 	fmt.Printf(format, v...)
+	if len(format) > 0 && format[len(format)-1] != '\n' {
+		fmt.Println()
+	}
 	fmt.Println(s)
 
 	RunLogger.Printf(format, v...)
