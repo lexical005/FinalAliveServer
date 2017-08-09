@@ -66,7 +66,7 @@ func main() {
 	}
 
 	// 读取导出的toml配置
-	fileContent, err = util.ReadFile(path.Join(errConfig.Common.ServerExportDataPath, "Error.toml"))
+	fileContent, err = util.ReadFile(path.Join("toml", "server", "Error.toml"))
 	if err != nil {
 		log.RunLogger.Println(err)
 		return

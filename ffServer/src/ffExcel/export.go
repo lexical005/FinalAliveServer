@@ -104,17 +104,18 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 
 		// 导出服务端配置
 		tomlDataServer := genTomlData(excel, exportConfig, "server")
-		dataFilePath := path.Join(exportConfig.ServerExportDataPath, excel.name+".toml")
+		dataFilePath := path.Join("toml", "server", excel.name+".toml")
 		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
 		if err != nil {
 			return err
 		}
-		log.RunLogger.Println(dataFilePath)
-
-		dataFilePath = path.Join("toml", "server", excel.name+".toml")
-		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
-		if err != nil {
-			return err
+		if exportConfig.ServerExportDataPath != "" {
+			dataFilePath = path.Join(exportConfig.ServerExportDataPath, excel.name+".toml")
+			err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
+			if err != nil {
+				return err
+			}
+			log.RunLogger.Println(dataFilePath)
 		}
 	}
 
@@ -133,17 +134,19 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 
 		// 导出客户端配置
 		tomlDataServer := genTomlData(excel, exportConfig, "client")
-		dataFilePath := path.Join(exportConfig.ClientExportDataPath, excel.name+".toml")
+		dataFilePath := path.Join("toml", "client", excel.name+".toml")
 		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
 		if err != nil {
 			return err
 		}
-		log.RunLogger.Println(dataFilePath)
 
-		dataFilePath = path.Join("toml", "client", excel.name+".toml")
-		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
-		if err != nil {
-			return err
+		if exportConfig.ClientExportDataPath != "" {
+			dataFilePath = path.Join(exportConfig.ClientExportDataPath, excel.name+".toml")
+			err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
+			if err != nil {
+				return err
+			}
+			log.RunLogger.Println(dataFilePath)
 		}
 	}
 
