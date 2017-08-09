@@ -5,7 +5,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/tealeg/xlsx"
+	"github.com/lexical005/xlsx"
 )
 
 type excel struct {
@@ -34,7 +34,7 @@ func parseExcel(excelFilePath string) (*excel, error) {
 		sheet, err := newSheet(st)
 		if err != nil {
 			if err != errIgnoreSheetReadme {
-				e := fmt.Errorf("excel[%v] sheet[%v] get error[%v]\n", excelFilePath, st.Name, err.Error())
+				e := fmt.Errorf("excel[%v] sheet[%v] get error[%v]", excelFilePath, st.Name, err.Error())
 				if errResult == nil {
 					errResult = e
 				} else {

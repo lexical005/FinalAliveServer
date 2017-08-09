@@ -13,13 +13,19 @@ import (
 
 // ExportConfig 导出配置
 type ExportConfig struct {
-	ServerExportDefPath  string // 服务端导出的定义文件, 相对导出程序的路径, 为空时或者系统环境变量中未配置GOPATH时, 不导出
-	ServerExportDataType string // 服务端导出的配置文件的类型
-	ServerExportDataPath string // 服务端导出的配置文件, 相对导出程序的路径
-	ServerReadDataPath   string // 服务端导出的配置文件, 相对读取程序的路径
+	// ServerExportDefPath 服务端导出的定义文件, 相对导出程序的路径, 为空时或者系统环境变量中未配置GOPATH时, 不导出
+	ServerExportDefPath string
+	// ServerExportDataType 服务端导出的配置文件的类型
+	ServerExportDataType string
+	// ServerExportDataPath 服务端导出的配置文件, 相对导出程序的路径
+	ServerExportDataPath string
+	// ServerReadDataPath 服务端导出的配置文件, 相对读取程序的路径
+	ServerReadDataPath string
 
-	ClientExportDataType string // 客户端导出的配置文件的类型
-	ClientExportDataPath string // 客户端导出的配置文件, 相对导出程序的路径
+	// ClientExportDataType 客户端导出的配置文件的类型, 相对导出程序的路径, 为空时, 不导出
+	ClientExportDataType string
+	// ClientExportDataPath 客户端导出的配置文件, 相对导出程序的路径
+	ClientExportDataPath string
 
 	hasGoEnv    bool   // 是否有go环境
 	packageName string // 根据ServerExportDefPath推导出来的包名
@@ -28,11 +34,11 @@ type ExportConfig struct {
 func (ec *ExportConfig) check() error {
 	ec.hasGoEnv = os.Getenv("GOPATH") != ""
 
-	if ec.ServerExportDataType != "toml" {
+	if len(ec.ServerExportDataType) > 0 && ec.ServerExportDataType != "toml" {
 		return fmt.Errorf("ExportConfig ServerExportDataType[%v] not support", ec.ServerExportDataType)
 	}
 
-	if ec.ClientExportDataType != "lua" {
+	if len(ec.ClientExportDataType) > 0 && ec.ClientExportDataType != "lua" {
 		return fmt.Errorf("ExportConfig ClientExportDataType[%v] not support", ec.ClientExportDataType)
 	}
 
@@ -81,7 +87,7 @@ func (ec *ExportConfig) String() string {
 func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("ExportExcel excel[%v] get error:\n[%v]\n", excelFilePath, err)
+			err = fmt.Errorf("ExportExcel excel[%v] get error:\n[%v]", excelFilePath, err)
 		}
 	}()
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tealeg/xlsx"
+	"github.com/lexical005/xlsx"
 )
 
 type sheetContent struct {
@@ -33,7 +33,7 @@ func newSheetContent(st *xlsx.Sheet, header *sheetHeader) (*sheetContent, error)
 		}
 
 		// 关键字列为空时忽略
-		key, err := st.Rows[i].Cells[0].String()
+		key, err := st.Rows[i].Cells[0].FormattedValue()
 		if err != nil {
 			return nil, err
 		}

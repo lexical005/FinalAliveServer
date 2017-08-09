@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tealeg/xlsx"
+	"github.com/lexical005/xlsx"
 )
 
 type sheet struct {

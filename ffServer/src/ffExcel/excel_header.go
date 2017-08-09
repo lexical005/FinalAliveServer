@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tealeg/xlsx"
+	"github.com/lexical005/xlsx"
 )
 
 type sheetHeader struct {
@@ -76,22 +76,22 @@ func newSheetHeader(st *xlsx.Sheet) (*sheetHeader, error) {
 	lines := make([]*headerLine, linesLimit, linesLimit)
 	for i := 0; i < linesLimit; i++ {
 		// 取出内容
-		lineDesc, err := rowDesc[i].String()
+		lineDesc, err := rowDesc[i].FormattedValue()
 		if err != nil {
 			return nil, fmt.Errorf("sheetHeader get cell failed at row[0] line[%v]", i)
 		}
 
-		lineName, err := rowName[i].String()
+		lineName, err := rowName[i].FormattedValue()
 		if err != nil {
 			return nil, fmt.Errorf("sheetHeader get cell failed at row[1] line[%v]", i)
 		}
 
-		lineType, err := rowType[i].String()
+		lineType, err := rowType[i].FormattedValue()
 		if err != nil {
 			return nil, fmt.Errorf("sheetHeader get cell failed at row[2] line[%v]", i)
 		}
 
-		lineHome, err := rowHome[i].String()
+		lineHome, err := rowHome[i].FormattedValue()
 		if err != nil {
 			return nil, fmt.Errorf("sheetHeader get cell failed at row[3] line[%v]", i)
 		}

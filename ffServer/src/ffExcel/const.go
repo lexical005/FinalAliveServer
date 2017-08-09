@@ -23,4 +23,5 @@ var sheetTypeMapKeyType = map[string]bool{
 }
 
 var errIgnoreSheetReadme = fmt.Errorf("ignore sheet readme")
-var errInvalidSheetName = fmt.Errorf("sheet name must has suffix in list[%v:%v]", sheetTypeListSuffix, sheetTypeMapSuffix)
+var errInvalidSheetName = fmt.Errorf("sheet name must has suffix in [%v,%v,%v]",
+	sheetTypeListSuffix, sheetTypeMapSuffix, sheetTypeStructSuffix)

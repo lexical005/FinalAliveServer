@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/tealeg/xlsx"
+	"github.com/lexical005/xlsx"
 )
 
 type contentRow struct {
@@ -46,7 +46,7 @@ func newContentRow(rowIndex int, row *xlsx.Row, header *sheetHeader) (*contentRo
 
 		// 取出cell内容
 		cell := row.Cells[index]
-		data, err := cell.String()
+		data, err := cell.FormattedValue()
 		if err != nil {
 			return nil, err
 		}
