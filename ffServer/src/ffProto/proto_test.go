@@ -47,9 +47,9 @@ func testClientSendToAgentServerProto(t *testing.T) {
 	clientSendHeader = NewProtoHeader()
 	clientSendHeader.ResetForSend()
 
-	clientSendProto = ApplyProtoForSend(MessageType_PrepareLoginPlatformUniqueID)
+	clientSendProto = ApplyProtoForSend(MessageType_PrepareLoginPlatformUniqueId)
 
-	messageForSend := clientSendProto.Message().(*MsgPrepareLoginPlatformUniqueID)
+	messageForSend := clientSendProto.Message().(*MsgPrepareLoginPlatformUniqueId)
 	messageForSend.SubChannel = "SubChannel"
 	messageForSend.UUIDPlatformLogin = "Client->AgentServer"
 	messageForSend.Timestamp = 32
@@ -159,7 +159,7 @@ func testGameServerRecvClientProto(t *testing.T) {
 	log.RunLogger.Printf("ExtraData:%x\n", gameServerRecvClientProto.ExtraData())
 
 	// 返回给AgentServer
-	message, _ := gameServerRecvClientProto.Message().(*MsgPrepareLoginPlatformUniqueID)
+	message, _ := gameServerRecvClientProto.Message().(*MsgPrepareLoginPlatformUniqueId)
 	GameUserid := "GameServer->Client"
 	message.UUIDPlatformLogin = GameUserid
 
@@ -279,9 +279,9 @@ func testAgentServerSendToClientProto(t *testing.T) {
 	agentServerSendToClientHeader = NewProtoHeader()
 	agentServerSendToClientHeader.ResetForSend()
 
-	agentServerSendToClientProto = ApplyProtoForSend(MessageType_PrepareLoginPlatformUniqueID)
+	agentServerSendToClientProto = ApplyProtoForSend(MessageType_PrepareLoginPlatformUniqueId)
 
-	messageForSend := agentServerSendToClientProto.Message().(*MsgPrepareLoginPlatformUniqueID)
+	messageForSend := agentServerSendToClientProto.Message().(*MsgPrepareLoginPlatformUniqueId)
 	messageForSend.SubChannel = "SubChannel"
 	messageForSend.UUIDPlatformLogin = "AgentServer->Client"
 	messageForSend.Timestamp = 32
