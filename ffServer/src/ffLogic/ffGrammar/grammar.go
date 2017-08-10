@@ -8,12 +8,19 @@ import (
 
 // Grammar grammar的具体实现的封装
 type Grammar struct {
+	origin  string
 	grammar impGrammar.IGrammar
+}
+
+// Origin 返回对应的语法字符串
+func (g *Grammar) Origin() string {
+	return g.origin
 }
 
 // UnmarshalTOML toml调用此接口生成Grammar实例, 同时也供ffCommon/excel/vendor/cellvalue解析excel使用
 func (g *Grammar) UnmarshalTOML(data []byte) error {
-	grammar, err := impGrammar.Parse(string(data))
+	g.origin = string(data)
+	grammar, err := impGrammar.Parse(g.origin)
 	if err != nil {
 		return err
 	}
