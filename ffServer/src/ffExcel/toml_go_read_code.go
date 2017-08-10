@@ -7,12 +7,12 @@ import (
 )
 
 // package
-var fmtPackage = `package %v
+var fmtGoPackage = `package %v
 
 `
 
 // import
-var fmtImport = `
+var fmtGoImport = `
 import (
 	"ffCommon/util"
 
@@ -22,7 +22,7 @@ import (
 )
 
 `
-var fmtImportGrammar = `
+var fmtGoImportGrammar = `
 import (
 	"ffCommon/util"
 	"ffLogic/ffGrammar"
@@ -35,49 +35,49 @@ import (
 `
 
 // excel struct define
-var fmtExcelComment = `// %v excel %v
+var fmtGoExcelComment = `// %v excel %v
 `
-var fmtExcelDefStart = `type %v struct {
+var fmtGoExcelDefStart = `type %v struct {
 `
-var fmtExcelDefFieldList = `   %v []%v
+var fmtGoExcelDefFieldList = `   %v []%v
 `
-var fmtExcelDefFieldMap = `   %v map[%v]%v
+var fmtGoExcelDefFieldMap = `   %v map[%v]%v
 `
-var fmtExcelDefFieldStruct = `   %v %v
+var fmtGoExcelDefFieldStruct = `   %v %v
 `
-var fmtExcelDefEnd = `}
+var fmtGoExcelDefEnd = `}
 
 `
 
 // excel String method
-var fmtExcelMethodStringStart = `func (%v *%v) String() string {`
-var fmtExcelMethodStringContentStart = `
+var fmtGoExcelMethodStringStart = `func (%v *%v) String() string {`
+var fmtGoExcelMethodStringContentStart = `
 	s := ""`
-var fmtExcelMethodStringContentLoopList = `
+var fmtGoExcelMethodStringContentLoopList = `
 	s += "%v"
 	for _, row := range %v.%v {
 		s += fmt.Sprintf("%%v\n", row)
 	}
 `
-var fmtExcelMethodStringContentLoopMap = `
+var fmtGoExcelMethodStringContentLoopMap = `
 	s += "%v"
 	for k, v := range %v.%v {
 		s += fmt.Sprintf("%%v:%%v\n", k, v)
 	}
 `
-var fmtExcelMethodStringContentLoopStruct = `
+var fmtGoExcelMethodStringContentLoopStruct = `
 	s += "%v"
 	s += fmt.Sprintf("%%v\n", %v.%v)
 `
-var fmtExcelMethodStringContentEnd = `
+var fmtGoExcelMethodStringContentEnd = `
 	return s`
-var fmtExcelMethodStringEnd = `
+var fmtGoExcelMethodStringEnd = `
 }
 
 `
 
 // excel Name method
-var fmtExcelMethodName = `// Name the toml config's name
+var fmtGoExcelMethodName = `// Name the toml config's name
 func (%v *%v) Name() string {
 	return "%v"
 }
@@ -85,31 +85,31 @@ func (%v *%v) Name() string {
 `
 
 // excel sheet struct define
-var fmtSheetComment = `// %v sheet %v of excel %v
+var fmtGoSheetComment = `// %v sheet %v of excel %v
 `
-var fmtSheetDefStart = `type %v struct {
+var fmtGoSheetDefStart = `type %v struct {
 `
-var fmtSheetDefField = `	%v  %v
+var fmtGoSheetDefField = `	%v  %v
 `
-var fmtSheetDefEnd = `}
+var fmtGoSheetDefEnd = `}
 
 `
 
 // excel sheet String method
-var fmtSheetMethodStringStart = `func (%v *%v) String() string {`
-var fmtSheetMethodStringContentStart = `
+var fmtGoSheetMethodStringStart = `func (%v *%v) String() string {`
+var fmtGoSheetMethodStringContentStart = `
 	s := "["`
-var fmtSheetMethodStringContentLoop = `
+var fmtGoSheetMethodStringContentLoop = `
 	s += fmt.Sprintf("%v:%%v,", %v.%v)`
-var fmtSheetMethodStringContentEnd = `
+var fmtGoSheetMethodStringContentEnd = `
 	s += "]"
 	return s`
-var fmtSheetMethodStringEnd = `
+var fmtGoSheetMethodStringEnd = `
 }
 
 `
 
-var fmtReadFunc = `
+var fmtGoReadFunc = `
 // Read%v read excel %v
 func Read%v() (%v *%v, err error) {
 	// 读取文件内容
@@ -141,6 +141,7 @@ func getShortName(name string) string {
 	return strings.ToLower(name)
 }
 
+// 得到可读取toml数据的go语言代码
 func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit string) string {
 	excelName := excel.name
 	shortExcelName := getShortName(excelName)
@@ -191,81 +192,81 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 
 	// package
 	if exportLimit == "server" {
-		result += fmt.Sprintf(fmtPackage, exportConfig.serverPackageName)
+		result += fmt.Sprintf(fmtGoPackage, exportConfig.serverPackageName)
 	} else if exportLimit == "client" {
-		result += fmt.Sprintf(fmtPackage, exportConfig.clientPackageName)
+		result += fmt.Sprintf(fmtGoPackage, exportConfig.clientPackageName)
 	}
 
 	// import
 	if hasGrammar {
-		result += fmtImportGrammar
+		result += fmtGoImportGrammar
 	} else {
-		result += fmtImport
+		result += fmtGoImport
 	}
 
 	// excel struct define
-	result += fmt.Sprintf(fmtExcelComment, excelName, excelName)
-	result += fmt.Sprintf(fmtExcelDefStart, excelName)
+	result += fmt.Sprintf(fmtGoExcelComment, excelName, excelName)
+	result += fmt.Sprintf(fmtGoExcelDefStart, excelName)
 	for i, sheetName := range excelSheetNames {
 		if excelSheetTypes[i] == sheetTypeList {
-			result += fmt.Sprintf(fmtExcelDefFieldList, sheetName, sheetName)
+			result += fmt.Sprintf(fmtGoExcelDefFieldList, sheetName, sheetName)
 		} else if excelSheetTypes[i] == sheetTypeMap {
-			result += fmt.Sprintf(fmtExcelDefFieldMap, sheetName, excelSheetMapKeyTypes[i], sheetName)
+			result += fmt.Sprintf(fmtGoExcelDefFieldMap, sheetName, excelSheetMapKeyTypes[i], sheetName)
 		} else if excelSheetTypes[i] == sheetTypeStruct {
-			result += fmt.Sprintf(fmtExcelDefFieldStruct, sheetName, sheetName)
+			result += fmt.Sprintf(fmtGoExcelDefFieldStruct, sheetName, sheetName)
 		}
 	}
-	result += fmtExcelDefEnd
+	result += fmtGoExcelDefEnd
 
 	// excel String method
-	result += fmt.Sprintf(fmtExcelMethodStringStart, shortExcelName, excelName)
-	result += fmtExcelMethodStringContentStart
+	result += fmt.Sprintf(fmtGoExcelMethodStringStart, shortExcelName, excelName)
+	result += fmtGoExcelMethodStringContentStart
 	for i, sheetName := range excelSheetNames {
 		if excelSheetTypes[i] == sheetTypeList {
-			result += fmt.Sprintf(fmtExcelMethodStringContentLoopList, sheetName, shortExcelName, sheetName)
+			result += fmt.Sprintf(fmtGoExcelMethodStringContentLoopList, sheetName, shortExcelName, sheetName)
 		} else if excelSheetTypes[i] == sheetTypeMap {
-			result += fmt.Sprintf(fmtExcelMethodStringContentLoopMap, sheetName, shortExcelName, sheetName)
+			result += fmt.Sprintf(fmtGoExcelMethodStringContentLoopMap, sheetName, shortExcelName, sheetName)
 		} else if excelSheetTypes[i] == sheetTypeStruct {
-			result += fmt.Sprintf(fmtExcelMethodStringContentLoopStruct, sheetName, shortExcelName, sheetName)
+			result += fmt.Sprintf(fmtGoExcelMethodStringContentLoopStruct, sheetName, shortExcelName, sheetName)
 		}
 	}
-	result += fmtExcelMethodStringContentEnd
-	result += fmtExcelMethodStringEnd
+	result += fmtGoExcelMethodStringContentEnd
+	result += fmtGoExcelMethodStringEnd
 
 	// excel Name method
-	result += fmt.Sprintf(fmtExcelMethodName, shortExcelName, excelName, excelName)
+	result += fmt.Sprintf(fmtGoExcelMethodName, shortExcelName, excelName, excelName)
 
 	// excel sheet struct define
 	for _, sheetName := range excelSheetNames {
 		shortSheetName := getShortName(sheetName)
 
-		result += fmt.Sprintf(fmtSheetComment, sheetName, sheetName, excelName)
-		result += fmt.Sprintf(fmtSheetDefStart, sheetName)
+		result += fmt.Sprintf(fmtGoSheetComment, sheetName, sheetName, excelName)
+		result += fmt.Sprintf(fmtGoSheetDefStart, sheetName)
 		for _, fieldName := range mapExcelSheetInfo[sheetName].lines {
-			result += fmt.Sprintf(fmtSheetDefField, fieldName, mapExcelSheetInfo[sheetName].mapLineType[fieldName])
+			result += fmt.Sprintf(fmtGoSheetDefField, fieldName, mapExcelSheetInfo[sheetName].mapLineType[fieldName])
 		}
-		result += fmtSheetDefEnd
+		result += fmtGoSheetDefEnd
 
 		// excel sheet String method
-		result += fmt.Sprintf(fmtSheetMethodStringStart, shortSheetName, sheetName)
-		result += fmtSheetMethodStringContentStart
+		result += fmt.Sprintf(fmtGoSheetMethodStringStart, shortSheetName, sheetName)
+		result += fmtGoSheetMethodStringContentStart
 		for _, fieldName := range mapExcelSheetInfo[sheetName].lines {
-			result += fmt.Sprintf(fmtSheetMethodStringContentLoop, fieldName, shortSheetName, fieldName)
+			result += fmt.Sprintf(fmtGoSheetMethodStringContentLoop, fieldName, shortSheetName, fieldName)
 		}
-		result += fmtSheetMethodStringContentEnd
-		result += fmtSheetMethodStringEnd
+		result += fmtGoSheetMethodStringContentEnd
+		result += fmtGoSheetMethodStringEnd
 	}
 
 	// read excel
 	if exportLimit == "server" {
-		result += fmt.Sprintf(fmtReadFunc,
+		result += fmt.Sprintf(fmtGoReadFunc,
 			excelName, excelName,
 			excelName, shortExcelName, excelName,
 			path.Join(exportConfig.ServerReadTomlDataPath, fmt.Sprintf("%v.toml", excelName)),
 			shortExcelName, excelName,
 			shortExcelName)
 	} else if exportLimit == "client" {
-		result += fmt.Sprintf(fmtReadFunc,
+		result += fmt.Sprintf(fmtGoReadFunc,
 			excelName, excelName,
 			excelName, shortExcelName, excelName,
 			path.Join("toml", "client", fmt.Sprintf("%v.toml", excelName)),

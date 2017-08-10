@@ -21,6 +21,9 @@ type ValueType interface {
 	// Type 返回程序内部使用的类型的字符串描述
 	Type() string
 
+	// ProtoType 返回该字段在Proto定义里的类型
+	ProtoType() string
+
 	valueType() valueType
 }
 

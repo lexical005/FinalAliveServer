@@ -35,6 +35,7 @@ const (
 	vtGrammar = valueType("grammar")
 
 	// 由多列自定义语法语句配置合并成自定义语法语句数组, 名称字段在头部允许出现多次, 追加到数组的顺序为从左向右
+	// todo: 实现
 	vtGrammarsMulti = valueType("grammars_multi")
 )
 
@@ -69,10 +70,28 @@ var mapValueTypeToRealType = map[valueType]string{
 	vtGrammarsMulti: "[]ffGrammar.Grammar",
 }
 
+// 用户配置的值类型中, 有效的值类型到程序内部类型的匹配
+var mapValueTypeToProtoType = map[valueType]string{
+	vtInt32:         "int32",
+	vtInt32sSingle:  "repeated int32",
+	vtInt32sMulti:   "repeated int32",
+	vtInt64:         "int64",
+	vtInt64sSingle:  "repeated int64",
+	vtInt64sMulti:   "repeated int64",
+	vtString:        "string",
+	vtStringsSingle: "repeated string",
+	vtStringsMulti:  "repeated string",
+	vtGrammar:       "Grammar",
+	vtGrammarsMulti: "Grammar",
+}
+
 type valueType string
 
 func (vt *valueType) Type() string {
 	return mapValueTypeToRealType[*vt]
+}
+func (vt *valueType) ProtoType() string {
+	return mapValueTypeToProtoType[*vt]
 }
 func (vt *valueType) IsIgnore() bool {
 	return *vt == vtEmpty

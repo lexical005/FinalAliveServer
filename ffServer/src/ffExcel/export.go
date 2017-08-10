@@ -133,7 +133,7 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 
 	// 导出服务端
 	{
-		// 导出服务端读取代码
+		// 导出读取toml数据的Go代码
 		tomlDataServerReadCode := genTomlDataReadCode(excel, exportConfig, "server")
 		if exportConfig.hasGoEnv && exportConfig.ServerExportGoCodePath != "" {
 			defFilePath := path.Join(exportConfig.ServerExportGoCodePath, excel.name+".go")
@@ -144,13 +144,14 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 			log.RunLogger.Println(defFilePath)
 		}
 
-		// 导出服务端配置
+		// 导出toml数据
 		tomlDataServer := genTomlData(excel, exportConfig, "server")
 		dataFilePath := path.Join("toml", "server", excel.name+".toml")
 		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
 		if err != nil {
 			return err
 		}
+
 		if exportConfig.ServerExportTomlDataPath != "" {
 			dataFilePath = path.Join(exportConfig.ServerExportTomlDataPath, excel.name+".toml")
 			err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
@@ -163,23 +164,39 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 
 	// 导出客户端
 	{
-		// 导出客户端转换代码
-		tomlDataClientReadCode := genTomlDataReadCode(excel, exportConfig, "client")
+		// 导出读取toml数据的Go代码
+		tomlDataGoReadCode := genTomlDataReadCode(excel, exportConfig, "client")
 		if exportConfig.hasGoEnv && exportConfig.ClientExportGoCodePath != "" {
 			defFilePath := path.Join(exportConfig.ClientExportGoCodePath, excel.name+".go")
-			err = util.WriteFile(defFilePath, []byte(tomlDataClientReadCode))
+			err = util.WriteFile(defFilePath, []byte(tomlDataGoReadCode))
 			if err != nil {
 				return err
 			}
 			log.RunLogger.Println(defFilePath)
 		}
 
-		// 导出客户端配置
+		// 导出toml数据
 		tomlDataServer := genTomlData(excel, exportConfig, "client")
 		dataFilePath := path.Join("toml", "client", excel.name+".toml")
 		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
 		if err != nil {
 			return err
+		}
+
+		// 导出toml数据对应的Proto定义
+		goProto, csharpProto := genProtoDefineFromToml(excel, "client")
+		if exportConfig.hasGoEnv && exportConfig.ClientExportGoCodePath != "" {
+			goFilePath := path.Join("ProtoBuf", "Server", "Config.proto")
+			err = util.WriteFile(goFilePath, []byte(goProto))
+			if err != nil {
+				return err
+			}
+
+			csharpFilePath := path.Join("ProtoBuf", "Client", "Config.proto")
+			err = util.WriteFile(csharpFilePath, []byte(csharpProto))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
