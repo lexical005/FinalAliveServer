@@ -16,7 +16,7 @@ type ExcelExportTest struct {
 	VIPlist   []VIPlist
 }
 
-func (e ExcelExportTest) String() string {
+func (e *ExcelExportTest) String() string {
 	s := ""
 	s += "VIPmap"
 	for k, v := range e.VIPmap {
@@ -34,6 +34,11 @@ func (e ExcelExportTest) String() string {
 	return s
 }
 
+// Name the toml config's name
+func (e *ExcelExportTest) Name() string {
+	return "ExcelExportTest"
+}
+
 // VIPmap sheet VIPmap of excel ExcelExportTest
 type VIPmap struct {
 	InfoInt       int
@@ -45,7 +50,7 @@ type VIPmap struct {
 	Award         ffGrammar.Grammar
 }
 
-func (vip VIPmap) String() string {
+func (vip *VIPmap) String() string {
 	s := "["
 	s += fmt.Sprintf("InfoInt:%v,", vip.InfoInt)
 	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
@@ -68,7 +73,7 @@ type VIPstruct struct {
 	InfoStrMulti  []string
 }
 
-func (vip VIPstruct) String() string {
+func (vip *VIPstruct) String() string {
 	s := "["
 	s += fmt.Sprintf("InfoInt:%v,", vip.InfoInt)
 	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
@@ -90,7 +95,7 @@ type VIPlist struct {
 	InfoStrMulti  []string
 }
 
-func (vip VIPlist) String() string {
+func (vip *VIPlist) String() string {
 	s := "["
 	s += fmt.Sprintf("InfoInt:%v,", vip.InfoInt)
 	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)

@@ -1,5 +1,4 @@
-package ffGameConfig
-
+package ffClientToml
 
 import (
 	"ffCommon/util"
@@ -12,12 +11,12 @@ import (
 
 // ExcelExportTest excel ExcelExportTest
 type ExcelExportTest struct {
-   VIPmap map[int]VIPmap
-   VIPstruct VIPstruct
-   VIPlist []VIPlist
+	VIPmap    map[int]VIPmap
+	VIPstruct VIPstruct
+	VIPlist   []VIPlist
 }
 
-func (e ExcelExportTest) String() string {
+func (e *ExcelExportTest) String() string {
 	s := ""
 	s += "VIPmap"
 	for k, v := range e.VIPmap {
@@ -35,15 +34,20 @@ func (e ExcelExportTest) String() string {
 	return s
 }
 
-// VIPmap sheet VIPmap of excel ExcelExportTest
-type VIPmap struct {
-	InfoInt  int
-	InfoStr  string
-	ItemID  int
-	Award  ffGrammar.Grammar
+// Name the toml config's name
+func (e *ExcelExportTest) Name() string {
+	return "ExcelExportTest"
 }
 
-func (vip VIPmap) String() string {
+// VIPmap sheet VIPmap of excel ExcelExportTest
+type VIPmap struct {
+	InfoInt int
+	InfoStr string
+	ItemID  int
+	Award   ffGrammar.Grammar
+}
+
+func (vip *VIPmap) String() string {
 	s := "["
 	s += fmt.Sprintf("InfoInt:%v,", vip.InfoInt)
 	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
@@ -55,12 +59,12 @@ func (vip VIPmap) String() string {
 
 // VIPstruct sheet VIPstruct of excel ExcelExportTest
 type VIPstruct struct {
-	InfoInt  int
-	InfoStr  string
+	InfoInt int
+	InfoStr string
 	ItemID  int
 }
 
-func (vip VIPstruct) String() string {
+func (vip *VIPstruct) String() string {
 	s := "["
 	s += fmt.Sprintf("InfoInt:%v,", vip.InfoInt)
 	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
@@ -71,12 +75,12 @@ func (vip VIPstruct) String() string {
 
 // VIPlist sheet VIPlist of excel ExcelExportTest
 type VIPlist struct {
-	InfoInt  int
-	InfoStr  string
+	InfoInt int
+	InfoStr string
 	ItemID  int
 }
 
-func (vip VIPlist) String() string {
+func (vip *VIPlist) String() string {
 	s := "["
 	s += fmt.Sprintf("InfoInt:%v,", vip.InfoInt)
 	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
@@ -84,7 +88,6 @@ func (vip VIPlist) String() string {
 	s += "]"
 	return s
 }
-
 
 // ReadExcelExportTest read excel ExcelExportTest
 func ReadExcelExportTest() (e *ExcelExportTest, err error) {
