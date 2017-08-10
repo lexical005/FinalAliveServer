@@ -50,7 +50,7 @@ var fmtExcelDefEnd = `}
 `
 
 // excel String method
-var fmtExcelMethodStringStart = `func (%v %v) String() string {`
+var fmtExcelMethodStringStart = `func (%v *%v) String() string {`
 var fmtExcelMethodStringContentStart = `
 	s := ""`
 var fmtExcelMethodStringContentLoopList = `
@@ -76,6 +76,14 @@ var fmtExcelMethodStringEnd = `
 
 `
 
+// excel Name method
+var fmtExcelMethodName = `// Name the toml config's name
+func (%v *%v) Name() string {
+	return "%v"
+}
+
+`
+
 // excel sheet struct define
 var fmtSheetComment = `// %v sheet %v of excel %v
 `
@@ -88,7 +96,7 @@ var fmtSheetDefEnd = `}
 `
 
 // excel sheet String method
-var fmtSheetMethodStringStart = `func (%v %v) String() string {`
+var fmtSheetMethodStringStart = `func (%v *%v) String() string {`
 var fmtSheetMethodStringContentStart = `
 	s := "["`
 var fmtSheetMethodStringContentLoop = `
@@ -182,7 +190,11 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 	result := ""
 
 	// package
-	result += fmt.Sprintf(fmtPackage, exportConfig.packageName)
+	if exportLimit == "server" {
+		result += fmt.Sprintf(fmtPackage, exportConfig.serverPackageName)
+	} else if exportLimit == "client" {
+		result += fmt.Sprintf(fmtPackage, exportConfig.clientPackageName)
+	}
 
 	// import
 	if hasGrammar {
@@ -219,6 +231,9 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 	}
 	result += fmtExcelMethodStringContentEnd
 	result += fmtExcelMethodStringEnd
+
+	// excel Name method
+	result += fmt.Sprintf(fmtExcelMethodName, shortExcelName, excelName, excelName)
 
 	// excel sheet struct define
 	for _, sheetName := range excelSheetNames {

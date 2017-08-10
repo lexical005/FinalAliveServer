@@ -28,14 +28,16 @@ type ExportConfig struct {
 	// ClientExportProtoBufDataPath 客户端导出的Protobuf配置文件, 相对导出程序的路径
 	ClientExportProtoBufDataPath string
 
-	hasGoEnv    bool   // 是否有go环境
-	packageName string // 根据ServerExportGoCodePath推导出来的包名
+	hasGoEnv          bool   // 是否有go环境
+	serverPackageName string // 根据ServerExportGoCodePath推导出来的包名
+	clientPackageName string // 根据ClientExportGoCodePath推导出来的包名
 }
 
 func (ec *ExportConfig) check() error {
 	ec.hasGoEnv = os.Getenv("GOPATH") != ""
 
-	_, ec.packageName = path.Split(ec.ServerExportGoCodePath)
+	_, ec.serverPackageName = path.Split(ec.ServerExportGoCodePath)
+	_, ec.clientPackageName = path.Split(ec.ClientExportGoCodePath)
 
 	return nil
 }
@@ -100,7 +102,7 @@ func clearPath(ec *ExportConfig) bool {
 	}
 
 	if ec.ClientExportProtoBufDataPath != "" {
-		err := util.ClearPath(ec.ClientExportProtoBufDataPath, false, []string{".pb"})
+		err := util.ClearPath(ec.ClientExportProtoBufDataPath, false, []string{".bytes"})
 		if err != nil {
 			log.RunLogger.Println(err)
 			result = false
@@ -162,10 +164,10 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 	// 导出客户端
 	{
 		// 导出客户端转换代码
-		tomlDataServerReadCode := genTomlDataReadCode(excel, exportConfig, "client")
+		tomlDataClientReadCode := genTomlDataReadCode(excel, exportConfig, "client")
 		if exportConfig.hasGoEnv && exportConfig.ClientExportGoCodePath != "" {
 			defFilePath := path.Join(exportConfig.ClientExportGoCodePath, excel.name+".go")
-			err = util.WriteFile(defFilePath, []byte(tomlDataServerReadCode))
+			err = util.WriteFile(defFilePath, []byte(tomlDataClientReadCode))
 			if err != nil {
 				return err
 			}
