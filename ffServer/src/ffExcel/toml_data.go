@@ -38,7 +38,9 @@ func genTomlData(excel *excel, exportConfig *ExportConfig, exportLimit string) s
 					result += fmtFieldSplitMap
 				}
 
-				result += fmt.Sprintf(fmtSheetMapKey, sheet.name, row.rowData[sheetTypeMapKeyName].Value())
+				if data, ok := row.rowData[sheetTypeMapKeyName]; ok {
+					result += fmt.Sprintf(fmtSheetMapKey, sheet.name, data.Value())
+				}
 			} else if sheet.sheetType == sheetTypeList {
 				if i > 0 {
 					result += fmtFieldSplitMap
@@ -52,7 +54,10 @@ func genTomlData(excel *excel, exportConfig *ExportConfig, exportLimit string) s
 				if (exportLimit == "server" && line.exportToServer() || exportLimit == "client" && line.exportToClient()) && !line.isMapKey() {
 					if _, ok := exportedLines[line.lineName]; !ok {
 						exportedLines[line.lineName] = true
-						result += fmt.Sprintf(fmtFieldList, line.lineName, row.rowData[line.lineName].ValueToml())
+						if data, ok := row.rowData[line.lineName]; ok {
+							result += fmt.Sprintf(fmtFieldList, line.lineName, data.ValueToml())
+						}
+
 					}
 				}
 			}

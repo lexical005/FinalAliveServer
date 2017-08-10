@@ -24,7 +24,7 @@ func newSheet(st *xlsx.Sheet) (*sheet, error) {
 	sheetName := st.Name
 
 	// readme
-	if strings.ToLower(sheetName) == "readme" {
+	if strings.HasPrefix(strings.ToLower(sheetName), "readme") {
 		return nil, errIgnoreSheetReadme
 	}
 
@@ -59,19 +59,24 @@ func newSheet(st *xlsx.Sheet) (*sheet, error) {
 	// check header and content
 	if sheetType == sheetTypeList {
 		if header.hasMapKey() {
-			return nil, fmt.Errorf("sheet[%v] with suffix[%v] should not has [%v] line", sheetName, sheetTypeListSuffix, sheetTypeMapKeyName)
+			return nil, fmt.Errorf("sheet[%v] with suffix[%v] should not has [%v] line",
+				sheetName, sheetTypeListSuffix, sheetTypeMapKeyName)
 		}
 	} else if sheetType == sheetTypeMap {
 		if !header.hasMapKey() {
-			return nil, fmt.Errorf("sheet[%v] with suffix[%v] must has [%v] line", sheetName, sheetTypeMapSuffix, sheetTypeMapKeyName)
+			return nil, fmt.Errorf("sheet[%v] with suffix[%v] must has [%v] line",
+				sheetName, sheetTypeMapSuffix, sheetTypeMapKeyName)
 		} else if _, ok := sheetTypeMapKeyType[header.mapKeyType()]; !ok {
-			return nil, fmt.Errorf("sheet[%v] with suffix[%v] [%v] line type must in %v", sheetName, sheetTypeMapSuffix, sheetTypeMapKeyName, sheetTypeMapKeyType)
+			return nil, fmt.Errorf("sheet[%v] with suffix[%v] [%v] line type must in %v",
+				sheetName, sheetTypeMapSuffix, sheetTypeMapKeyName, sheetTypeMapKeyType)
 		}
 	} else if sheetType == sheetTypeStruct {
 		if header.hasMapKey() {
-			return nil, fmt.Errorf("sheet[%v] with suffix[%v] should not has [%v] line", sheetName, sheetTypeStructSuffix, sheetTypeMapKeyName)
+			return nil, fmt.Errorf("sheet[%v] with suffix[%v] should not has [%v] line",
+				sheetName, sheetTypeStructSuffix, sheetTypeMapKeyName)
 		} else if len(content.rows) != 1 {
-			return nil, fmt.Errorf("sheet[%v] with suffix[%v] must 1 row", sheetName, sheetTypeStructSuffix)
+			return nil, fmt.Errorf("sheet[%v] with suffix[%v] must 1 row",
+				sheetName, sheetTypeStructSuffix)
 		}
 	}
 

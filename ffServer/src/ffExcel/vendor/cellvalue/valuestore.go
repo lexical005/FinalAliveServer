@@ -27,8 +27,11 @@ func (vs *valueStore) ValueToml() string {
 				result += ", "
 			}
 			v := rv.Index(i)
-			if v.Kind() == reflect.Int {
+			k := v.Kind()
+			if k == reflect.Int || k == reflect.Int8 || k == reflect.Int16 || k == reflect.Int32 || k == reflect.Int64 {
 				result += fmt.Sprintf("%v", v.Int())
+			} else if k == reflect.Uint || k == reflect.Uint8 || k == reflect.Uint16 || k == reflect.Uint32 || k == reflect.Uint64 {
+				return fmt.Sprintf("%v", v.Int())
 			} else if v.Kind() == reflect.String {
 				s := v.String()
 				s = strings.Replace(s, "\"", "\\\"", -1)
@@ -38,15 +41,18 @@ func (vs *valueStore) ValueToml() string {
 		return result + "]"
 	}
 
-	if rv.Kind() == reflect.Int {
+	k := rv.Kind()
+	if k == reflect.Int || k == reflect.Int8 || k == reflect.Int16 || k == reflect.Int32 || k == reflect.Int64 {
 		return fmt.Sprintf("%v", rv.Int())
+	} else if k == reflect.Uint || k == reflect.Uint8 || k == reflect.Uint16 || k == reflect.Uint32 || k == reflect.Uint64 {
+		return fmt.Sprintf("%v", rv.Uint())
 	} else if rv.Kind() == reflect.String {
 		s := rv.String()
 		s = strings.Replace(s, "\"", "\\\"", -1)
 		return fmt.Sprintf("\"%v\"", s)
 	}
 
-	panic(fmt.Sprintf("ValueToml failed: ValueType[%v] value[%v]", vs.vt, vs.value))
+	panic(fmt.Sprintf("ValueToml failed: ValueType[%v] value[%v:%v]", vs.vt, rv.Kind().String(), vs.value))
 }
 
 func (vs *valueStore) String() string {

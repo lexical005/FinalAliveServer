@@ -34,9 +34,3 @@ func checkToml(excel *excel) (err error) {
 	}
 	return
 }
-
-func genToml(excel *excel, exportConfig *ExportConfig) (tomlDataServerReader string, tomlData string) {
-	tomlDataServerReader = genTomlDataReadCode(excel, exportConfig, "server")
-	tomlData = genTomlData(excel, exportConfig, "server")
-	return
-}

@@ -3,7 +3,7 @@ package ffExcel
 import "fmt"
 
 const (
-	sheetHeaderRowsCount = 4
+	sheetHeaderRowsCount = 5
 
 	sheetTypeInvalid = iota
 	sheetTypeList
@@ -18,7 +18,8 @@ const (
 )
 
 var sheetTypeMapKeyType = map[string]bool{
-	"int":    true,
+	"int32":  true,
+	"int64":  true,
 	"string": true,
 }
 

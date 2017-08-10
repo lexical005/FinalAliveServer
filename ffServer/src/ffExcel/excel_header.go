@@ -58,8 +58,8 @@ func newSheetHeader(st *xlsx.Sheet) (*sheetHeader, error) {
 	}
 
 	// 调整列数一致
-	rowDesc, rowName, rowType, rowHome := st.Rows[0].Cells, st.Rows[1].Cells, st.Rows[2].Cells, st.Rows[3].Cells
-	countDesc, countName, countType, countHome := len(rowDesc), len(rowName), len(rowType), len(rowHome)
+	rowDesc, rowName, rowType, rowRequired, rowHome := st.Rows[0].Cells, st.Rows[1].Cells, st.Rows[2].Cells, st.Rows[3].Cells, st.Rows[4].Cells
+	countDesc, countName, countType, countRequired, countHome := len(rowDesc), len(rowName), len(rowType), len(rowRequired), len(rowHome)
 	linesLimit := countDesc
 	if linesLimit > countName {
 		linesLimit = countName
@@ -67,10 +67,13 @@ func newSheetHeader(st *xlsx.Sheet) (*sheetHeader, error) {
 	if linesLimit > countType {
 		linesLimit = countType
 	}
+	if linesLimit > countRequired {
+		linesLimit = countRequired
+	}
 	if linesLimit > countHome {
 		linesLimit = countHome
 	}
-	rowDesc, rowName, rowType, rowHome = rowDesc[:linesLimit], rowName[:linesLimit], rowType[:linesLimit], rowHome[:linesLimit]
+	rowDesc, rowName, rowType, rowRequired, rowHome = rowDesc[:linesLimit], rowName[:linesLimit], rowType[:linesLimit], rowRequired[:linesLimit], rowHome[:linesLimit]
 
 	// 解析控制头
 	lines := make([]*headerLine, linesLimit, linesLimit)
@@ -91,9 +94,14 @@ func newSheetHeader(st *xlsx.Sheet) (*sheetHeader, error) {
 			return nil, fmt.Errorf("sheetHeader get cell failed at row[2] line[%v]", i)
 		}
 
-		lineHome, err := rowHome[i].FormattedValue()
+		lineRequired, err := rowType[i].FormattedValue()
 		if err != nil {
 			return nil, fmt.Errorf("sheetHeader get cell failed at row[3] line[%v]", i)
+		}
+
+		lineHome, err := rowHome[i].FormattedValue()
+		if err != nil {
+			return nil, fmt.Errorf("sheetHeader get cell failed at row[4] line[%v]", i)
 		}
 
 		// 多列组合
@@ -101,21 +109,20 @@ func newSheetHeader(st *xlsx.Sheet) (*sheetHeader, error) {
 		for j := 0; j < i; j++ {
 			if lines[j].lineName == lineName {
 				if !lines[j].lineType.IsMulti() {
-					return nil, fmt.Errorf("sheetHeader invalid type at row[2] line[%v]", i)
+					return nil, fmt.Errorf("sheetHeader lineType[%v] not support multi, but lineName[%v] appear at row[2] line[%v:%v]",
+						lines[j].lineType.Type(), lineName, j, i)
 				}
 				if headerLine == nil {
 					headerLine = lines[j]
-				} else if headerLine != lines[j] {
-					return nil, fmt.Errorf("sheetHeader invalid type at row[2] line[%v]", i)
 				}
 			}
 		}
 
 		// 创建新列
 		if headerLine == nil {
-			headerLine, err = newLineHeader(lineDesc, lineName, lineType, lineHome)
+			headerLine, err = newLineHeader(lineDesc, lineName, lineType, lineRequired, lineHome)
 			if err != nil {
-				return nil, fmt.Errorf("sheetHeader cell content invalid at row[2] line[%v], reason[%v]", i, err.Error())
+				return nil, fmt.Errorf("sheetHeader cell header invalid at row[2] line[%v], reason[%v]", i, err.Error())
 			}
 		}
 

@@ -51,9 +51,26 @@ func newContentRow(rowIndex int, row *xlsx.Row, header *sheetHeader) (*contentRo
 			return nil, err
 		}
 
-		// 只有允许多列配置时，才允许cell内容为空
-		if data == "" && !line.lineType.IsMulti() && !line.lineType.IsString() {
-			return nil, fmt.Errorf("only multi or string value type support cell content empty. row[%v] index[%v] type[%v]", rowIndex, index, line.lineType.Type())
+		// 如果是空字符串
+		if data == "" {
+			// 本列必须配置有效值, 不允许留空白
+			if line.isRequired() {
+				if !line.lineType.IsMulti() {
+					return nil, fmt.Errorf("not allow empty cell at row[%v] line[%v] lineType[%v]",
+						rowIndex, index, line.lineType.Type())
+				}
+
+				// 留待整行全部解析完成后, 再进行检查(只要有一列配置了值, 列就是有效的)
+				continue
+			}
+
+			// 可选配置列, 先返回
+			continue
+		} else if line.lineType.IsString() {
+			// 本列配置的是字符串, 且使用者主动配置了空字符串, 则将其转换为程序用的空字符串
+			if data == `""` {
+				data = ""
+			}
 		}
 
 		// 存储值
