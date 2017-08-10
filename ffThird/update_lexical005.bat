@@ -3,7 +3,6 @@
 @echo off
 
 go get -u -v github.com/lexical005/mysql
-go get -u -v github.com/lexical005/protobuf
 go get -u -v github.com/lexical005/toml
 go get -u -v github.com/lexical005/xlsx
 

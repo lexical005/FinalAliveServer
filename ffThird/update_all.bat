@@ -6,6 +6,7 @@ go get -u -v github.com/nsf/gocode
 go get -u -v github.com/rogpeppe/godef
 go get -u -v github.com/zmb3/gogetdoc
 go get -u -v github.com/golang/lint/golint
+go get -v -v github.com/golang/protobuf
 go get -u -v github.com/ramya-rao-a/go-outline
 go get -u -v sourcegraph.com/sqs/goreturns
 go get -u -v golang.org/x/tools/cmd/gorename
@@ -21,10 +22,7 @@ go get -u -v github.com/derekparker/delve/cmd/dlv
 go get -u -v github.com/alexmullins/zip
 go get -u -v github.com/davecgh/go-spew
 
-go get -u -v google.golang.org/grpc
-
 go get -u -v github.com/lexical005/mysql
-go get -u -v github.com/lexical005/protobuf
 go get -u -v github.com/lexical005/toml
 go get -u -v github.com/lexical005/xlsx
 
