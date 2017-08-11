@@ -16,6 +16,7 @@ func main() {
 	// 命令行参数解析
 	gocodedir := flag.String("gocodedir", "", "golang read toml code directory")
 	readername := flag.String("readername", "", "reader directory")
+	proto := flag.String("proto", "", "gen go to proto reader")
 	flag.Parse()
 
 	if *gocodedir == "" || *readername == "" {
@@ -30,7 +31,7 @@ func main() {
 	}
 
 	// 遍历go文件
-	golangFiles := make([]string, 0, 10)
+	golangFiles, goFullPathFiles := make([]string, 0, 10), make([]string, 0, 10)
 	if fi, err := os.Stat(ffGameConfigPath); err != nil && os.IsExist(err) || fi != nil && fi.IsDir() {
 		err := util.Walk(ffGameConfigPath, func(f os.FileInfo) error {
 			// 忽略文件夹以及非go文件
@@ -40,6 +41,7 @@ func main() {
 			}
 
 			golangFiles = append(golangFiles, name[0:len(name)-len(".go")])
+			goFullPathFiles = append(goFullPathFiles, filepath.Join(ffGameConfigPath, name))
 
 			return nil
 		})
@@ -50,8 +52,17 @@ func main() {
 		}
 	}
 
-	_, packageName := filepath.Split(*gocodedir)
+	_, goCodePackageName := filepath.Split(*gocodedir)
 
 	// 生成读取文件
-	genReadTomlCode(filepath.Join(ffGameConfigPath, *readername, "read.go"), golangFiles, packageName)
+	genReadTomlCode(filepath.Join(ffGameConfigPath, *readername, "read_toml.go"), golangFiles, goCodePackageName)
+
+	// go读取toml数据格式的代码 ==> ProtoBuf读取toml数据格式的代码
+	if *proto == "proto" {
+		transGoToProto(
+			filepath.Join(ffGameConfigPath, *readername),
+			filepath.Join(ffGameConfigPath, *readername, "Config.pb.go"),
+			goFullPathFiles,
+			goCodePackageName)
+	}
 }

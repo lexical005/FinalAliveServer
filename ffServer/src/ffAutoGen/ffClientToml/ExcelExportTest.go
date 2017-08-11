@@ -44,7 +44,7 @@ type VIPmap struct {
 	InfoInt32        int32
 	InfoInt64        int64
 	InfoStr          string
-	InfoIn32tSingle  []int32
+	InfoInt32Single  []int32
 	InfoInt64Single  []int64
 	InfoStrSingle    []string
 	InfoInt32Multi   []int32
@@ -68,7 +68,7 @@ func (vip *VIPmap) String() string {
 	s += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
 	s += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
 	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
-	s += fmt.Sprintf("InfoIn32tSingle:%v,", vip.InfoIn32tSingle)
+	s += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
 	s += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
 	s += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
 	s += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
@@ -94,7 +94,7 @@ type VIPstruct struct {
 	InfoInt32        int32
 	InfoInt64        int64
 	InfoStr          string
-	InfoIn32tSingle  []int32
+	InfoInt32Single  []int32
 	InfoInt64Single  []int64
 	InfoStrSingle    []string
 	InfoInt32Multi   []int32
@@ -118,7 +118,7 @@ func (vip *VIPstruct) String() string {
 	s += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
 	s += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
 	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
-	s += fmt.Sprintf("InfoIn32tSingle:%v,", vip.InfoIn32tSingle)
+	s += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
 	s += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
 	s += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
 	s += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
@@ -144,7 +144,7 @@ type VIPlist struct {
 	InfoInt32        int32
 	InfoInt64        int64
 	InfoStr          string
-	InfoIn32tSingle  []int32
+	InfoInt32Single  []int32
 	InfoInt64Single  []int64
 	InfoStrSingle    []string
 	InfoInt32Multi   []int32
@@ -168,7 +168,7 @@ func (vip *VIPlist) String() string {
 	s += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
 	s += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
 	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
-	s += fmt.Sprintf("InfoIn32tSingle:%v,", vip.InfoIn32tSingle)
+	s += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
 	s += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
 	s += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
 	s += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)

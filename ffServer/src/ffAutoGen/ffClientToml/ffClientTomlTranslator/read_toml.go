@@ -3,14 +3,11 @@ package main
 import (
 	"ffAutoGen/ffClientToml"
 	"ffCommon/log/log"
-	"ffCommon/util"
 )
 
 var tomlExcelExportTest *ffClientToml.ExcelExportTest
 
-func read() {
-	defer util.PanicProtect()
-
+func readToml() {
 	var err error
 
 	tomlExcelExportTest, err = ffClientToml.ReadExcelExportTest()
@@ -18,4 +15,8 @@ func read() {
 		log.RunLogger.Printf("ReadExcelExportTest get error[%v]", err)
 	}
 
+}
+
+func init() {
+	allRead = append(allRead, readToml)
 }

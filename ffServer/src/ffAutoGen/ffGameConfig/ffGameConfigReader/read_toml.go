@@ -3,14 +3,11 @@ package main
 import (
 	"ffAutoGen/ffGameConfig"
 	"ffCommon/log/log"
-	"ffCommon/util"
 )
 
 var tomlExcelExportTest *ffGameConfig.ExcelExportTest
 
-func read() {
-	defer util.PanicProtect()
-
+func readToml() {
 	var err error
 
 	tomlExcelExportTest, err = ffGameConfig.ReadExcelExportTest()
@@ -18,4 +15,8 @@ func read() {
 		log.RunLogger.Printf("ReadExcelExportTest get error[%v]", err)
 	}
 
+}
+
+func init() {
+	allRead = append(allRead, readToml)
 }
