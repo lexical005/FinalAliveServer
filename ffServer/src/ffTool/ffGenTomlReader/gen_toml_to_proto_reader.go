@@ -53,14 +53,17 @@ var fmtTransStructMap = `
 	{MapKeyInt32Commet}sort.Ints({StructName}Keys)
 	{MapKeyInt64Commet}sort.Ints({StructName}Keys)
 	{MapKeyStringCommet}sort.Strings({StructName}Keys)
-	message.{StructName} = make(map[{KeyType}]*{FileName}_St{StructName}, len(toml{FileName}.{StructName}))
-	for _, key := range {StructName}Keys {
+
+	message.{StructName}Key = make([]int32, len(toml{FileName}.{StructName}))
+	message.{StructName}Value = make([]*{FileName}_St{StructName}, len(toml{FileName}.{StructName}))
+	for i, key := range {StructName}Keys {
 		{MapKeyInt32Commet}k := {KeyType}(key)
 		{MapKeyInt64Commet}k := {KeyType}(key)
 		{MapKeyStringCommet}k := {KeyType}(key)
 		v := toml{FileName}.{StructName}[k]
 
-		message.{StructName}[k] = &{FileName}_St{StructName}{%v
+		message.{StructName}Key[i] = k
+		message.{StructName}Value[i] = &{FileName}_St{StructName}{%v
 		}
 	}
 `

@@ -2,6 +2,8 @@ package ffExcel
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 // 头部
@@ -29,9 +31,11 @@ message ExcelExportTest {%v
 `
 
 // 工作表的工作簿数据
-var fmtProtoExcelFieldList = "\n    repeated St%v %v = %v;" // repeated StVIPlist VIPlist = 1;
-var fmtProtoExcelFieldMap = "\n    map<%v, St%v> %v = %v;"  // map<int32, StVIPmap> VIPmap = 2;
-var fmtProtoExcelFieldStruct = "\n    St%v %v = %v;"        // StVIPstruct VIPstruct = 3;
+var fmtProtoExcelFieldList = "\n    repeated St{StructType} {StructType} = {FieldIndex};"          // repeated StVIPlist VIPlist = 1;
+var fmtProtoExcelFieldMap = "\n    map<{MapKeyType}, St{StructType}> {StructType} = {FieldIndex};" // map<int32, StVIPmap> VIPmap = 2;
+var fmtProtoExcelFieldMapKey = "\n    repeated {MapKeyType} {StructType}Key = {FieldIndex};"       // repeated int32 VIPmapKey = 2;
+var fmtProtoExcelFieldMapValue = "\n    repeated St{StructType} {StructType}Value = {FieldIndex};" // repeated StVIPmap VIPmapValue = 3;
+var fmtProtoExcelFieldStruct = "\n    St{StructType} {StructType} = {FieldIndex};"                 // StVIPstruct VIPstruct = 4;
 
 // 工作簿
 var fmtProtoSheet = `
@@ -86,7 +90,8 @@ func genProtoDefineFromToml(excel *excel, exportLimit string) (goProto, csharpPr
 	csharpProto += fmtCshapProtoHeader
 
 	// 表格内的所有工作簿
-	excelSheetVar, excelSheetDef := "", ""
+	excelSheetVarGo, excelSheetVarCsharp, excelSheetDef := "", "", ""
+	protoGoIndex, protoCSharpIndex := 0, 0
 	for i, sheetName := range excelSheetNames {
 		sheetFields := ""
 		sheetLine := mapExcelSheetInfo[sheetName]
@@ -99,17 +104,54 @@ func genProtoDefineFromToml(excel *excel, exportLimit string) (goProto, csharpPr
 
 		// 工作表的工作簿字段变量
 		if excelSheetTypes[i] == sheetTypeList {
-			excelSheetVar += fmt.Sprintf(fmtProtoExcelFieldList, sheetName, sheetName, i+1)
+			protoGoIndex++
+			field := strings.Replace(fmtProtoExcelFieldList, "{StructType}", sheetName, -1)
+			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
+			excelSheetVarGo += field
+
+			protoCSharpIndex++
+			field = strings.Replace(fmtProtoExcelFieldList, "{StructType}", sheetName, -1)
+			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
+			excelSheetVarCsharp += field
 		} else if excelSheetTypes[i] == sheetTypeMap {
-			excelSheetVar += fmt.Sprintf(fmtProtoExcelFieldMap, excelSheetMapKeyTypes[i], sheetName, sheetName, i+1)
+			protoGoIndex++
+			field := strings.Replace(fmtProtoExcelFieldMapKey, "{StructType}", sheetName, -1)
+			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
+			field = strings.Replace(field, "{MapKeyType}", excelSheetMapKeyTypes[i], -1)
+			excelSheetVarGo += field
+
+			protoGoIndex++
+			field = strings.Replace(fmtProtoExcelFieldMapValue, "{StructType}", sheetName, -1)
+			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
+			excelSheetVarGo += field
+
+			protoCSharpIndex++
+			field = strings.Replace(fmtProtoExcelFieldMapKey, "{StructType}", sheetName, -1)
+			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
+			field = strings.Replace(field, "{MapKeyType}", excelSheetMapKeyTypes[i], -1)
+			excelSheetVarCsharp += field
+
+			protoCSharpIndex++
+			field = strings.Replace(fmtProtoExcelFieldMapValue, "{StructType}", sheetName, -1)
+			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
+			excelSheetVarCsharp += field
+
 		} else if excelSheetTypes[i] == sheetTypeStruct {
-			excelSheetVar += fmt.Sprintf(fmtProtoExcelFieldStruct, sheetName, sheetName, i+1)
+			protoGoIndex++
+			field := strings.Replace(fmtProtoExcelFieldStruct, "{StructType}", sheetName, -1)
+			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
+			excelSheetVarGo += field
+
+			protoCSharpIndex++
+			field = strings.Replace(fmtProtoExcelFieldStruct, "{StructType}", sheetName, -1)
+			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
+			excelSheetVarCsharp += field
 		}
 	}
 
 	// 工作表
-	goProto += fmt.Sprintf(fmtProtoExcel, excelSheetDef, excelSheetVar)
-	csharpProto += fmt.Sprintf(fmtProtoExcel, excelSheetDef, excelSheetVar)
+	goProto += fmt.Sprintf(fmtProtoExcel, excelSheetDef, excelSheetVarGo)
+	csharpProto += fmt.Sprintf(fmtProtoExcel, excelSheetDef, excelSheetVarCsharp)
 
 	return
 }

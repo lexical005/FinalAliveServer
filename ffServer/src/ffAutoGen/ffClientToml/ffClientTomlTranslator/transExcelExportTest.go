@@ -24,14 +24,17 @@ func transExcelExportTest() {
 	sort.Ints(VIPmapKeys)
 	//sort.Ints(VIPmapKeys)
 	//sort.Strings(VIPmapKeys)
-	message.VIPmap = make(map[int32]*ExcelExportTest_StVIPmap, len(tomlExcelExportTest.VIPmap))
-	for _, key := range VIPmapKeys {
+
+	message.VIPmapKey = make([]int32, len(tomlExcelExportTest.VIPmap))
+	message.VIPmapValue = make([]*ExcelExportTest_StVIPmap, len(tomlExcelExportTest.VIPmap))
+	for i, key := range VIPmapKeys {
 		k := int32(key)
 		//k := int32(key)
 		//k := int32(key)
 		v := tomlExcelExportTest.VIPmap[k]
 
-		message.VIPmap[k] = &ExcelExportTest_StVIPmap{
+		message.VIPmapKey[i] = k
+		message.VIPmapValue[i] = &ExcelExportTest_StVIPmap{
 			InfoInt32: v.InfoInt32,
 			InfoInt64: v.InfoInt64,
 			InfoStr: v.InfoStr,
