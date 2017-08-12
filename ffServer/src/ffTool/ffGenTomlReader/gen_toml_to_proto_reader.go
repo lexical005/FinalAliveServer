@@ -14,6 +14,7 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/util"
 	"path/filepath"
+	"sort"
 
     proto "github.com/golang/protobuf/proto"
 )
@@ -41,8 +42,24 @@ func trans{FileName}() {
 
 var fmtTransStructMap = `
     // {StructName}
+	{MapKeyInt32Commet}{StructName}Keys := make([]{MapKeyInt32}, 0, len(toml{FileName}.{StructName})) // 必须使用64位机器
+	{MapKeyInt64Commet}{StructName}Keys := make([]{MapKeyInt64}, 0, len(toml{FileName}.{StructName})) // 必须使用64位机器
+	{MapKeyStringCommet}{StructName}Keys := make([]{MapKeyString}, 0, len(toml{FileName}.{StructName})) // 必须使用64位机器
+	for key := range toml{FileName}.{StructName} {
+		{MapKeyInt32Commet}{StructName}Keys = append({StructName}Keys, {MapKeyInt32}(key))
+		{MapKeyInt64Commet}{StructName}Keys = append({StructName}Keys, {MapKeyInt64}(key))
+		{MapKeyStringCommet}{StructName}Keys = append({StructName}Keys, {MapKeyString}(key))
+	}
+	{MapKeyInt32Commet}sort.Ints({StructName}Keys)
+	{MapKeyInt64Commet}sort.Ints({StructName}Keys)
+	{MapKeyStringCommet}sort.Strings({StructName}Keys)
 	message.{StructName} = make(map[{KeyType}]*{FileName}_St{StructName}, len(toml{FileName}.{StructName}))
-	for k, v := range toml{FileName}.{StructName} {
+	for _, key := range {StructName}Keys {
+		{MapKeyInt32Commet}k := {KeyType}(key)
+		{MapKeyInt64Commet}k := {KeyType}(key)
+		{MapKeyStringCommet}k := {KeyType}(key)
+		v := toml{FileName}.{StructName}[k]
+
 		message.{StructName}[k] = &{FileName}_St{StructName}{%v
 		}
 	}
@@ -55,7 +72,7 @@ var fmtTransStructStruct = `
 `
 
 var fmtTransStructList = `
-    // {StructName}
+	// {StructName}
 	message.{StructName} = make([]*{FileName}_St{StructName}, len(toml{FileName}.{StructName}))
 	for k, v := range toml{FileName}.{StructName} {
 		message.{StructName}[k] = &{FileName}_St{StructName}{%v
@@ -212,6 +229,27 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 		if mainStructVarType == "map" {
 			structs = strings.Replace(fmtTransStructMap, "{FileName}", tomlFileDef.name, -1)
 			structs = strings.Replace(structs, "{KeyType}", mainStructVarTypeMapKey, -1)
+
+			MapKeyCommet := map[string]string{
+				"int32":  "//",
+				"int64":  "//",
+				"string": "//",
+			}
+			MapKeyCommet[mainStructVarTypeMapKey] = ""
+
+			MapKey := map[string]string{
+				"int32":  "int",
+				"int64":  "int",
+				"string": "string",
+			}
+
+			structs = strings.Replace(structs, "{MapKeyInt32Commet}", MapKeyCommet["int32"], -1)
+			structs = strings.Replace(structs, "{MapKeyInt64Commet}", MapKeyCommet["int64"], -1)
+			structs = strings.Replace(structs, "{MapKeyStringCommet}", MapKeyCommet["string"], -1)
+			structs = strings.Replace(structs, "{MapKeyInt32}", MapKey["int32"], -1)
+			structs = strings.Replace(structs, "{MapKeyInt64}", MapKey["int64"], -1)
+			structs = strings.Replace(structs, "{MapKeyString}", MapKey["string"], -1)
+
 		} else if mainStructVarType == "list" {
 			structs = strings.Replace(fmtTransStructList, "{FileName}", tomlFileDef.name, -1)
 		} else {

@@ -4,6 +4,7 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/util"
 	"path/filepath"
+	"sort"
 
     proto "github.com/golang/protobuf/proto"
 )
@@ -12,8 +13,24 @@ func transExcelExportTest() {
     message := &ExcelExportTest{}
 
     // VIPmap
+	VIPmapKeys := make([]int, 0, len(tomlExcelExportTest.VIPmap)) // 必须使用64位机器
+	//VIPmapKeys := make([]int, 0, len(tomlExcelExportTest.VIPmap)) // 必须使用64位机器
+	//VIPmapKeys := make([]string, 0, len(tomlExcelExportTest.VIPmap)) // 必须使用64位机器
+	for key := range tomlExcelExportTest.VIPmap {
+		VIPmapKeys = append(VIPmapKeys, int(key))
+		//VIPmapKeys = append(VIPmapKeys, int(key))
+		//VIPmapKeys = append(VIPmapKeys, string(key))
+	}
+	sort.Ints(VIPmapKeys)
+	//sort.Ints(VIPmapKeys)
+	//sort.Strings(VIPmapKeys)
 	message.VIPmap = make(map[int32]*ExcelExportTest_StVIPmap, len(tomlExcelExportTest.VIPmap))
-	for k, v := range tomlExcelExportTest.VIPmap {
+	for _, key := range VIPmapKeys {
+		k := int32(key)
+		//k := int32(key)
+		//k := int32(key)
+		v := tomlExcelExportTest.VIPmap[k]
+
 		message.VIPmap[k] = &ExcelExportTest_StVIPmap{
 			InfoInt32: v.InfoInt32,
 			InfoInt64: v.InfoInt64,
@@ -62,7 +79,7 @@ func transExcelExportTest() {
 			EmptyStrMulti: tomlExcelExportTest.VIPstruct.EmptyStrMulti,
 	}
 
-    // VIPlist
+	// VIPlist
 	message.VIPlist = make([]*ExcelExportTest_StVIPlist, len(tomlExcelExportTest.VIPlist))
 	for k, v := range tomlExcelExportTest.VIPlist {
 		message.VIPlist[k] = &ExcelExportTest_StVIPlist{
