@@ -17,6 +17,7 @@ func main() {
 	gocodedir := flag.String("gocodedir", "", "golang read toml code directory")
 	readername := flag.String("readername", "", "reader directory")
 	proto := flag.String("proto", "", "gen go to proto reader")
+	csharp := flag.String("csharp", "", "gen csharp code trans")
 	flag.Parse()
 
 	if *gocodedir == "" || *readername == "" {
@@ -64,5 +65,12 @@ func main() {
 			filepath.Join(ffGameConfigPath, *readername, "Config.pb.go"),
 			goFullPathFiles,
 			goCodePackageName)
+	}
+
+	// 客户端charp代码读取转换封装
+	if *csharp == "csharp" {
+		genProtoCSharpReaderCode(
+			filepath.Join("ProtoBuf", "Client", "ConfigReader.cs"),
+			filepath.Join("ProtoBuf", "Client", "Config.cs"))
 	}
 }
