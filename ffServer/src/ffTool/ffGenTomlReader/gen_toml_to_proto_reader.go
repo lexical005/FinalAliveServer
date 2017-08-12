@@ -41,7 +41,7 @@ func trans{FileName}() {
 
 var fmtTransStructMap = `
     // {StructName}
-	message.{StructName} = make(map[int32]*{FileName}_St{StructName}, len(toml{FileName}.{StructName}))
+	message.{StructName} = make(map[{KeyType}]*{FileName}_St{StructName}, len(toml{FileName}.{StructName}))
 	for k, v := range toml{FileName}.{StructName} {
 		message.{StructName}[k] = &{FileName}_St{StructName}{%v
 		}
@@ -165,11 +165,15 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 			continue
 		}
 
-		mainStructVarType := "struct"
+		mainStructVarType, mainStructVarTypeMapKey := "struct", ""
 		for j, name := range tomlMainStructDef.vars {
 			if name == tomlDef.name {
 				if strings.HasPrefix(tomlMainStructDef.types[j], "map[") {
 					mainStructVarType = "map"
+
+					regexpMapKey := regexp.MustCompile(`\[([\w]+)\]`)
+					result := regexpMapKey.FindAllStringSubmatch(tomlMainStructDef.types[j], -1)
+					mainStructVarTypeMapKey = result[0][1]
 				} else if strings.HasPrefix(tomlMainStructDef.types[j], "[]") {
 					mainStructVarType = "list"
 				}
@@ -207,6 +211,7 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 		var structs string
 		if mainStructVarType == "map" {
 			structs = strings.Replace(fmtTransStructMap, "{FileName}", tomlFileDef.name, -1)
+			structs = strings.Replace(structs, "{KeyType}", mainStructVarTypeMapKey, -1)
 		} else if mainStructVarType == "list" {
 			structs = strings.Replace(fmtTransStructList, "{FileName}", tomlFileDef.name, -1)
 		} else {
