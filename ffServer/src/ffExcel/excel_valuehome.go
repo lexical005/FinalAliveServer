@@ -18,11 +18,14 @@ func (vh valueHome) String() string {
 	return ""
 }
 
-func newValueHome(v string) valueHome {
+func newValueHome(v string) *valueHome {
 	v = strings.ToLower(v)
 	server := strings.Index(string(v), "server") != -1
 	client := strings.Index(string(v), "client") != -1
-	return valueHome{
+	if !server && !client && len(v) > 0 {
+		return nil
+	}
+	return &valueHome{
 		server: server,
 		client: client,
 	}

@@ -10,8 +10,8 @@ type headerLine struct {
 	lineDesc     string
 	lineName     string
 	lineType     cellvalue.ValueType
-	lineRequired valueRequired
-	lineHome     valueHome
+	lineRequired *valueRequired
+	lineHome     *valueHome
 }
 
 // 本列配置，在什么情况下忽略
@@ -55,7 +55,14 @@ func newLineHeader(lineDesc, lineName, lineType, lineRequired, lineHome string) 
 		return nil, err
 	}
 	home := newValueHome(lineHome)
+	if home == nil {
+		return nil, fmt.Errorf("invalid lineHome[%v]", lineHome)
+	}
+
 	required := newValueRequired(lineRequired)
+	if required == nil {
+		return nil, fmt.Errorf("invalid lineRequired[%v]", lineRequired)
+	}
 
 	return &headerLine{
 		lineDesc:     lineDesc,

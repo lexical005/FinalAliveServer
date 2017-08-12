@@ -12,10 +12,15 @@ func (vr valueRequired) String() string {
 	return vr.origin
 }
 
-func newValueRequired(v string) valueRequired {
+func newValueRequired(v string) *valueRequired {
 	v = strings.ToLower(v)
-	return valueRequired{
+	required := "required" == v
+	optional := "optional" == v
+	if optional && len(v) > 0 {
+		return nil
+	}
+	return &valueRequired{
 		origin:   v,
-		required: v == "required",
+		required: required,
 	}
 }
