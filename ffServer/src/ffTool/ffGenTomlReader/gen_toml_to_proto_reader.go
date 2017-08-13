@@ -3,6 +3,7 @@ package main
 import (
 	"ffCommon/util"
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -274,6 +275,21 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 
 // 转换
 func transGoToProto(saveFullDir string, protoFilePath string, goFullPathFiles []string, packageName string) {
+	r := regexp.MustCompile(`^trans[\w]*\.go`)
+
+	// 移除之前的转换文件
+	util.Walk(saveFullDir, func(info os.FileInfo) error {
+		if info.IsDir() {
+			return nil
+		}
+
+		if len(r.FindString(info.Name())) != 0 {
+			util.RemoveFile(filepath.Join(saveFullDir, info.Name()))
+		}
+
+		return nil
+	})
+
 	// Proto的go代码
 	var protoFileDef *fileStructDef
 	{
