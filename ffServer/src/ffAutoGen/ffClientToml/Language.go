@@ -42,36 +42,36 @@ func (l *Language) Name() string {
 
 // Common sheet Common of excel Language
 type Common struct {
-	CN string
+	Value string
 }
 
 func (c *Common) String() string {
 	result := "["
-	result += fmt.Sprintf("CN:%v,", c.CN)
+	result += fmt.Sprintf("Value:%v,", c.Value)
 	result += "]"
 	return result
 }
 
 // Special sheet Special of excel Language
 type Special struct {
-	CN string
+	Value string
 }
 
 func (s *Special) String() string {
 	result := "["
-	result += fmt.Sprintf("CN:%v,", s.CN)
+	result += fmt.Sprintf("Value:%v,", s.Value)
 	result += "]"
 	return result
 }
 
 // Error sheet Error of excel Language
 type Error struct {
-	CN string
+	Value string
 }
 
 func (e *Error) String() string {
 	result := "["
-	result += fmt.Sprintf("CN:%v,", e.CN)
+	result += fmt.Sprintf("Value:%v,", e.Value)
 	result += "]"
 	return result
 }

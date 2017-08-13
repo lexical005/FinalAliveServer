@@ -15,7 +15,7 @@ var fmtWhole = `namespace NConfig
         {
             if (errCode >= 0 && errCode < Keys.Length)
             {
-                return LanguageReader.Error[Keys[errCode]].CN;
+                return LanguageReader.Error[Keys[errCode]].Value;
             }
             return "ErrCode" + errCode.ToString();
         }

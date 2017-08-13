@@ -66,6 +66,14 @@ func (lh *headerLine) limitByExportConfig(excelName, sheetName string) {
 					lh.configExport = false
 				}
 			}
+
+			// 列名重命名
+			for i, line := range limit.ExportLinesRenameFrom {
+				if line == lh.lineName {
+					lh.lineName = limit.ExportLinesRenameTo[i]
+					break
+				}
+			}
 		}
 	}
 }

@@ -30,12 +30,12 @@ func (l *Language) Name() string {
 
 // AIName sheet AIName of excel Language
 type AIName struct {
-	CN string
+	Value string
 }
 
 func (ain *AIName) String() string {
 	result := "["
-	result += fmt.Sprintf("CN:%v,", ain.CN)
+	result += fmt.Sprintf("Value:%v,", ain.Value)
 	result += "]"
 	return result
 }

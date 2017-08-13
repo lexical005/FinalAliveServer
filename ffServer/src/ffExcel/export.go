@@ -18,6 +18,10 @@ type ExcelExportLimit struct {
 	Sheet string
 	// ExportLines 工作簿内哪些列导出(在配置表内已导出的基础上, 再进行此判定, 不在此列表内的, 则修正为不导出)
 	ExportLines []string
+	// ExportLinesRenameFrom 哪些列要重命名
+	ExportLinesRenameFrom []string
+	// ExportLinesRenameTo 新的名称
+	ExportLinesRenameTo []string
 }
 
 // ExportConfig 导出配置
