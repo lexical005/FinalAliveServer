@@ -12,6 +12,7 @@ import (
 type Language struct {
 	Common  map[string]Common
 	Special []Special
+	Error   map[string]Error
 }
 
 func (l *Language) String() string {
@@ -24,6 +25,11 @@ func (l *Language) String() string {
 	result += "Special"
 	for _, row := range l.Special {
 		result += fmt.Sprintf("%v\n", row)
+	}
+
+	result += "Error"
+	for k, v := range l.Error {
+		result += fmt.Sprintf("%v:%v\n", k, v)
 	}
 
 	return result
@@ -54,6 +60,18 @@ type Special struct {
 func (s *Special) String() string {
 	result := "["
 	result += fmt.Sprintf("CN:%v,", s.CN)
+	result += "]"
+	return result
+}
+
+// Error sheet Error of excel Language
+type Error struct {
+	CN string
+}
+
+func (e *Error) String() string {
+	result := "["
+	result += fmt.Sprintf("CN:%v,", e.CN)
 	result += "]"
 	return result
 }

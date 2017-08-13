@@ -47,6 +47,33 @@ func transLanguage() {
 		}
 	}
 
+    // Error
+	//ErrorKeys := make([]int, 0, len(tomlLanguage.Error)) // 必须使用64位机器
+	//ErrorKeys := make([]int, 0, len(tomlLanguage.Error)) // 必须使用64位机器
+	ErrorKeys := make([]string, 0, len(tomlLanguage.Error)) // 必须使用64位机器
+	for key := range tomlLanguage.Error {
+		//ErrorKeys = append(ErrorKeys, int(key))
+		//ErrorKeys = append(ErrorKeys, int(key))
+		ErrorKeys = append(ErrorKeys, string(key))
+	}
+	//sort.Ints(ErrorKeys)
+	//sort.Ints(ErrorKeys)
+	sort.Strings(ErrorKeys)
+
+	message.ErrorKey = make([]string, len(tomlLanguage.Error))
+	message.ErrorValue = make([]*Language_StError, len(tomlLanguage.Error))
+	for i, key := range ErrorKeys {
+		//k := string(key)
+		//k := string(key)
+		k := string(key)
+		v := tomlLanguage.Error[k]
+
+		message.ErrorKey[i] = k
+		message.ErrorValue[i] = &Language_StError{
+			CN: v.CN,
+		}
+	}
+
     pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
     if err := pbBuf.Marshal(message); err != nil {
         log.RunLogger.Printf("transLanguage err[%v]", err)
