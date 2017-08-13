@@ -5,4 +5,4 @@ move /y ..\bin\ffExportExcel.exe ..\..\..\FinalAlive\Config\Game\ffExportExcel.e
 
 cd ..\..\..\FinalAlive\Config\Game
 
-runByPro.bat
+make_all.bat
