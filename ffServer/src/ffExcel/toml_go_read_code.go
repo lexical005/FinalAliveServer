@@ -52,25 +52,25 @@ var fmtGoExcelDefEnd = `}
 // excel String method
 var fmtGoExcelMethodStringStart = `func (%v *%v) String() string {`
 var fmtGoExcelMethodStringContentStart = `
-	s := ""`
+	result := ""`
 var fmtGoExcelMethodStringContentLoopList = `
-	s += "%v"
+	result += "%v"
 	for _, row := range %v.%v {
-		s += fmt.Sprintf("%%v\n", row)
+		result += fmt.Sprintf("%%v\n", row)
 	}
 `
 var fmtGoExcelMethodStringContentLoopMap = `
-	s += "%v"
+	result += "%v"
 	for k, v := range %v.%v {
-		s += fmt.Sprintf("%%v:%%v\n", k, v)
+		result += fmt.Sprintf("%%v:%%v\n", k, v)
 	}
 `
 var fmtGoExcelMethodStringContentLoopStruct = `
-	s += "%v"
-	s += fmt.Sprintf("%%v\n", %v.%v)
+	result += "%v"
+	result += fmt.Sprintf("%%v\n", %v.%v)
 `
 var fmtGoExcelMethodStringContentEnd = `
-	return s`
+	return result`
 var fmtGoExcelMethodStringEnd = `
 }
 
@@ -98,12 +98,12 @@ var fmtGoSheetDefEnd = `}
 // excel sheet String method
 var fmtGoSheetMethodStringStart = `func (%v *%v) String() string {`
 var fmtGoSheetMethodStringContentStart = `
-	s := "["`
+	result := "["`
 var fmtGoSheetMethodStringContentLoop = `
-	s += fmt.Sprintf("%v:%%v,", %v.%v)`
+	result += fmt.Sprintf("%v:%%v,", %v.%v)`
 var fmtGoSheetMethodStringContentEnd = `
-	s += "]"
-	return s`
+	result += "]"
+	return result`
 var fmtGoSheetMethodStringEnd = `
 }
 
