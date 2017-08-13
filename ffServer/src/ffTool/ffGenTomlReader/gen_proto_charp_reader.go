@@ -30,7 +30,13 @@ var fmtCSharpMainClassReader = `
             {FileName} = NConfig.{FileName}.Parser.ParseFrom(stream);
             Trans();
         }
-	}
+
+        public static void Read(byte[] stream)
+        {
+            {FileName} = NConfig.{FileName}.Parser.ParseFrom(stream);
+            Trans();
+        }
+    }
 `
 
 var fmtCSharpMemberReaderStruct = `
@@ -40,7 +46,7 @@ var fmtCSharpMemberReaderStruct = `
             {
                 return {FileName}.{OriginalVarType};
             }
-		}
+        }
 `
 
 var fmtCSharpMemberReaderList = `
