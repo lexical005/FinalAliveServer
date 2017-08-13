@@ -25,8 +25,8 @@ message Grammar {
 
 // 工作表
 var fmtProtoExcel = `
-message ExcelExportTest {%v
-%v
+message {MessageName} {{SubMessages}
+{MessageMembers}
 }
 `
 
@@ -47,111 +47,120 @@ var fmtProtoSheet = `
 var fmtProtoSheetLine = "\n        %v %v = %v;" //         int32 InfoInt = 1;
 
 // 根据toml数据格式, 转换得到Proto定义
-func genProtoDefineFromToml(excel *excel, exportLimit string) (goProto, csharpProto string) {
+func genProtoDefineFromToml(allExcels []*excel, exportLimit string) (goProto, csharpProto string) {
 	type sheetLine struct {
 		lines       []string
 		mapLineType map[string]string
-	}
-
-	excelSheetNames := make([]string, 0, len(excel.sheets))
-	excelSheetTypes := make([]int, 0, len(excel.sheets))
-	excelSheetMapKeyTypes := make([]string, 0, len(excel.sheets))
-	mapExcelSheetInfo := make(map[string]*sheetLine, len(excel.sheets))
-	for _, sheet := range excel.sheets {
-		tmp := &sheetLine{
-			lines:       make([]string, 0, len(sheet.header.lines)),
-			mapLineType: make(map[string]string, len(sheet.header.lines)),
-		}
-
-		for _, line := range sheet.header.lines {
-			if (exportLimit == "server" && line.exportToServer() || exportLimit == "client" && line.exportToClient()) && !line.isMapKey() {
-				if _, ok := tmp.mapLineType[line.lineName]; !ok {
-					tmp.lines = append(tmp.lines, line.lineName)
-					tmp.mapLineType[line.lineName] = line.lineType.ProtoType()
-				}
-			}
-		}
-		mapExcelSheetInfo[sheet.name] = tmp
-
-		if len(mapExcelSheetInfo) > 0 {
-			excelSheetNames = append(excelSheetNames, sheet.name)
-			excelSheetTypes = append(excelSheetTypes, sheet.sheetType)
-
-			if sheet.header.hasMapKey() {
-				excelSheetMapKeyTypes = append(excelSheetMapKeyTypes, sheet.header.mapKeyType())
-			} else {
-				excelSheetMapKeyTypes = append(excelSheetMapKeyTypes, "")
-			}
-		}
 	}
 
 	// 头部
 	goProto += fmtGoProtoHeader
 	csharpProto += fmtCshapProtoHeader
 
-	// 表格内的所有工作簿
-	excelSheetVarGo, excelSheetVarCsharp, excelSheetDef := "", "", ""
-	protoGoIndex, protoCSharpIndex := 0, 0
-	for i, sheetName := range excelSheetNames {
-		sheetFields := ""
-		sheetLine := mapExcelSheetInfo[sheetName]
-		for j, fieldName := range sheetLine.lines {
-			sheetFields += fmt.Sprintf(fmtProtoSheetLine, sheetLine.mapLineType[fieldName], fieldName, j+1)
+	for _, excel := range allExcels {
+		excelSheetNames := make([]string, 0, len(excel.sheets))
+		excelSheetTypes := make([]int, 0, len(excel.sheets))
+		excelSheetMapKeyTypes := make([]string, 0, len(excel.sheets))
+		mapExcelSheetInfo := make(map[string]*sheetLine, len(excel.sheets))
+		for _, sheet := range excel.sheets {
+			tmp := &sheetLine{
+				lines:       make([]string, 0, len(sheet.header.lines)),
+				mapLineType: make(map[string]string, len(sheet.header.lines)),
+			}
+
+			for _, line := range sheet.header.lines {
+				if (exportLimit == "server" && line.exportToServer() || exportLimit == "client" && line.exportToClient()) && !line.isMapKey() {
+					if _, ok := tmp.mapLineType[line.lineName]; !ok {
+						tmp.lines = append(tmp.lines, line.lineName)
+						tmp.mapLineType[line.lineName] = line.lineType.ProtoType()
+					}
+				}
+			}
+			mapExcelSheetInfo[sheet.name] = tmp
+
+			if len(mapExcelSheetInfo) > 0 {
+				excelSheetNames = append(excelSheetNames, sheet.name)
+				excelSheetTypes = append(excelSheetTypes, sheet.sheetType)
+
+				if sheet.header.hasMapKey() {
+					excelSheetMapKeyTypes = append(excelSheetMapKeyTypes, sheet.header.mapKeyType())
+				} else {
+					excelSheetMapKeyTypes = append(excelSheetMapKeyTypes, "")
+				}
+			}
 		}
 
-		// 工作簿的结构定义
-		excelSheetDef += fmt.Sprintf(fmtProtoSheet, sheetName, sheetFields)
+		// 表格内的所有工作簿
+		excelSheetVarGo, excelSheetVarCsharp, excelSheetDef := "", "", ""
+		protoGoIndex, protoCSharpIndex := 0, 0
+		for i, sheetName := range excelSheetNames {
+			sheetFields := ""
+			sheetLine := mapExcelSheetInfo[sheetName]
+			for j, fieldName := range sheetLine.lines {
+				sheetFields += fmt.Sprintf(fmtProtoSheetLine, sheetLine.mapLineType[fieldName], fieldName, j+1)
+			}
 
-		// 工作表的工作簿字段变量
-		if excelSheetTypes[i] == sheetTypeList {
-			protoGoIndex++
-			field := strings.Replace(fmtProtoExcelFieldList, "{StructType}", sheetName, -1)
-			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
-			excelSheetVarGo += field
+			// 工作簿的结构定义
+			excelSheetDef += fmt.Sprintf(fmtProtoSheet, sheetName, sheetFields)
 
-			protoCSharpIndex++
-			field = strings.Replace(fmtProtoExcelFieldList, "{StructType}", sheetName, -1)
-			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
-			excelSheetVarCsharp += field
-		} else if excelSheetTypes[i] == sheetTypeMap {
-			protoGoIndex++
-			field := strings.Replace(fmtProtoExcelFieldMapKey, "{StructType}", sheetName, -1)
-			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
-			field = strings.Replace(field, "{MapKeyType}", excelSheetMapKeyTypes[i], -1)
-			excelSheetVarGo += field
+			// 工作表的工作簿字段变量
+			if excelSheetTypes[i] == sheetTypeList {
+				protoGoIndex++
+				field := strings.Replace(fmtProtoExcelFieldList, "{StructType}", sheetName, -1)
+				field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
+				excelSheetVarGo += field
 
-			protoGoIndex++
-			field = strings.Replace(fmtProtoExcelFieldMapValue, "{StructType}", sheetName, -1)
-			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
-			excelSheetVarGo += field
+				protoCSharpIndex++
+				field = strings.Replace(fmtProtoExcelFieldList, "{StructType}", sheetName, -1)
+				field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
+				excelSheetVarCsharp += field
+			} else if excelSheetTypes[i] == sheetTypeMap {
+				protoGoIndex++
+				field := strings.Replace(fmtProtoExcelFieldMapKey, "{StructType}", sheetName, -1)
+				field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
+				field = strings.Replace(field, "{MapKeyType}", excelSheetMapKeyTypes[i], -1)
+				excelSheetVarGo += field
 
-			protoCSharpIndex++
-			field = strings.Replace(fmtProtoExcelFieldMapKey, "{StructType}", sheetName, -1)
-			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
-			field = strings.Replace(field, "{MapKeyType}", excelSheetMapKeyTypes[i], -1)
-			excelSheetVarCsharp += field
+				protoGoIndex++
+				field = strings.Replace(fmtProtoExcelFieldMapValue, "{StructType}", sheetName, -1)
+				field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
+				excelSheetVarGo += field
 
-			protoCSharpIndex++
-			field = strings.Replace(fmtProtoExcelFieldMapValue, "{StructType}", sheetName, -1)
-			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
-			excelSheetVarCsharp += field
+				protoCSharpIndex++
+				field = strings.Replace(fmtProtoExcelFieldMapKey, "{StructType}", sheetName, -1)
+				field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
+				field = strings.Replace(field, "{MapKeyType}", excelSheetMapKeyTypes[i], -1)
+				excelSheetVarCsharp += field
 
-		} else if excelSheetTypes[i] == sheetTypeStruct {
-			protoGoIndex++
-			field := strings.Replace(fmtProtoExcelFieldStruct, "{StructType}", sheetName, -1)
-			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
-			excelSheetVarGo += field
+				protoCSharpIndex++
+				field = strings.Replace(fmtProtoExcelFieldMapValue, "{StructType}", sheetName, -1)
+				field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
+				excelSheetVarCsharp += field
 
-			protoCSharpIndex++
-			field = strings.Replace(fmtProtoExcelFieldStruct, "{StructType}", sheetName, -1)
-			field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
-			excelSheetVarCsharp += field
+			} else if excelSheetTypes[i] == sheetTypeStruct {
+				protoGoIndex++
+				field := strings.Replace(fmtProtoExcelFieldStruct, "{StructType}", sheetName, -1)
+				field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoGoIndex), -1)
+				excelSheetVarGo += field
+
+				protoCSharpIndex++
+				field = strings.Replace(fmtProtoExcelFieldStruct, "{StructType}", sheetName, -1)
+				field = strings.Replace(field, "{FieldIndex}", strconv.Itoa(protoCSharpIndex), -1)
+				excelSheetVarCsharp += field
+			}
 		}
+
+		// 工作表
+		s := strings.Replace(fmtProtoExcel, "{MessageName}", excel.name, -1)
+		s = strings.Replace(s, "{SubMessages}", excelSheetDef, -1)
+		s = strings.Replace(s, "{MessageMembers}", excelSheetVarGo, -1)
+		goProto += s
+
+		s = strings.Replace(fmtProtoExcel, "{MessageName}", excel.name, -1)
+		s = strings.Replace(s, "{SubMessages}", excelSheetDef, -1)
+		s = strings.Replace(s, "{MessageMembers}", excelSheetVarCsharp, -1)
+		csharpProto += s
 	}
-
-	// 工作表
-	goProto += fmt.Sprintf(fmtProtoExcel, excelSheetDef, excelSheetVarGo)
-	csharpProto += fmt.Sprintf(fmtProtoExcel, excelSheetDef, excelSheetVarCsharp)
 
 	return
 }

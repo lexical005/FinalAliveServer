@@ -112,23 +112,23 @@ func clearPath(ec *ExportConfig) bool {
 	return result
 }
 
-// ExportExcel 解析excel, 然后根据导出配置, 将解析结果保存
-func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
+// exportExcel 解析excel, 然后根据导出配置, 将解析结果保存
+func exportExcel(excelFilePath string, exportConfig *ExportConfig) (excel *excel, err error) {
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("ExportExcel excel[%v] get error:\n[%v]", excelFilePath, err)
+			err = fmt.Errorf("exportExcel excel[%v] get error:\n[%v]", excelFilePath, err)
 		}
 	}()
 
 	// 解析Excel
-	excel, err := parseExcel(excelFilePath)
+	excel, err = parseExcel(excelFilePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// 检查Excel是否满足导出为toml格式
 	if err = checkToml(excel); err != nil {
-		return err
+		return nil, err
 	}
 
 	// 导出服务端
@@ -139,7 +139,7 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 			defFilePath := path.Join(exportConfig.ServerExportGoCodePath, excel.name+".go")
 			err = util.WriteFile(defFilePath, []byte(tomlDataServerReadCode))
 			if err != nil {
-				return err
+				return nil, err
 			}
 			log.RunLogger.Println(defFilePath)
 		}
@@ -149,14 +149,14 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 		dataFilePath := path.Join("toml", "server", excel.name+".toml")
 		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if exportConfig.ServerExportTomlDataPath != "" {
 			dataFilePath = path.Join(exportConfig.ServerExportTomlDataPath, excel.name+".toml")
 			err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
 			if err != nil {
-				return err
+				return nil, err
 			}
 			log.RunLogger.Println(dataFilePath)
 		}
@@ -170,7 +170,7 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 			defFilePath := path.Join(exportConfig.ClientExportGoCodePath, excel.name+".go")
 			err = util.WriteFile(defFilePath, []byte(tomlDataGoReadCode))
 			if err != nil {
-				return err
+				return nil, err
 			}
 			log.RunLogger.Println(defFilePath)
 		}
@@ -180,27 +180,11 @@ func ExportExcel(excelFilePath string, exportConfig *ExportConfig) (err error) {
 		dataFilePath := path.Join("toml", "client", excel.name+".toml")
 		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
 		if err != nil {
-			return err
-		}
-
-		// 导出toml数据对应的Proto定义
-		goProto, csharpProto := genProtoDefineFromToml(excel, "client")
-		if exportConfig.hasGoEnv && exportConfig.ClientExportGoCodePath != "" {
-			goFilePath := path.Join("ProtoBuf", "Server", "Config.proto")
-			err = util.WriteFile(goFilePath, []byte(goProto))
-			if err != nil {
-				return err
-			}
-
-			csharpFilePath := path.Join("ProtoBuf", "Client", "Config.proto")
-			err = util.WriteFile(csharpFilePath, []byte(csharpProto))
-			if err != nil {
-				return err
-			}
+			return nil, err
 		}
 	}
 
-	return nil
+	return
 }
 
 // ExportExcelDir 解析指定目录内的所有excel, 然后根据导出配置, 将解析结果保存
@@ -240,12 +224,33 @@ func ExportExcelDir(excelDirPath string, exportConfig *ExportConfig) error {
 	})
 
 	// 依次导出所有excel
+	allExcels := make([]*excel, 0, len(excelFilePaths))
 	allValid := true
 	for _, excelFilePath := range excelFilePaths {
-		err := ExportExcel(excelFilePath, exportConfig)
+		excel, err := exportExcel(excelFilePath, exportConfig)
 		if err != nil {
 			log.RunLogger.Println(err)
 			allValid = false
+		} else {
+			allExcels = append(allExcels, excel)
+		}
+	}
+
+	// 导出toml数据对应的Proto定义
+	{
+		goProto, csharpProto := genProtoDefineFromToml(allExcels, "client")
+		if exportConfig.hasGoEnv && exportConfig.ClientExportGoCodePath != "" {
+			goFilePath := path.Join("ProtoBuf", "Server", "Config.proto")
+			err = util.WriteFile(goFilePath, []byte(goProto))
+			if err != nil {
+				return err
+			}
+
+			csharpFilePath := path.Join("ProtoBuf", "Client", "Config.proto")
+			err = util.WriteFile(csharpFilePath, []byte(csharpProto))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
