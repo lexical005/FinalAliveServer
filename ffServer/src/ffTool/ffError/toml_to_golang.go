@@ -78,8 +78,8 @@ func tomlToGolang(errReasonToml *errReasonToml) string {
 	result += fmtErrReasonHeader
 
 	for index, one := range errReasonToml.Error {
-		result += fmt.Sprintf(fmtErrorReasonLoopComment, one.ErrCode, one.ErrDescCN)
-		result += fmt.Sprintf(fmtErrorReasonLoop, one.ErrCode, index, one.ErrDescCN)
+		result += fmt.Sprintf(fmtErrorReasonLoopComment, one.ErrCode, one.CN)
+		result += fmt.Sprintf(fmtErrorReasonLoop, one.ErrCode, index, one.CN)
 	}
 
 	result += fmtErrorCodeStart

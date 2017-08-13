@@ -20,8 +20,8 @@ type errConfig struct {
 
 type errReasonToml struct {
 	Error []struct {
-		ErrCode   string
-		ErrDescCN string
+		ErrCode string
+		CN      string
 	}
 }
 
@@ -83,4 +83,8 @@ func main() {
 	// 服务端错误枚举
 	errGoDef := tomlToGolang(errReasonToml)
 	util.WriteFile(path.Join(errConfig.ErrCodeExportDefPath, "error.go"), []byte(errGoDef))
+
+	// 客户端错误枚举
+	errCSharpDef := tomlToCSharp(errReasonToml)
+	util.WriteFile(path.Join(errConfig.Common.ClientExportCSharpCodePath, "Error.cs"), []byte(errCSharpDef))
 }
