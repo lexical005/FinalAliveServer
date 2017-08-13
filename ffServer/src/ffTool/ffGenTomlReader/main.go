@@ -70,7 +70,7 @@ func main() {
 	// 客户端charp代码读取转换封装
 	if *csharp == "csharp" {
 		genProtoCSharpReaderCode(
-			filepath.Join("ProtoBuf", "Client", "ConfigReader.cs"),
+			filepath.Join("ProtoBuf", "Client"),
 			filepath.Join("ProtoBuf", "Client", "Config.cs"))
 	}
 }

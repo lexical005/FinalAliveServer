@@ -3,6 +3,7 @@ package main
 import (
 	"ffCommon/util"
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -74,6 +75,52 @@ var fmtCSharpMapTrans = `
                 {OriginalVarType}[{FileName}.{OriginalVarType}Key[i]] = {FileName}.{OriginalVarType}Value[i];
             }
 `
+
+var fmtReaderManager = `using System.Collections.Generic;
+
+namespace NConfig
+{
+    public static class ConfigReaderManager
+    {
+        public delegate void ConfigReaderStream(System.IO.Stream stream);
+        public delegate void ConfigReaderBuffer(byte[] stream);
+        public class Reader
+        {
+            public string config;
+            public ConfigReaderStream readerStream;
+            public ConfigReaderBuffer readerBuffer;
+        }
+        public static readonly List<Reader> AllReader;
+        public static Reader LanguageReader
+        {
+            get;
+            private set;
+        }
+
+        static ConfigReaderManager()
+        {
+            AllReader = new List<Reader>()
+            {{AllReader}
+            };
+
+            LanguageReader = new Reader()
+            {
+                config = "Language",
+                readerStream = NConfig.LanguageReader.Read,
+                readerBuffer = NConfig.LanguageReader.Read,
+            };
+        }
+    }
+}
+`
+
+var fmtReaderManagerOneReader = `
+                new Reader()
+                {
+                    config = "{FileName}",
+                    readerStream = NConfig.{FileName}Reader.Read,
+                    readerBuffer = NConfig.{FileName}Reader.Read,
+                },`
 
 var regexpMainClass = regexp.MustCompile(`
   public sealed partial class ([\w]+) : pb::IMessage`)
@@ -219,7 +266,7 @@ func organizeClass(content string) (allMainClassInfo []*mainClassInfo) {
 	return
 }
 
-func genOutput(savePath string, allMainClassInfo []*mainClassInfo) {
+func genOutput(readerDir string, allMainClassInfo []*mainClassInfo) {
 	// 输出
 	for _, mainClassInfo := range allMainClassInfo {
 		fmt.Printf("%v:%v:%v\n", mainClassInfo.name, mainClassInfo.start, mainClassInfo.end)
@@ -228,6 +275,9 @@ func genOutput(savePath string, allMainClassInfo []*mainClassInfo) {
 			fmt.Printf("%#v\n", member)
 		}
 	}
+
+	resultManger := ""
+	resultMangerAllReader := ""
 
 	result := ""
 	AllReader := ""
@@ -276,16 +326,21 @@ func genOutput(savePath string, allMainClassInfo []*mainClassInfo) {
 		oneReader = strings.Replace(oneReader, "{AllMember}", AllMember, -1)
 		oneReader = strings.Replace(oneReader, "{MapTrans}", MapTrans, -1)
 		AllReader += oneReader
+
+		resultMangerAllReader += strings.Replace(fmtReaderManagerOneReader, "{FileName}", mainClassInfo.name, -1)
 	}
 	result = strings.Replace(fmtCSharpReader, "{AllReader}", AllReader, -1)
 
-	util.WriteFile(savePath, []byte(result))
+	util.WriteFile(filepath.Join(readerDir, "ConfigReader.cs"), []byte(result))
+
+	resultManger = strings.Replace(fmtReaderManager, "{AllReader}", resultMangerAllReader, -1)
+	util.WriteFile(filepath.Join(readerDir, "ConfigReaderManager.cs"), []byte(resultManger))
 }
 
 // 在proto-csharp代码的基础上, 封装读取字节流转换为proto结构体实例的代码
-func genProtoCSharpReaderCode(savePath string, protoCSharpCodePath string) {
+func genProtoCSharpReaderCode(readerDir string, protoCSharpCodePath string) {
 	// 读取文件内容
 	_, content := fileContent(protoCSharpCodePath)
 
-	genOutput(savePath, organizeClass(content))
+	genOutput(readerDir, organizeClass(content))
 }
