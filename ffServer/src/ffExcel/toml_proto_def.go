@@ -58,11 +58,19 @@ func genProtoDefineFromToml(allExcels []*excel, exportLimit string) (goProto, cs
 	csharpProto += fmtCshapProtoHeader
 
 	for _, excel := range allExcels {
+		if !excel.exportToClient() {
+			continue
+		}
+
 		excelSheetNames := make([]string, 0, len(excel.sheets))
 		excelSheetTypes := make([]int, 0, len(excel.sheets))
 		excelSheetMapKeyTypes := make([]string, 0, len(excel.sheets))
 		mapExcelSheetInfo := make(map[string]*sheetLine, len(excel.sheets))
 		for _, sheet := range excel.sheets {
+			if !sheet.exportToClient() {
+				continue
+			}
+
 			tmp := &sheetLine{
 				lines:       make([]string, 0, len(sheet.header.lines)),
 				mapLineType: make(map[string]string, len(sheet.header.lines)),

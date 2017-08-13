@@ -13,6 +13,26 @@ type excel struct {
 	sheets []*sheet
 }
 
+// exportToServer 本工作表是否需要导出到服务端
+func (e *excel) exportToServer() bool {
+	for _, sheet := range e.sheets {
+		if sheet.exportToServer() {
+			return true
+		}
+	}
+	return false
+}
+
+// exportToClient 本工作表是否需要导出到客户端
+func (e *excel) exportToClient() bool {
+	for _, sheet := range e.sheets {
+		if sheet.exportToClient() {
+			return true
+		}
+	}
+	return false
+}
+
 func (e *excel) String() string {
 	s := ""
 	for _, sheet := range e.sheets {
@@ -27,11 +47,15 @@ func parseExcel(excelFilePath string) (*excel, error) {
 		return nil, e
 	}
 
+	_, fileNameWithExt := filepath.Split(excelFilePath)
+	fileExt := path.Ext(fileNameWithExt)
+	fileName := fileNameWithExt[0 : len(fileNameWithExt)-len(fileExt)]
+
 	sheets := make([]*sheet, 0, len(file.Sheets))
 
 	var errResult error
 	for _, st := range file.Sheets {
-		sheet, err := newSheet(st)
+		sheet, err := newSheet(st, fileName)
 		if err != nil {
 			if err != errIgnoreSheetReadme {
 				e := fmt.Errorf("excel[%v] sheet[%v] get error[%v]", excelFilePath, st.Name, err.Error())
@@ -45,10 +69,6 @@ func parseExcel(excelFilePath string) (*excel, error) {
 		}
 		sheets = append(sheets, sheet)
 	}
-
-	_, fileNameWithExt := filepath.Split(excelFilePath)
-	fileExt := path.Ext(fileNameWithExt)
-	fileName := fileNameWithExt[0 : len(fileNameWithExt)-len(fileExt)]
 
 	return &excel{
 		name:   fileName,

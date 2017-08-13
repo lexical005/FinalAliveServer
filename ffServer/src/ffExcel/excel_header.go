@@ -51,7 +51,7 @@ func (h *sheetHeader) String() string {
 	return s
 }
 
-func newSheetHeader(st *xlsx.Sheet) (*sheetHeader, error) {
+func newSheetHeader(st *xlsx.Sheet, excelName, sheetName string) (*sheetHeader, error) {
 	// sheetHeaderRowsCount
 	if len(st.Rows) < sheetHeaderRowsCount {
 		return nil, fmt.Errorf("invalid sheetHeader rows count")
@@ -124,6 +124,7 @@ func newSheetHeader(st *xlsx.Sheet) (*sheetHeader, error) {
 			if err != nil {
 				return nil, fmt.Errorf("sheetHeader cell header invalid at row[2] line[%v], reason[%v]", i, err.Error())
 			}
+			headerLine.limitByExportConfig(excelName, sheetName)
 		}
 
 		// 记录

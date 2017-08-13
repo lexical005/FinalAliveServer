@@ -14,13 +14,33 @@ type sheet struct {
 	content   *sheetContent
 }
 
+// exportToServer 本工作簿是否需要导出到服务端
+func (s *sheet) exportToServer() bool {
+	for _, line := range s.header.lines {
+		if line.exportToServer() {
+			return true
+		}
+	}
+	return false
+}
+
+// exportToClient 本工作簿是否需要导出到客户端
+func (s *sheet) exportToClient() bool {
+	for _, line := range s.header.lines {
+		if line.exportToClient() {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *sheet) String() string {
 	headerDesc := "header[[字段描述][字段名称][字段类型][字段归属]]\n"
 	contentDesc := "content"
 	return fmt.Sprintf("sheet[%v]\n%v%v%v\n%v", s.name, headerDesc, s.header, contentDesc, s.content)
 }
 
-func newSheet(st *xlsx.Sheet) (*sheet, error) {
+func newSheet(st *xlsx.Sheet, excelName string) (*sheet, error) {
 	sheetName := st.Name
 
 	// readme
@@ -45,7 +65,7 @@ func newSheet(st *xlsx.Sheet) (*sheet, error) {
 	}
 
 	// header
-	header, err := newSheetHeader(st)
+	header, err := newSheetHeader(st, excelName, sheetName)
 	if err != nil {
 		return nil, err
 	}

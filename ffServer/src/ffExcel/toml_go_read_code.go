@@ -157,6 +157,12 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 	excelSheetMapKeyTypes := make([]string, 0, len(excel.sheets))
 	mapExcelSheetInfo := make(map[string]*sheetLine, len(excel.sheets))
 	for _, sheet := range excel.sheets {
+		if exportLimit == "server" && !sheet.exportToServer() {
+			continue
+		} else if exportLimit == "client" && !sheet.exportToClient() {
+			continue
+		}
+
 		tmp := &sheetLine{
 			lines:       make([]string, 0, len(sheet.header.lines)),
 			mapLineType: make(map[string]string, len(sheet.header.lines)),

@@ -26,6 +26,12 @@ var fmtSheetSplit = "\n"
 func genTomlData(excel *excel, exportConfig *ExportConfig, exportLimit string) string {
 	result := ""
 	for _, sheet := range excel.sheets {
+		if exportLimit == "server" && !sheet.exportToServer() {
+			continue
+		} else if exportLimit == "client" && !sheet.exportToClient() {
+			continue
+		}
+
 		if sheet.sheetType == sheetTypeMap {
 			result += fmt.Sprintf(fmtSheetMapStart, sheet.name)
 		} else if sheet.sheetType == sheetTypeStruct {

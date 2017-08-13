@@ -6,6 +6,7 @@ import (
 )
 
 var tomlExcelExportTest *ffClientToml.ExcelExportTest
+var tomlLanguage *ffClientToml.Language
 
 func readToml() {
 	var err error
@@ -13,6 +14,11 @@ func readToml() {
 	tomlExcelExportTest, err = ffClientToml.ReadExcelExportTest()
 	if err != nil {
 		log.RunLogger.Printf("ReadExcelExportTest get error[%v]", err)
+	}
+
+	tomlLanguage, err = ffClientToml.ReadLanguage()
+	if err != nil {
+		log.RunLogger.Printf("ReadLanguage get error[%v]", err)
 	}
 
 }

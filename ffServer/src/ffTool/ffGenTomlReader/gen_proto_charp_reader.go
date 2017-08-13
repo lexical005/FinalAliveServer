@@ -54,7 +54,7 @@ var fmtCSharpMemberReaderList = `
 `
 
 var fmtCSharpMemberReaderMap = `
-        public static Dictionary<int, {FileName}.Types.{ProtoVarType}> {OriginalVarType}
+        public static Dictionary<{MapKeyType}, {FileName}.Types.{ProtoVarType}> {OriginalVarType}
         {
             get;
             private set;
@@ -246,6 +246,7 @@ func genOutput(savePath string, allMainClassInfo []*mainClassInfo) {
 				memberValue.originalVarType = memberValue.originalVarType[:len(memberValue.originalVarType)-len("Value")]
 
 				strMember := strings.Replace(fmtCSharpMemberReaderMap, "{FileName}", mainClassInfo.name, -1)
+				strMember = strings.Replace(strMember, "{MapKeyType}", member.protoVarType, -1)
 				strMember = strings.Replace(strMember, "{ProtoVarType}", memberValue.protoVarType, -1)
 				strMember = strings.Replace(strMember, "{OriginalVarType}", memberValue.originalVarType, -1)
 				AllMember += strMember

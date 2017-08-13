@@ -17,21 +17,21 @@ type ExcelExportTest struct {
 }
 
 func (e *ExcelExportTest) String() string {
-	s := ""
-	s += "VIPmap"
+	result := ""
+	result += "VIPmap"
 	for k, v := range e.VIPmap {
-		s += fmt.Sprintf("%v:%v\n", k, v)
+		result += fmt.Sprintf("%v:%v\n", k, v)
 	}
 
-	s += "VIPstruct"
-	s += fmt.Sprintf("%v\n", e.VIPstruct)
+	result += "VIPstruct"
+	result += fmt.Sprintf("%v\n", e.VIPstruct)
 
-	s += "VIPlist"
+	result += "VIPlist"
 	for _, row := range e.VIPlist {
-		s += fmt.Sprintf("%v\n", row)
+		result += fmt.Sprintf("%v\n", row)
 	}
 
-	return s
+	return result
 }
 
 // Name the toml config's name
@@ -64,29 +64,29 @@ type VIPmap struct {
 }
 
 func (vip *VIPmap) String() string {
-	s := "["
-	s += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
-	s += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
-	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
-	s += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
-	s += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
-	s += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
-	s += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
-	s += fmt.Sprintf("InfoInt64Multi:%v,", vip.InfoInt64Multi)
-	s += fmt.Sprintf("InfoStrMulti:%v,", vip.InfoStrMulti)
-	s += fmt.Sprintf("ItemClientID:%v,", vip.ItemClientID)
-	s += fmt.Sprintf("Consume:%v,", vip.Consume)
-	s += fmt.Sprintf("EmptyInt32:%v,", vip.EmptyInt32)
-	s += fmt.Sprintf("EmptyInt64:%v,", vip.EmptyInt64)
-	s += fmt.Sprintf("EmptyStr:%v,", vip.EmptyStr)
-	s += fmt.Sprintf("EmptyIn32tSingle:%v,", vip.EmptyIn32tSingle)
-	s += fmt.Sprintf("EmptyInt64Single:%v,", vip.EmptyInt64Single)
-	s += fmt.Sprintf("EmptyStrSingle:%v,", vip.EmptyStrSingle)
-	s += fmt.Sprintf("EmptyInt32Multi:%v,", vip.EmptyInt32Multi)
-	s += fmt.Sprintf("EmptyInt64Multi:%v,", vip.EmptyInt64Multi)
-	s += fmt.Sprintf("EmptyStrMulti:%v,", vip.EmptyStrMulti)
-	s += "]"
-	return s
+	result := "["
+	result += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
+	result += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
+	result += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
+	result += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
+	result += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
+	result += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
+	result += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
+	result += fmt.Sprintf("InfoInt64Multi:%v,", vip.InfoInt64Multi)
+	result += fmt.Sprintf("InfoStrMulti:%v,", vip.InfoStrMulti)
+	result += fmt.Sprintf("ItemClientID:%v,", vip.ItemClientID)
+	result += fmt.Sprintf("Consume:%v,", vip.Consume)
+	result += fmt.Sprintf("EmptyInt32:%v,", vip.EmptyInt32)
+	result += fmt.Sprintf("EmptyInt64:%v,", vip.EmptyInt64)
+	result += fmt.Sprintf("EmptyStr:%v,", vip.EmptyStr)
+	result += fmt.Sprintf("EmptyIn32tSingle:%v,", vip.EmptyIn32tSingle)
+	result += fmt.Sprintf("EmptyInt64Single:%v,", vip.EmptyInt64Single)
+	result += fmt.Sprintf("EmptyStrSingle:%v,", vip.EmptyStrSingle)
+	result += fmt.Sprintf("EmptyInt32Multi:%v,", vip.EmptyInt32Multi)
+	result += fmt.Sprintf("EmptyInt64Multi:%v,", vip.EmptyInt64Multi)
+	result += fmt.Sprintf("EmptyStrMulti:%v,", vip.EmptyStrMulti)
+	result += "]"
+	return result
 }
 
 // VIPstruct sheet VIPstruct of excel ExcelExportTest
@@ -114,29 +114,29 @@ type VIPstruct struct {
 }
 
 func (vip *VIPstruct) String() string {
-	s := "["
-	s += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
-	s += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
-	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
-	s += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
-	s += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
-	s += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
-	s += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
-	s += fmt.Sprintf("InfoInt64Multi:%v,", vip.InfoInt64Multi)
-	s += fmt.Sprintf("InfoStrMulti:%v,", vip.InfoStrMulti)
-	s += fmt.Sprintf("ItemClientID:%v,", vip.ItemClientID)
-	s += fmt.Sprintf("Consume:%v,", vip.Consume)
-	s += fmt.Sprintf("EmptyInt32:%v,", vip.EmptyInt32)
-	s += fmt.Sprintf("EmptyInt64:%v,", vip.EmptyInt64)
-	s += fmt.Sprintf("EmptyStr:%v,", vip.EmptyStr)
-	s += fmt.Sprintf("EmptyIn32tSingle:%v,", vip.EmptyIn32tSingle)
-	s += fmt.Sprintf("EmptyInt64Single:%v,", vip.EmptyInt64Single)
-	s += fmt.Sprintf("EmptyStrSingle:%v,", vip.EmptyStrSingle)
-	s += fmt.Sprintf("EmptyInt32Multi:%v,", vip.EmptyInt32Multi)
-	s += fmt.Sprintf("EmptyInt64Multi:%v,", vip.EmptyInt64Multi)
-	s += fmt.Sprintf("EmptyStrMulti:%v,", vip.EmptyStrMulti)
-	s += "]"
-	return s
+	result := "["
+	result += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
+	result += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
+	result += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
+	result += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
+	result += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
+	result += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
+	result += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
+	result += fmt.Sprintf("InfoInt64Multi:%v,", vip.InfoInt64Multi)
+	result += fmt.Sprintf("InfoStrMulti:%v,", vip.InfoStrMulti)
+	result += fmt.Sprintf("ItemClientID:%v,", vip.ItemClientID)
+	result += fmt.Sprintf("Consume:%v,", vip.Consume)
+	result += fmt.Sprintf("EmptyInt32:%v,", vip.EmptyInt32)
+	result += fmt.Sprintf("EmptyInt64:%v,", vip.EmptyInt64)
+	result += fmt.Sprintf("EmptyStr:%v,", vip.EmptyStr)
+	result += fmt.Sprintf("EmptyIn32tSingle:%v,", vip.EmptyIn32tSingle)
+	result += fmt.Sprintf("EmptyInt64Single:%v,", vip.EmptyInt64Single)
+	result += fmt.Sprintf("EmptyStrSingle:%v,", vip.EmptyStrSingle)
+	result += fmt.Sprintf("EmptyInt32Multi:%v,", vip.EmptyInt32Multi)
+	result += fmt.Sprintf("EmptyInt64Multi:%v,", vip.EmptyInt64Multi)
+	result += fmt.Sprintf("EmptyStrMulti:%v,", vip.EmptyStrMulti)
+	result += "]"
+	return result
 }
 
 // VIPlist sheet VIPlist of excel ExcelExportTest
@@ -164,29 +164,29 @@ type VIPlist struct {
 }
 
 func (vip *VIPlist) String() string {
-	s := "["
-	s += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
-	s += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
-	s += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
-	s += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
-	s += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
-	s += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
-	s += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
-	s += fmt.Sprintf("InfoInt64Multi:%v,", vip.InfoInt64Multi)
-	s += fmt.Sprintf("InfoStrMulti:%v,", vip.InfoStrMulti)
-	s += fmt.Sprintf("ItemClientID:%v,", vip.ItemClientID)
-	s += fmt.Sprintf("Consume:%v,", vip.Consume)
-	s += fmt.Sprintf("EmptyInt32:%v,", vip.EmptyInt32)
-	s += fmt.Sprintf("EmptyInt64:%v,", vip.EmptyInt64)
-	s += fmt.Sprintf("EmptyStr:%v,", vip.EmptyStr)
-	s += fmt.Sprintf("EmptyIn32tSingle:%v,", vip.EmptyIn32tSingle)
-	s += fmt.Sprintf("EmptyInt64Single:%v,", vip.EmptyInt64Single)
-	s += fmt.Sprintf("EmptyStrSingle:%v,", vip.EmptyStrSingle)
-	s += fmt.Sprintf("EmptyInt32Multi:%v,", vip.EmptyInt32Multi)
-	s += fmt.Sprintf("EmptyInt64Multi:%v,", vip.EmptyInt64Multi)
-	s += fmt.Sprintf("EmptyStrMulti:%v,", vip.EmptyStrMulti)
-	s += "]"
-	return s
+	result := "["
+	result += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
+	result += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
+	result += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
+	result += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
+	result += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
+	result += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
+	result += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
+	result += fmt.Sprintf("InfoInt64Multi:%v,", vip.InfoInt64Multi)
+	result += fmt.Sprintf("InfoStrMulti:%v,", vip.InfoStrMulti)
+	result += fmt.Sprintf("ItemClientID:%v,", vip.ItemClientID)
+	result += fmt.Sprintf("Consume:%v,", vip.Consume)
+	result += fmt.Sprintf("EmptyInt32:%v,", vip.EmptyInt32)
+	result += fmt.Sprintf("EmptyInt64:%v,", vip.EmptyInt64)
+	result += fmt.Sprintf("EmptyStr:%v,", vip.EmptyStr)
+	result += fmt.Sprintf("EmptyIn32tSingle:%v,", vip.EmptyIn32tSingle)
+	result += fmt.Sprintf("EmptyInt64Single:%v,", vip.EmptyInt64Single)
+	result += fmt.Sprintf("EmptyStrSingle:%v,", vip.EmptyStrSingle)
+	result += fmt.Sprintf("EmptyInt32Multi:%v,", vip.EmptyInt32Multi)
+	result += fmt.Sprintf("EmptyInt64Multi:%v,", vip.EmptyInt64Multi)
+	result += fmt.Sprintf("EmptyStrMulti:%v,", vip.EmptyStrMulti)
+	result += "]"
+	return result
 }
 
 // ReadExcelExportTest read excel ExcelExportTest

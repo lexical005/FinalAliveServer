@@ -10,6 +10,16 @@ import (
 	"path/filepath"
 )
 
+// ExcelExportLimit excel配置表导出的额外配置
+type ExcelExportLimit struct {
+	// Excel 针对的配置表名称
+	Excel string
+	// Sheet 针对配置表内哪个工作簿
+	Sheet string
+	// ExportLines 工作簿内哪些列导出(在配置表内已导出的基础上, 再进行此判定, 不在此列表内的, 则修正为不导出)
+	ExportLines []string
+}
+
 // ExportConfig 导出配置
 //	服务端代码语言: go, 配置文件: toml
 //	客户端最终代码语言: c#, 配置文件: protobuf字节流(客户端使用临时语言go和配置文件toml, 最终生成最终所需的代码文件和配置文件)
@@ -27,6 +37,9 @@ type ExportConfig struct {
 	ClientExportCSharpCodePath string
 	// ClientExportProtoBufDataPath 客户端导出的Protobuf配置文件, 相对导出程序的路径
 	ClientExportProtoBufDataPath string
+
+	// ExcelExportLimit 工作表导出时的额外配置
+	ExcelExportLimit []*ExcelExportLimit
 
 	hasGoEnv          bool   // 是否有go环境
 	serverPackageName string // 根据ServerExportGoCodePath推导出来的包名
@@ -59,6 +72,8 @@ func (ec *ExportConfig) String() string {
 		ec.ClientExportCSharpCodePath,
 		ec.ClientExportProtoBufDataPath)
 }
+
+var exportConfig *ExportConfig
 
 func clearPath(ec *ExportConfig) bool {
 	result := true
@@ -113,7 +128,7 @@ func clearPath(ec *ExportConfig) bool {
 }
 
 // exportExcel 解析excel, 然后根据导出配置, 将解析结果保存
-func exportExcel(excelFilePath string, exportConfig *ExportConfig) (excel *excel, err error) {
+func exportExcel(excelFilePath string) (excel *excel, err error) {
 	defer func() {
 		if err != nil {
 			err = fmt.Errorf("exportExcel excel[%v] get error:\n[%v]", excelFilePath, err)
@@ -132,7 +147,7 @@ func exportExcel(excelFilePath string, exportConfig *ExportConfig) (excel *excel
 	}
 
 	// 导出服务端
-	{
+	if excel.exportToServer() {
 		// 导出读取toml数据的Go代码
 		tomlDataServerReadCode := genTomlDataReadCode(excel, exportConfig, "server")
 		if exportConfig.hasGoEnv && exportConfig.ServerExportGoCodePath != "" {
@@ -163,7 +178,7 @@ func exportExcel(excelFilePath string, exportConfig *ExportConfig) (excel *excel
 	}
 
 	// 导出客户端
-	{
+	if excel.exportToClient() {
 		// 导出读取toml数据的Go代码
 		tomlDataGoReadCode := genTomlDataReadCode(excel, exportConfig, "client")
 		if exportConfig.hasGoEnv && exportConfig.ClientExportGoCodePath != "" {
@@ -188,7 +203,9 @@ func exportExcel(excelFilePath string, exportConfig *ExportConfig) (excel *excel
 }
 
 // ExportExcelDir 解析指定目录内的所有excel, 然后根据导出配置, 将解析结果保存
-func ExportExcelDir(excelDirPath string, exportConfig *ExportConfig) error {
+func ExportExcelDir(excelDirPath string, _exportConfig *ExportConfig) error {
+	exportConfig = _exportConfig
+
 	// 配置检查
 	err := exportConfig.check()
 	if err != nil {
@@ -227,7 +244,7 @@ func ExportExcelDir(excelDirPath string, exportConfig *ExportConfig) error {
 	allExcels := make([]*excel, 0, len(excelFilePaths))
 	allValid := true
 	for _, excelFilePath := range excelFilePaths {
-		excel, err := exportExcel(excelFilePath, exportConfig)
+		excel, err := exportExcel(excelFilePath)
 		if err != nil {
 			log.RunLogger.Println(err)
 			allValid = false
@@ -237,20 +254,18 @@ func ExportExcelDir(excelDirPath string, exportConfig *ExportConfig) error {
 	}
 
 	// 导出toml数据对应的Proto定义
-	{
+	if exportConfig.ClientExportProtoBufDataPath != "" {
 		goProto, csharpProto := genProtoDefineFromToml(allExcels, "client")
-		if exportConfig.hasGoEnv && exportConfig.ClientExportGoCodePath != "" {
-			goFilePath := path.Join("ProtoBuf", "Server", "Config.proto")
-			err = util.WriteFile(goFilePath, []byte(goProto))
-			if err != nil {
-				return err
-			}
+		goFilePath := path.Join("ProtoBuf", "Server", "Config.proto")
+		err = util.WriteFile(goFilePath, []byte(goProto))
+		if err != nil {
+			return err
+		}
 
-			csharpFilePath := path.Join("ProtoBuf", "Client", "Config.proto")
-			err = util.WriteFile(csharpFilePath, []byte(csharpProto))
-			if err != nil {
-				return err
-			}
+		csharpFilePath := path.Join("ProtoBuf", "Client", "Config.proto")
+		err = util.WriteFile(csharpFilePath, []byte(csharpProto))
+		if err != nil {
+			return err
 		}
 	}
 

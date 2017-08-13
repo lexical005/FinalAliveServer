@@ -12,6 +12,8 @@ type headerLine struct {
 	lineType     cellvalue.ValueType
 	lineRequired *valueRequired
 	lineHome     *valueHome
+
+	configExport bool
 }
 
 // 本列配置，在什么情况下忽略
@@ -21,12 +23,12 @@ func (lh *headerLine) ignore() bool {
 
 // 本列配置，是否导出到服务端
 func (lh *headerLine) exportToServer() bool {
-	return !lh.ignore() && lh.lineHome.server
+	return !lh.ignore() && lh.lineHome.server && lh.configExport
 }
 
 // 本列配置，是否导出到客户端
 func (lh *headerLine) exportToClient() bool {
-	return !lh.ignore() && lh.lineHome.client
+	return !lh.ignore() && lh.lineHome.client && lh.configExport
 }
 
 // 本列配置，是不是字典的主键列
@@ -42,6 +44,30 @@ func (lh *headerLine) isGrammar() bool {
 // 本列配置，是不是必须配值
 func (lh *headerLine) isRequired() bool {
 	return lh.lineRequired.required
+}
+
+// limitByExportConfig 根据配置, 再调整内部数据
+func (lh *headerLine) limitByExportConfig(excelName, sheetName string) {
+	for _, limit := range exportConfig.ExcelExportLimit {
+		if limit.Excel == excelName && limit.Sheet == sheetName {
+			// 外界配置文件, 限定是否导出
+			export := false
+			for _, line := range limit.ExportLines {
+				if line == lh.lineName {
+					export = true
+					break
+				}
+			}
+
+			// 不导出
+			if !export {
+				if lh.exportToClient() || lh.exportToServer() {
+					// 调整为不导出
+					lh.configExport = false
+				}
+			}
+		}
+	}
 }
 
 func (lh *headerLine) String() string {
@@ -70,5 +96,7 @@ func newLineHeader(lineDesc, lineName, lineType, lineRequired, lineHome string) 
 		lineType:     vt,
 		lineRequired: required,
 		lineHome:     home,
+
+		configExport: true,
 	}, nil
 }
