@@ -6,16 +6,16 @@ import (
 	"strconv"
 )
 
-var regexpInt64sSingle = regexp.MustCompile(`[\d]+`)
+var regexpInt64Array = regexp.MustCompile(`[\d]+`)
 
-type valueStoreInt64sSingle struct {
+type valueStoreInt64Array struct {
 	*valueStore
 
 	value []int
 }
 
-func (vs *valueStoreInt64sSingle) Store(data string) error {
-	result := regexpInt64sSingle.FindAllString(data, -1)
+func (vs *valueStoreInt64Array) Store(data string) error {
+	result := regexpInt64Array.FindAllString(data, -1)
 
 	value := make([]int, len(result), len(result))
 	for i, s := range result {
@@ -32,8 +32,8 @@ func (vs *valueStoreInt64sSingle) Store(data string) error {
 }
 
 func init() {
-	mapValueStoreCreator[vtInt64sSingle] = func(vt ValueType) ValueStore {
-		return &valueStoreInt64sSingle{
+	mapValueStoreCreator[vtInt64Array] = func(vt ValueType) ValueStore {
+		return &valueStoreInt64Array{
 			valueStore: &valueStore{
 				vt: vt,
 			},

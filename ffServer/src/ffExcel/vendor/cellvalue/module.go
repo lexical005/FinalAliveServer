@@ -6,7 +6,7 @@ import (
 
 // ValueType 定义标准的值类型定义
 type ValueType interface {
-	// IsMulti 是否多个列组合成一个数组
+	// IsMulti 是否允许多个列组合成一个数组, 合并顺序为从左到右, 如果列的值为数组, 则进行数组合并
 	IsMulti() bool
 
 	// Ignore 是否忽略本列配置

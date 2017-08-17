@@ -44,23 +44,17 @@ type VIPmap struct {
 	InfoInt32        int32
 	InfoInt64        int64
 	InfoStr          string
-	InfoInt32Single  []int32
-	InfoInt64Single  []int64
-	InfoStrSingle    []string
-	InfoInt32Multi   []int32
-	InfoInt64Multi   []int64
-	InfoStrMulti     []string
+	InfoInt32Array   []int32
+	InfoInt64Array   []int64
+	InfoStringArray  []string
 	ItemServerID     int32
 	Consume          ffGrammar.Grammar
 	EmptyInt32       int32
 	EmptyInt64       int64
 	EmptyStr         string
-	EmptyIn32tSingle []int32
-	EmptyInt64Single []int64
-	EmptyStrSingle   []string
-	EmptyInt32Multi  []int32
-	EmptyInt64Multi  []int64
-	EmptyStrMulti    []string
+	EmptyInt32Array  []int32
+	EmptyInt64Array  []int64
+	EmptyStringArray []string
 }
 
 func (vip *VIPmap) String() string {
@@ -68,23 +62,17 @@ func (vip *VIPmap) String() string {
 	result += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
 	result += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
 	result += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
-	result += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
-	result += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
-	result += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
-	result += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
-	result += fmt.Sprintf("InfoInt64Multi:%v,", vip.InfoInt64Multi)
-	result += fmt.Sprintf("InfoStrMulti:%v,", vip.InfoStrMulti)
+	result += fmt.Sprintf("InfoInt32Array:%v,", vip.InfoInt32Array)
+	result += fmt.Sprintf("InfoInt64Array:%v,", vip.InfoInt64Array)
+	result += fmt.Sprintf("InfoStringArray:%v,", vip.InfoStringArray)
 	result += fmt.Sprintf("ItemServerID:%v,", vip.ItemServerID)
 	result += fmt.Sprintf("Consume:%v,", vip.Consume)
 	result += fmt.Sprintf("EmptyInt32:%v,", vip.EmptyInt32)
 	result += fmt.Sprintf("EmptyInt64:%v,", vip.EmptyInt64)
 	result += fmt.Sprintf("EmptyStr:%v,", vip.EmptyStr)
-	result += fmt.Sprintf("EmptyIn32tSingle:%v,", vip.EmptyIn32tSingle)
-	result += fmt.Sprintf("EmptyInt64Single:%v,", vip.EmptyInt64Single)
-	result += fmt.Sprintf("EmptyStrSingle:%v,", vip.EmptyStrSingle)
-	result += fmt.Sprintf("EmptyInt32Multi:%v,", vip.EmptyInt32Multi)
-	result += fmt.Sprintf("EmptyInt64Multi:%v,", vip.EmptyInt64Multi)
-	result += fmt.Sprintf("EmptyStrMulti:%v,", vip.EmptyStrMulti)
+	result += fmt.Sprintf("EmptyInt32Array:%v,", vip.EmptyInt32Array)
+	result += fmt.Sprintf("EmptyInt64Array:%v,", vip.EmptyInt64Array)
+	result += fmt.Sprintf("EmptyStringArray:%v,", vip.EmptyStringArray)
 	result += "]"
 	return result
 }
@@ -94,23 +82,17 @@ type VIPstruct struct {
 	InfoInt32        int32
 	InfoInt64        int64
 	InfoStr          string
-	InfoInt32Single  []int32
-	InfoInt64Single  []int64
-	InfoStrSingle    []string
-	InfoInt32Multi   []int32
-	InfoInt64Multi   []int64
-	InfoStrMulti     []string
+	InfoInt32Array   []int32
+	InfoInt64Array   []int64
+	InfoStringArray  []string
 	ItemServerID     int32
 	Consume          ffGrammar.Grammar
 	EmptyInt32       int32
 	EmptyInt64       int64
 	EmptyStr         string
-	EmptyIn32tSingle []int32
-	EmptyInt64Single []int64
-	EmptyStrSingle   []string
-	EmptyInt32Multi  []int32
-	EmptyInt64Multi  []int64
-	EmptyStrMulti    []string
+	EmptyInt32Array  []int32
+	EmptyInt64Array  []int64
+	EmptyStringArray []string
 }
 
 func (vip *VIPstruct) String() string {
@@ -118,23 +100,17 @@ func (vip *VIPstruct) String() string {
 	result += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
 	result += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
 	result += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
-	result += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
-	result += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
-	result += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
-	result += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
-	result += fmt.Sprintf("InfoInt64Multi:%v,", vip.InfoInt64Multi)
-	result += fmt.Sprintf("InfoStrMulti:%v,", vip.InfoStrMulti)
+	result += fmt.Sprintf("InfoInt32Array:%v,", vip.InfoInt32Array)
+	result += fmt.Sprintf("InfoInt64Array:%v,", vip.InfoInt64Array)
+	result += fmt.Sprintf("InfoStringArray:%v,", vip.InfoStringArray)
 	result += fmt.Sprintf("ItemServerID:%v,", vip.ItemServerID)
 	result += fmt.Sprintf("Consume:%v,", vip.Consume)
 	result += fmt.Sprintf("EmptyInt32:%v,", vip.EmptyInt32)
 	result += fmt.Sprintf("EmptyInt64:%v,", vip.EmptyInt64)
 	result += fmt.Sprintf("EmptyStr:%v,", vip.EmptyStr)
-	result += fmt.Sprintf("EmptyIn32tSingle:%v,", vip.EmptyIn32tSingle)
-	result += fmt.Sprintf("EmptyInt64Single:%v,", vip.EmptyInt64Single)
-	result += fmt.Sprintf("EmptyStrSingle:%v,", vip.EmptyStrSingle)
-	result += fmt.Sprintf("EmptyInt32Multi:%v,", vip.EmptyInt32Multi)
-	result += fmt.Sprintf("EmptyInt64Multi:%v,", vip.EmptyInt64Multi)
-	result += fmt.Sprintf("EmptyStrMulti:%v,", vip.EmptyStrMulti)
+	result += fmt.Sprintf("EmptyInt32Array:%v,", vip.EmptyInt32Array)
+	result += fmt.Sprintf("EmptyInt64Array:%v,", vip.EmptyInt64Array)
+	result += fmt.Sprintf("EmptyStringArray:%v,", vip.EmptyStringArray)
 	result += "]"
 	return result
 }
@@ -144,23 +120,17 @@ type VIPlist struct {
 	InfoInt32        int32
 	InfoInt64        int64
 	InfoStr          string
-	InfoInt32Single  []int32
-	InfoInt64Single  []int64
-	InfoStrSingle    []string
-	InfoInt32Multi   []int32
-	InfoInt64Multi   []int64
-	InfoStrMulti     []string
+	InfoInt32Array   []int32
+	InfoInt64Array   []int64
+	InfoStringArray  []string
 	ItemServerID     int32
 	Consume          ffGrammar.Grammar
 	EmptyInt32       int32
 	EmptyInt64       int64
 	EmptyStr         string
-	EmptyIn32tSingle []int32
-	EmptyInt64Single []int64
-	EmptyStrSingle   []string
-	EmptyInt32Multi  []int32
-	EmptyInt64Multi  []int64
-	EmptyStrMulti    []string
+	EmptyInt32Array  []int32
+	EmptyInt64Array  []int64
+	EmptyStringArray []string
 }
 
 func (vip *VIPlist) String() string {
@@ -168,23 +138,17 @@ func (vip *VIPlist) String() string {
 	result += fmt.Sprintf("InfoInt32:%v,", vip.InfoInt32)
 	result += fmt.Sprintf("InfoInt64:%v,", vip.InfoInt64)
 	result += fmt.Sprintf("InfoStr:%v,", vip.InfoStr)
-	result += fmt.Sprintf("InfoInt32Single:%v,", vip.InfoInt32Single)
-	result += fmt.Sprintf("InfoInt64Single:%v,", vip.InfoInt64Single)
-	result += fmt.Sprintf("InfoStrSingle:%v,", vip.InfoStrSingle)
-	result += fmt.Sprintf("InfoInt32Multi:%v,", vip.InfoInt32Multi)
-	result += fmt.Sprintf("InfoInt64Multi:%v,", vip.InfoInt64Multi)
-	result += fmt.Sprintf("InfoStrMulti:%v,", vip.InfoStrMulti)
+	result += fmt.Sprintf("InfoInt32Array:%v,", vip.InfoInt32Array)
+	result += fmt.Sprintf("InfoInt64Array:%v,", vip.InfoInt64Array)
+	result += fmt.Sprintf("InfoStringArray:%v,", vip.InfoStringArray)
 	result += fmt.Sprintf("ItemServerID:%v,", vip.ItemServerID)
 	result += fmt.Sprintf("Consume:%v,", vip.Consume)
 	result += fmt.Sprintf("EmptyInt32:%v,", vip.EmptyInt32)
 	result += fmt.Sprintf("EmptyInt64:%v,", vip.EmptyInt64)
 	result += fmt.Sprintf("EmptyStr:%v,", vip.EmptyStr)
-	result += fmt.Sprintf("EmptyIn32tSingle:%v,", vip.EmptyIn32tSingle)
-	result += fmt.Sprintf("EmptyInt64Single:%v,", vip.EmptyInt64Single)
-	result += fmt.Sprintf("EmptyStrSingle:%v,", vip.EmptyStrSingle)
-	result += fmt.Sprintf("EmptyInt32Multi:%v,", vip.EmptyInt32Multi)
-	result += fmt.Sprintf("EmptyInt64Multi:%v,", vip.EmptyInt64Multi)
-	result += fmt.Sprintf("EmptyStrMulti:%v,", vip.EmptyStrMulti)
+	result += fmt.Sprintf("EmptyInt32Array:%v,", vip.EmptyInt32Array)
+	result += fmt.Sprintf("EmptyInt64Array:%v,", vip.EmptyInt64Array)
+	result += fmt.Sprintf("EmptyStringArray:%v,", vip.EmptyStringArray)
 	result += "]"
 	return result
 }
