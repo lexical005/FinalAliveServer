@@ -143,10 +143,68 @@ func genGoEnum(dataFilePath string, fileEnum *fileEnum) {
 	exec.Command("go", "fmt", "ffAutoGen/ffEnum").Output()
 }
 
+var fmtCSharpFile = `namespace NConfig
+{{AllEnum}
+}
+`
+
+var fmtCSharpEnum = `
+	// {EnumType}
+	public static class {EnumType}
+	{{AllEnumKey}
+	}
+`
+
+var fmtCSharpEnumKey = `
+		// {EnumDesc}
+		public const int {EnumKey} = {EnumValue};`
+
+func genCSharpEnum(dataFilePath string, fileEnum *fileEnum) {
+	mapEnums := make(map[string][]*enum, len(fileEnum.Enum))
+	for _, one := range fileEnum.Enum {
+		if listEnums, ok := mapEnums[one.Enum]; ok {
+			listEnums = append(listEnums, one)
+			mapEnums[one.Enum] = listEnums
+		} else {
+			listEnums := make([]*enum, 0, 4)
+			listEnums = append(listEnums, one)
+			mapEnums[one.Enum] = listEnums
+		}
+	}
+
+	allEnumType := make([]string, 0, 4)
+	for enumType := range mapEnums {
+		allEnumType = append(allEnumType, enumType)
+	}
+	sort.Strings(allEnumType)
+
+	AllEnum := ""
+	for _, enumType := range allEnumType {
+		listEnums := mapEnums[enumType]
+
+		AllEnumKey := ""
+		for i, one := range listEnums {
+			s := strings.Replace(fmtCSharpEnumKey, "{EnumKey}", one.Name, -1)
+			s = strings.Replace(s, "{EnumValue}", strconv.Itoa(i), -1)
+			s = strings.Replace(s, "{EnumDesc}", one.Desc, -1)
+			AllEnumKey += s
+		}
+
+		s := strings.Replace(fmtCSharpEnum, "{EnumType}", enumType, -1)
+		s = strings.Replace(s, "{AllEnumKey}", AllEnumKey, -1)
+		AllEnum += s
+	}
+
+	result := strings.Replace(fmtCSharpFile, "{AllEnum}", AllEnum, -1)
+
+	util.WriteFile(dataFilePath, []byte(result))
+	log.RunLogger.Println(dataFilePath)
+}
+
 func genEnum(excel *excel) {
 	// Server
 	if excel.exportServerGoCodePath != "" && exportConfig.hasGoEnv {
-		tomlDataServer, err := util.ReadFile(path.Join("toml", "server", "Enum.toml"))
+		tomlData, err := util.ReadFile(path.Join("toml", "server", "Enum.toml"))
 		if err != nil {
 			log.RunLogger.Println(err)
 			return
@@ -154,12 +212,31 @@ func genEnum(excel *excel) {
 
 		// 解析导出的toml配置文件
 		fileEnum := &fileEnum{}
-		err = toml.Unmarshal(tomlDataServer, fileEnum)
+		err = toml.Unmarshal(tomlData, fileEnum)
 		if err != nil {
 			log.RunLogger.Println(err)
 			return
 		}
 
 		genGoEnum(path.Join(excel.exportServerGoCodePath, "Enum.go"), fileEnum)
+	}
+
+	// Client
+	if excel.exportClientCSharpCodePath != "" {
+		tomlData, err := util.ReadFile(path.Join("toml", "client", "Enum.toml"))
+		if err != nil {
+			log.RunLogger.Println(err)
+			return
+		}
+
+		// 解析导出的toml配置文件
+		fileEnum := &fileEnum{}
+		err = toml.Unmarshal(tomlData, fileEnum)
+		if err != nil {
+			log.RunLogger.Println(err)
+			return
+		}
+
+		genCSharpEnum(path.Join(excel.exportClientCSharpCodePath, "Enum.cs"), fileEnum)
 	}
 }
