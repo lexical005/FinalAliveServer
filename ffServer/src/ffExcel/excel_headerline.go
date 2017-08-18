@@ -88,6 +88,7 @@ func newLineHeader(lineDesc, lineName, lineType, lineRequired, lineHome string) 
 	if err != nil {
 		return nil, err
 	}
+
 	home := newValueHome(lineHome)
 	if home == nil {
 		return nil, fmt.Errorf("invalid lineHome[%v]", lineHome)

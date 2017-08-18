@@ -41,6 +41,11 @@ func main() {
 				return nil
 			}
 
+			// 非配置文件
+			if name == "Error.go" || name == "Enum.go" {
+				return nil
+			}
+
 			golangFiles = append(golangFiles, name[0:len(name)-len(".go")])
 			goFullPathFiles = append(goFullPathFiles, filepath.Join(ffGameConfigPath, name))
 

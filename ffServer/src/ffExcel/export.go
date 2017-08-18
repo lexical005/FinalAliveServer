@@ -10,6 +10,14 @@ import (
 	"path/filepath"
 )
 
+// ExcelExportType excel配置表导出方式配置, 默认config, 还支持error,enum
+type ExcelExportType struct {
+	// Excel 针对的配置表名称
+	Excel string
+	// Type 导出方式
+	Type string
+}
+
 // ExcelExportLimit excel配置表导出的额外配置
 type ExcelExportLimit struct {
 	// Excel 针对的配置表名称
@@ -41,6 +49,9 @@ type ExportConfig struct {
 	ClientExportCSharpCodePath string
 	// ClientExportProtoBufDataPath 客户端导出的Protobuf配置文件, 相对导出程序的路径
 	ClientExportProtoBufDataPath string
+
+	// ExcelExportType 导出方式配置
+	ExcelExportType []*ExcelExportType
 
 	// ExcelExportLimit 工作表导出时的额外配置
 	ExcelExportLimit []*ExcelExportLimit
@@ -150,17 +161,27 @@ func exportExcel(excelFilePath string) (excel *excel, err error) {
 		return nil, err
 	}
 
+	// 导出类型
+	for _, exportTypeConfig := range exportConfig.ExcelExportType {
+		if exportTypeConfig.Excel == excel.name {
+			excel.exportType = exportTypeConfig.Type
+			break
+		}
+	}
+
 	// 导出服务端
 	if excel.exportToServer() {
 		// 导出读取toml数据的Go代码
-		tomlDataServerReadCode := genTomlDataReadCode(excel, exportConfig, "server")
-		if exportConfig.hasGoEnv && exportConfig.ServerExportGoCodePath != "" {
-			defFilePath := path.Join(exportConfig.ServerExportGoCodePath, excel.name+".go")
-			err = util.WriteFile(defFilePath, []byte(tomlDataServerReadCode))
-			if err != nil {
-				return nil, err
+		if excel.exportType == "config" {
+			if exportConfig.hasGoEnv && exportConfig.ServerExportGoCodePath != "" {
+				tomlDataServerReadCode := genTomlDataReadCode(excel, exportConfig, "server")
+				defFilePath := path.Join(exportConfig.ServerExportGoCodePath, excel.name+".go")
+				err = util.WriteFile(defFilePath, []byte(tomlDataServerReadCode))
+				if err != nil {
+					return nil, err
+				}
+				log.RunLogger.Println(defFilePath)
 			}
-			log.RunLogger.Println(defFilePath)
 		}
 
 		// 导出toml数据
@@ -171,27 +192,31 @@ func exportExcel(excelFilePath string) (excel *excel, err error) {
 			return nil, err
 		}
 
-		if exportConfig.ServerExportTomlDataPath != "" {
-			dataFilePath = path.Join(exportConfig.ServerExportTomlDataPath, excel.name+".toml")
-			err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
-			if err != nil {
-				return nil, err
+		if excel.exportType == "config" {
+			if exportConfig.ServerExportTomlDataPath != "" {
+				dataFilePath = path.Join(exportConfig.ServerExportTomlDataPath, excel.name+".toml")
+				err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
+				if err != nil {
+					return nil, err
+				}
+				log.RunLogger.Println(dataFilePath)
 			}
-			log.RunLogger.Println(dataFilePath)
 		}
 	}
 
 	// 导出客户端
 	if excel.exportToClient() {
 		// 导出读取toml数据的Go代码
-		tomlDataGoReadCode := genTomlDataReadCode(excel, exportConfig, "client")
-		if exportConfig.hasGoEnv && exportConfig.ClientExportGoCodePath != "" {
-			defFilePath := path.Join(exportConfig.ClientExportGoCodePath, excel.name+".go")
-			err = util.WriteFile(defFilePath, []byte(tomlDataGoReadCode))
-			if err != nil {
-				return nil, err
+		if excel.exportType == "config" {
+			if exportConfig.hasGoEnv && exportConfig.ClientExportGoCodePath != "" {
+				tomlDataGoReadCode := genTomlDataReadCode(excel, exportConfig, "client")
+				defFilePath := path.Join(exportConfig.ClientExportGoCodePath, excel.name+".go")
+				err = util.WriteFile(defFilePath, []byte(tomlDataGoReadCode))
+				if err != nil {
+					return nil, err
+				}
+				log.RunLogger.Println(defFilePath)
 			}
-			log.RunLogger.Println(defFilePath)
 		}
 
 		// 导出toml数据
@@ -201,6 +226,11 @@ func exportExcel(excelFilePath string) (excel *excel, err error) {
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	// 错误码
+	if excel.exportType == "error" {
+		genError()
 	}
 
 	return
@@ -245,21 +275,21 @@ func ExportExcelDir(excelDirPath string, _exportConfig *ExportConfig) error {
 	})
 
 	// 依次导出所有excel
-	allExcels := make([]*excel, 0, len(excelFilePaths))
+	allConfigExcels := make([]*excel, 0, len(excelFilePaths))
 	allValid := true
 	for _, excelFilePath := range excelFilePaths {
 		excel, err := exportExcel(excelFilePath)
 		if err != nil {
 			log.RunLogger.Println(err)
 			allValid = false
-		} else {
-			allExcels = append(allExcels, excel)
+		} else if excel.exportType == "config" {
+			allConfigExcels = append(allConfigExcels, excel)
 		}
 	}
 
 	// 导出toml数据对应的Proto定义
 	if exportConfig.ClientExportProtoBufDataPath != "" {
-		goProto, csharpProto := genProtoDefineFromToml(allExcels, "client")
+		goProto, csharpProto := genProtoDefineFromToml(allConfigExcels, "client")
 		goFilePath := path.Join("ProtoBuf", "Server", "Config.proto")
 		err = util.WriteFile(goFilePath, []byte(goProto))
 		if err != nil {

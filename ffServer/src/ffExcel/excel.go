@@ -9,8 +9,9 @@ import (
 )
 
 type excel struct {
-	name   string
-	sheets []*sheet
+	name       string
+	sheets     []*sheet
+	exportType string
 }
 
 // exportToServer 本工作表是否需要导出到服务端
@@ -71,7 +72,8 @@ func parseExcel(excelFilePath string) (*excel, error) {
 	}
 
 	return &excel{
-		name:   fileName,
-		sheets: sheets,
+		name:       fileName,
+		sheets:     sheets,
+		exportType: "config",
 	}, errResult
 }
