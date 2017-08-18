@@ -16,6 +16,11 @@ type ExcelExportType struct {
 	Excel string
 	// Type 导出方式
 	Type string
+
+	// ServerExportGoCodePath 服务端导出的代码文件, 相对导出程序的路径, 为空时或者系统环境变量中未配置GOPATH时, 不导出
+	ServerExportGoCodePath string
+	// ClientExportCSharpCodePath 客户端最终导出的c#代码文件, 相对导出程序的路径, 为空时, 不导出
+	ClientExportCSharpCodePath string
 }
 
 // ExcelExportLimit excel配置表导出的额外配置
@@ -162,9 +167,15 @@ func exportExcel(excelFilePath string) (excel *excel, err error) {
 	}
 
 	// 导出类型
+	excel.exportType = "config"
+	excel.exportServerGoCodePath = exportConfig.ServerExportGoCodePath
+	excel.exportClientGoCodePath = exportConfig.ClientExportGoCodePath
+	excel.exportClientCSharpCodePath = exportConfig.ClientExportCSharpCodePath
 	for _, exportTypeConfig := range exportConfig.ExcelExportType {
 		if exportTypeConfig.Excel == excel.name {
 			excel.exportType = exportTypeConfig.Type
+			excel.exportServerGoCodePath = exportTypeConfig.ServerExportGoCodePath
+			excel.exportClientCSharpCodePath = exportTypeConfig.ClientExportCSharpCodePath
 			break
 		}
 	}
@@ -173,9 +184,9 @@ func exportExcel(excelFilePath string) (excel *excel, err error) {
 	if excel.exportToServer() {
 		// 导出读取toml数据的Go代码
 		if excel.exportType == "config" {
-			if exportConfig.hasGoEnv && exportConfig.ServerExportGoCodePath != "" {
+			if exportConfig.hasGoEnv && excel.exportServerGoCodePath != "" {
 				tomlDataServerReadCode := genTomlDataReadCode(excel, exportConfig, "server")
-				defFilePath := path.Join(exportConfig.ServerExportGoCodePath, excel.name+".go")
+				defFilePath := path.Join(excel.exportServerGoCodePath, excel.name+".go")
 				err = util.WriteFile(defFilePath, []byte(tomlDataServerReadCode))
 				if err != nil {
 					return nil, err
@@ -208,9 +219,9 @@ func exportExcel(excelFilePath string) (excel *excel, err error) {
 	if excel.exportToClient() {
 		// 导出读取toml数据的Go代码
 		if excel.exportType == "config" {
-			if exportConfig.hasGoEnv && exportConfig.ClientExportGoCodePath != "" {
+			if exportConfig.hasGoEnv && excel.exportClientGoCodePath != "" {
 				tomlDataGoReadCode := genTomlDataReadCode(excel, exportConfig, "client")
-				defFilePath := path.Join(exportConfig.ClientExportGoCodePath, excel.name+".go")
+				defFilePath := path.Join(excel.exportClientGoCodePath, excel.name+".go")
 				err = util.WriteFile(defFilePath, []byte(tomlDataGoReadCode))
 				if err != nil {
 					return nil, err
@@ -230,7 +241,7 @@ func exportExcel(excelFilePath string) (excel *excel, err error) {
 
 	// 错误码
 	if excel.exportType == "error" {
-		genError()
+		genError(excel)
 	}
 
 	return

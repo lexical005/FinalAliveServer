@@ -9,9 +9,13 @@ import (
 )
 
 type excel struct {
-	name       string
-	sheets     []*sheet
-	exportType string
+	name   string
+	sheets []*sheet
+
+	exportType                 string
+	exportServerGoCodePath     string
+	exportClientGoCodePath     string
+	exportClientCSharpCodePath string
 }
 
 // exportToServer 本工作表是否需要导出到服务端

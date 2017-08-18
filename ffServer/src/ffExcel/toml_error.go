@@ -58,79 +58,79 @@ func genErrorCSharp(dataFilePath string, errReasonToml *errReasonToml) {
 	log.RunLogger.Println(dataFilePath)
 }
 
-var fmtErrorGoPackage = `package %v
-				
-				`
+var fmtErrorGoPackage = `package ffError
+
+`
 
 var fmtErrorGoReasonHeader = `
-				import (
-					"ffCommon/log/log"
-				
-					"fmt"
-				)
-				
-				// Error Error
-				type Error interface {
-					Code() int32
-					Error() string
-					String() string
-				}
-				
-				type errReason struct {
-					code int32
-					desc string
-				}
-				
-				func (ec *errReason) Code() int32 {
-					return ec.code
-				}
-				
-				func (ec *errReason) Error() string {
-					return fmt.Sprintf("{PackageName}[%d-%s]", ec.code, ec.desc)
-				}
-				
-				func (ec *errReason) String() string {
-					return fmt.Sprintf("{PackageName}[%d-%s]", ec.code, ec.desc)
-				}
-				`
+import (
+	"ffCommon/log/log"
+
+	"fmt"
+)
+
+// Error Error
+type Error interface {
+	Code() int32
+	Error() string
+	String() string
+}
+
+type errReason struct {
+	code int32
+	desc string
+}
+
+func (ec *errReason) Code() int32 {
+	return ec.code
+}
+
+func (ec *errReason) Error() string {
+	return fmt.Sprintf("ffError[%d-%s]", ec.code, ec.desc)
+}
+
+func (ec *errReason) String() string {
+	return fmt.Sprintf("ffError[%d-%s]", ec.code, ec.desc)
+}
+`
 
 var fmtErrorGoReasonLoopComment = `// %v %v
-				`
+`
 var fmtErrorGoReasonLoop = `var %v Error = &errReason{code: %v, desc: "%v"}
-				`
+`
 
 var fmtErrorGoCodeStart = `
-				var errByCode = []Error{
-				`
+var errByCode = []Error{
+`
 
 var fmtErrorGoCodeLoop = `	%v,
-				`
+`
 
 var fmtErrorCodeEnd = `
-				}
-				`
+}
+`
 
 var fmtErrorByCodeFunc = `
-				
-				// ErrByCode 根据错误码获取Error
-				func ErrByCode(errCode int32) Error {
-					if errCode >= 0 && int(errCode) < len(errByCode) {
-						return errByCode[errCode]
-					}
-				
-					log.FatalLogger.Printf("{PackageName}.ErrByCode: invalid errCode[%d]", errCode)
-				
-					return ErrUnknown
-				}
-				`
+
+// ErrByCode 根据错误码获取Error
+func ErrByCode(errCode int32) Error {
+	if errCode >= 0 && int(errCode) < len(errByCode) {
+		return errByCode[errCode]
+	}
+
+	log.FatalLogger.Printf("ffError.ErrByCode: invalid errCode[%d]", errCode)
+
+	return ErrUnknown
+}
+`
 
 // 错误码, 服务端
 func genErrorGo(dataFilePath string, errReasonToml *errReasonToml) {
 	result := ""
 
-	result += fmt.Sprintf(fmtErrorGoPackage, exportConfig.serverPackageName)
+	result += fmtErrorGoPackage
 
-	result += strings.Replace(fmtErrorGoReasonHeader, "{PackageName}", exportConfig.serverPackageName, -1)
+	result += fmtErrorGoReasonHeader
 
 	for index, one := range errReasonToml.Error {
 		result += fmt.Sprintf(fmtErrorGoReasonLoopComment, one.ErrCode, one.Desc)
@@ -143,15 +143,15 @@ func genErrorGo(dataFilePath string, errReasonToml *errReasonToml) {
 	}
 	result += fmtErrorCodeEnd
 
-	result += strings.Replace(fmtErrorByCodeFunc, "{PackageName}", exportConfig.serverPackageName, -1)
+	result += strings.Replace(fmtErrorByCodeFunc, "ffError", exportConfig.serverPackageName, -1)
 
 	util.WriteFile(dataFilePath, []byte(result))
 	log.RunLogger.Println(dataFilePath)
 }
 
-func genError() {
+func genError(excel *excel) {
 	// Server
-	{
+	if excel.exportServerGoCodePath != "" && exportConfig.hasGoEnv {
 		tomlDataServer, err := util.ReadFile(path.Join("toml", "server", "Error.toml"))
 		if err != nil {
 			log.RunLogger.Println(err)
@@ -166,11 +166,11 @@ func genError() {
 			return
 		}
 
-		genErrorGo(path.Join(exportConfig.ServerExportGoCodePath, "Error.go"), errReasonToml)
+		genErrorGo(path.Join(excel.exportServerGoCodePath, "Error.go"), errReasonToml)
 	}
 
 	// Client
-	{
+	if excel.exportClientCSharpCodePath != "" {
 		tomlDataClient, err := util.ReadFile(path.Join("toml", "client", "Error.toml"))
 		if err != nil {
 			log.RunLogger.Println(err)
@@ -185,6 +185,6 @@ func genError() {
 			return
 		}
 
-		genErrorCSharp(path.Join(exportConfig.ClientExportCSharpCodePath, "Error.cs"), errReasonToml)
+		genErrorCSharp(path.Join(excel.exportClientCSharpCodePath, "Error.cs"), errReasonToml)
 	}
 }
