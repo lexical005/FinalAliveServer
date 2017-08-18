@@ -25,6 +25,9 @@ const (
 	// 本列配置的值为自定义语法语句, 名称字段在头部只能出现一次
 	vtGrammar = valueType("grammar")
 
+	// 本列配置的值为enum
+	vtEnum = valueType("enum")
+
 	// 本列配置的值为map字典
 	vtMap = valueType("map")
 )

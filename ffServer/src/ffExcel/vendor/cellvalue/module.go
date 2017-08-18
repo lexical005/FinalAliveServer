@@ -74,3 +74,8 @@ func NewValueStore(vt ValueType) (ValueStore, error) {
 	r := creator(vt)
 	return r, nil
 }
+
+// InitEnum 外界设置enum的toml文件
+func InitEnum(tomlFile string) {
+
+}
