@@ -18,22 +18,33 @@ type ValueType interface {
 	// IsString 是不是字符串配置列
 	IsString() bool
 
+	// IsMap 是不是字典类型
+	IsMap() bool
+
 	// Type 返回程序内部使用的类型的字符串描述
 	Type() string
 
 	// ProtoType 返回该字段在Proto定义里的类型
 	ProtoType() string
 
+	toString() string
 	valueType() valueType
 }
 
 // NewValueType 根据值类型描述返回ValueType
 func NewValueType(v string) (ValueType, error) {
-	if _, ok := vtExist[v]; !ok {
-		return nil, fmt.Errorf("invalid value type[%v]", v)
+	if _, ok := vtExist[v]; ok {
+		vt := valueType(v)
+		return &vt, nil
 	}
-	vt := valueType(v)
-	return &vt, nil
+
+	success, _, _ := checkMapKeyValueType(v)
+	if success {
+		vt := valueType(v)
+		return &vt, nil
+	}
+
+	return nil, fmt.Errorf("invalid value type[%v]", v)
 }
 
 // ValueStore 定义标准的值类型存储

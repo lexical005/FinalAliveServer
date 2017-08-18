@@ -24,6 +24,9 @@ const (
 
 	// 本列配置的值为自定义语法语句, 名称字段在头部只能出现一次
 	vtGrammar = valueType("grammar")
+
+	// 本列配置的值为map字典
+	vtMap = valueType("map")
 )
 
 // 允许用户配置的值类型
@@ -38,7 +41,7 @@ var vtExist = map[string]valueType{
 	string(vtGrammar):     vtGrammar,
 }
 
-// 用户配置的值类型中, 有效的值类型到程序内部类型的匹配
+// 用户配置的基础值类型中, 有效的值类型到程序内部类型的匹配
 var mapValueTypeToRealType = map[valueType]string{
 	vtInt32:       "int32",
 	vtInt32Array:  "[]int32",
@@ -49,7 +52,7 @@ var mapValueTypeToRealType = map[valueType]string{
 	vtGrammar:     "ffGrammar.Grammar",
 }
 
-// 用户配置的值类型中, 有效的值类型到程序内部类型的匹配
+// 用户配置的基础值类型中, 有效的值类型到程序内部类型的匹配
 var mapValueTypeToProtoType = map[valueType]string{
 	vtInt32:       "int32",
 	vtInt32Array:  "repeated int32",
@@ -79,6 +82,12 @@ func (vt *valueType) IsGrammar() bool {
 }
 func (vt *valueType) IsString() bool {
 	return *vt == vtString || *vt == vtStringArray
+}
+func (vt *valueType) IsMap() bool {
+	return *vt == vtMap
+}
+func (vt valueType) toString() string {
+	return string(vt)
 }
 
 func (vt *valueType) valueType() valueType {
