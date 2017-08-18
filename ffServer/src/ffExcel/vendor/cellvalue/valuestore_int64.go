@@ -14,7 +14,7 @@ type valueStoreInt64 struct {
 func (vs *valueStoreInt64) Store(data string) error {
 	i64, err := strconv.ParseInt(data, 10, 0)
 	if err != nil {
-		return fmt.Errorf("ValueStore[%v] Invalid int data[%v]", vs.Type(), data)
+		return fmt.Errorf("ValueStore[%v] Invalid int data[%v]", vs.GoType(), data)
 	}
 
 	vs.value = int(i64)

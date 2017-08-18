@@ -80,7 +80,7 @@ func (lh *headerLine) limitByExportConfig(excelName, sheetName string) {
 
 func (lh *headerLine) String() string {
 	return fmt.Sprintf("[[%v][%v][%v][%v][%v] ignore[%v]]",
-		lh.lineDesc, lh.lineName, lh.lineType.Type(), lh.lineRequired, lh.lineHome, lh.ignore())
+		lh.lineDesc, lh.lineName, lh.lineType.GoType(), lh.lineRequired, lh.lineHome, lh.ignore())
 }
 
 func newLineHeader(lineDesc, lineName, lineType, lineRequired, lineHome string) (*headerLine, error) {

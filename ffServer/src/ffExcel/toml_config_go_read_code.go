@@ -172,7 +172,7 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 			if (exportLimit == "server" && line.exportToServer() || exportLimit == "client" && line.exportToClient()) && !line.isMapKey() {
 				if _, ok := tmp.mapLineType[line.lineName]; !ok {
 					tmp.lines = append(tmp.lines, line.lineName)
-					tmp.mapLineType[line.lineName] = line.lineType.Type()
+					tmp.mapLineType[line.lineName] = line.lineType.GoType()
 				}
 			}
 		}

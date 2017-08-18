@@ -25,14 +25,14 @@ func (vs *valueStoreInt64Array) Store(data string) error {
 		for _, s := range result {
 			i64, err := strconv.ParseInt(s, 10, 0)
 			if err != nil {
-				return fmt.Errorf("valueStoreInt64Array.ValueStore[%v] Invalid int array data[%v]", vs.Type(), data)
+				return fmt.Errorf("valueStoreInt64Array.ValueStore[%v] Invalid int array data[%v]", vs.GoType(), data)
 			}
 			vs.value = append(vs.value, int64(i64))
 		}
 	} else {
 		i64, err := strconv.ParseInt(data, 10, 0)
 		if err != nil {
-			return fmt.Errorf("valueStoreInt64Array.ValueStore[%v] Invalid int array data[%v]", vs.Type(), data)
+			return fmt.Errorf("valueStoreInt64Array.ValueStore[%v] Invalid int array data[%v]", vs.GoType(), data)
 		}
 		vs.value = append(vs.value, int64(i64))
 	}

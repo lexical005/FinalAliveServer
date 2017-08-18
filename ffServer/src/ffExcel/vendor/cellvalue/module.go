@@ -6,8 +6,8 @@ import (
 
 // ValueType 定义标准的值类型定义
 type ValueType interface {
-	// IsMulti 是否允许多个列组合成一个数组, 合并顺序为从左到右, 如果列的值为数组, 则进行数组合并
-	IsMulti() bool
+	// IsArray 是否允许多个列组合成一个数组, 合并顺序为从左到右, 如果列的值为数组, 则进行数组合并
+	IsArray() bool
 
 	// Ignore 是否忽略本列配置
 	IsIgnore() bool
@@ -21,27 +21,23 @@ type ValueType interface {
 	// IsMap 是不是字典类型
 	IsMap() bool
 
-	// Type 返回程序内部使用的类型的字符串描述
-	Type() string
+	// IsEnum 是不是枚举
+	IsEnum() bool
+
+	// GoType 返回Go使用的类型的字符串描述
+	GoType() string
 
 	// ProtoType 返回该字段在Proto定义里的类型
 	ProtoType() string
 
 	toString() string
-	valueType() valueType
+	valueType() *valueType
 }
 
 // NewValueType 根据值类型描述返回ValueType
 func NewValueType(v string) (ValueType, error) {
-	if _, ok := vtExist[v]; ok {
-		vt := valueType(v)
-		return &vt, nil
-	}
-
-	success, _, _ := checkMapKeyValueType(v)
-	if success {
-		vt := valueType(v)
-		return &vt, nil
+	if vt := newValueType(v); vt != nil {
+		return vt, nil
 	}
 
 	return nil, fmt.Errorf("invalid value type[%v]", v)
@@ -52,8 +48,8 @@ type ValueStore interface {
 	// Store 将字符串形式的值存储起来
 	Store(data string) error
 
-	// Type 返回程序内部使用的类型的字符串描述
-	Type() string
+	// GoType 返回Go使用的类型的字符串描述
+	GoType() string
 
 	// Value 返回实际值
 	Value() interface{}
@@ -77,5 +73,5 @@ func NewValueStore(vt ValueType) (ValueStore, error) {
 
 // InitEnum 外界设置enum的toml文件
 func InitEnum(tomlFile string) {
-
+	initEnum(tomlFile)
 }

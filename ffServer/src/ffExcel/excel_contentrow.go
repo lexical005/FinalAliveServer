@@ -55,9 +55,9 @@ func newContentRow(rowIndex int, row *xlsx.Row, header *sheetHeader) (*contentRo
 		if data == "" {
 			// 本列必须配置有效值, 不允许留空白
 			if line.isRequired() {
-				if !line.lineType.IsMulti() {
+				if !line.lineType.IsArray() && !line.lineType.IsMap() {
 					return nil, fmt.Errorf("not allow empty cell at row[%v] line[%v] lineType[%v]",
-						rowIndex, index, line.lineType.Type())
+						rowIndex, index, line.lineType.GoType())
 				}
 
 				// 留待整行全部解析完成后, 再进行检查(只要有一列配置了值, 列就是有效的)

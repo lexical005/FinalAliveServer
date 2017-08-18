@@ -35,7 +35,7 @@ func (h *sheetHeader) hasMapKey() bool {
 func (h *sheetHeader) mapKeyType() string {
 	for _, line := range h.lines {
 		if line.isMapKey() {
-			return line.lineType.Type()
+			return line.lineType.GoType()
 		}
 	}
 	return ""
@@ -108,12 +108,14 @@ func newSheetHeader(st *xlsx.Sheet, excelName, sheetName string) (*sheetHeader, 
 		var headerLine *headerLine
 		for j := 0; j < i; j++ {
 			if lines[j].lineName == lineName {
-				if !lines[j].lineType.IsMulti() {
+				if !lines[j].lineType.IsArray() && !lines[j].lineType.IsMap() {
 					return nil, fmt.Errorf("sheetHeader lineType[%v] not support multi, but lineName[%v] appear at row[2] line[%v:%v]",
-						lines[j].lineType.Type(), lineName, j, i)
+						lines[j].lineType.GoType(), lineName, j, i)
 				}
 				if headerLine == nil {
-					headerLine = lines[j]
+					if !lines[j].lineType.IsMap() {
+						headerLine = lines[j]
+					}
 				}
 			}
 		}

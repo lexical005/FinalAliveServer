@@ -25,8 +25,8 @@ func (vs *valueStoreGrammar) Store(data string) error {
 	return nil
 }
 
-func (vs *valueStoreGrammar) Type() string {
-	return vs.vt.Type()
+func (vs *valueStoreGrammar) GoType() string {
+	return vs.vt.GoType()
 }
 func (vs *valueStoreGrammar) Value() interface{} {
 	return vs.value
@@ -36,7 +36,7 @@ func (vs *valueStoreGrammar) ValueToml() string {
 }
 
 func (vs *valueStoreGrammar) String() string {
-	return fmt.Sprintf("[%v:%v]", vs.Type(), vs.value)
+	return fmt.Sprintf("[%v:%v]", vs.GoType(), vs.value)
 }
 
 func init() {

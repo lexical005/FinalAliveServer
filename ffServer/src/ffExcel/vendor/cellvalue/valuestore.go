@@ -12,8 +12,8 @@ type valueStore struct {
 	value interface{}
 }
 
-func (vs *valueStore) Type() string {
-	return vs.vt.Type()
+func (vs *valueStore) GoType() string {
+	return vs.vt.GoType()
 }
 func (vs *valueStore) Value() interface{} {
 	return vs.value
@@ -56,7 +56,7 @@ func (vs *valueStore) ValueToml() string {
 }
 
 func (vs *valueStore) String() string {
-	return fmt.Sprintf("[%v:%v]", vs.Type(), vs.value)
+	return fmt.Sprintf("[%v:%v]", vs.GoType(), vs.value)
 }
 
-var mapValueStoreCreator = make(map[valueType]func(vt ValueType) ValueStore)
+var mapValueStoreCreator = make(map[*valueType]func(vt ValueType) ValueStore)

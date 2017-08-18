@@ -1,11 +1,8 @@
 package cellvalue
 
 import (
-	"regexp"
 	"strings"
 )
-
-var regexpMap = regexp.MustCompile(`map\[([\w\.]+)\]([\w]+)`)
 
 type mapValueData struct {
 	key   string

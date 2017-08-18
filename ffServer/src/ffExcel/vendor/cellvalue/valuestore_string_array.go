@@ -20,7 +20,7 @@ func (vs *valueStoreStringArray) Store(data string) error {
 	if strings.HasPrefix(data, "[") && strings.HasSuffix(data, "]") {
 		var dataOri []interface{}
 		if err := json.Unmarshal([]byte(data), &dataOri); err != nil {
-			return fmt.Errorf("ValueStore[%v] Invalid string array data[%v]", vs.Type(), data)
+			return fmt.Errorf("ValueStore[%v] Invalid string array data[%v]", vs.GoType(), data)
 		}
 
 		for _, s := range dataOri {
