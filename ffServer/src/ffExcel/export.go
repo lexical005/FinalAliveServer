@@ -242,6 +242,8 @@ func exportExcel(excelFilePath string) (excel *excel, err error) {
 	// 错误码
 	if excel.exportType == "error" {
 		genError(excel)
+	} else if excel.exportType == "enum" {
+		genEnum(excel)
 	}
 
 	return
