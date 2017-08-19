@@ -81,6 +81,13 @@ func genProtoDefineFromToml(allExcels []*excel, exportLimit string) (goProto, cs
 					if _, ok := tmp.mapLineType[line.lineName]; !ok {
 						tmp.lines = append(tmp.lines, line.lineName)
 						tmp.mapLineType[line.lineName] = line.lineType.ProtoType()
+						if line.lineType.IsMap() {
+							tmp.lines = append(tmp.lines, line.lineName+"Key")
+							tmp.mapLineType[line.lineName+"Key"] = line.lineType.MapKeyProtoType()
+
+							tmp.lines = append(tmp.lines, line.lineName+"Value")
+							tmp.mapLineType[line.lineName+"Value"] = line.lineType.MapValueProtoType()
+						}
 					}
 				}
 			}

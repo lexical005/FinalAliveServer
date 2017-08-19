@@ -61,9 +61,13 @@ func genTomlData(excel *excel, exportConfig *ExportConfig, exportLimit string) s
 					if _, ok := exportedLines[line.lineName]; !ok {
 						exportedLines[line.lineName] = true
 						if data, ok := row.rowData[line.lineName]; ok {
-							result += fmt.Sprintf(fmtFieldList, line.lineName, data.ValueToml())
+							if line.lineType.IsMap() {
+								result += fmt.Sprintf(fmtFieldList, line.lineName+"Key", data.ValueTomlMapKeys())
+								result += fmt.Sprintf(fmtFieldList, line.lineName+"Value", data.ValueTomlMapValues())
+							} else {
+								result += fmt.Sprintf(fmtFieldList, line.lineName, data.ValueToml())
+							}
 						}
-
 					}
 				}
 			}

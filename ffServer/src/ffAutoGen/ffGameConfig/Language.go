@@ -10,7 +10,7 @@ import (
 
 // Language excel Language
 type Language struct {
-	AIName []AIName
+	AIName []*AIName
 }
 
 func (l *Language) String() string {

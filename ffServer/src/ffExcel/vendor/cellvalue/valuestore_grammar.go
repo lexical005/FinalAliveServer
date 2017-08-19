@@ -35,6 +35,14 @@ func (vs *valueStoreGrammar) ValueToml() string {
 	return fmt.Sprintf(`"%v"`, vs.value)
 }
 
+func (vs *valueStoreGrammar) ValueTomlMapKeys() string {
+	return ""
+}
+
+func (vs *valueStoreGrammar) ValueTomlMapValues() string {
+	return ""
+}
+
 func (vs *valueStoreGrammar) String() string {
 	return fmt.Sprintf("[%v:%v]", vs.GoType(), vs.value)
 }

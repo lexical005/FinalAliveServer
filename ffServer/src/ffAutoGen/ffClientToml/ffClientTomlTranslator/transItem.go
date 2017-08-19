@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"sort"
 
-    proto "github.com/golang/protobuf/proto"
+	proto "github.com/golang/protobuf/proto"
 )
 
 func transItem() {
-    message := &Item{}
+	message := &Item{}
 
-    // ItemTemplate
+	// ItemTemplate
 	ItemTemplateKeys := make([]int, 0, len(tomlItem.ItemTemplate)) // 必须使用64位机器
 	//ItemTemplateKeys := make([]int, 0, len(tomlItem.ItemTemplate)) // 必须使用64位机器
 	//ItemTemplateKeys := make([]string, 0, len(tomlItem.ItemTemplate)) // 必须使用64位机器
@@ -35,12 +35,12 @@ func transItem() {
 
 		message.ItemTemplateKey[k] = i
 		message.ItemTemplateValue[k] = &Item_StItemTemplate{
-			Name: v.Name,
-			Desc: v.Desc,
+			Name:     v.Name,
+			Desc:     v.Desc,
 			SceneKey: v.SceneKey,
-			Icon: v.Icon,
+			Icon:     v.Icon,
 		}
-		
+
 		message.ItemTemplateValue[k].ItemType = int32(v.ItemType)
 		message.ItemTemplateValue[k].SubType = make([]int32, len(v.SubType), len(v.SubType))
 		for xx, yy := range v.SubType {
@@ -48,15 +48,15 @@ func transItem() {
 		}
 	}
 
-    pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
-    if err := pbBuf.Marshal(message); err != nil {
-        log.RunLogger.Printf("transItem err[%v]", err)
-        return
-    }
+	pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
+	if err := pbBuf.Marshal(message); err != nil {
+		log.RunLogger.Printf("transItem err[%v]", err)
+		return
+	}
 
-    util.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", tomlItem.Name()+".bytes"), pbBuf.Bytes())
+	util.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", tomlItem.Name()+".bytes"), pbBuf.Bytes())
 }
 
 func init() {
-    allTrans = append(allTrans, transItem)
+	allTrans = append(allTrans, transItem)
 }

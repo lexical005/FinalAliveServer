@@ -105,6 +105,12 @@ type valueType struct {
 	mapValueIsEnum  bool
 	fixedLineMapKey string
 
+	goKeyType   string
+	goValueType string
+
+	protoKeyType   string
+	protoValueType string
+
 	excel     string
 	goType    string
 	protoType string
@@ -130,6 +136,18 @@ func (vt *valueType) IsString() bool {
 }
 func (vt *valueType) IsMap() bool {
 	return vt.isMap
+}
+func (vt *valueType) MapKeyGoType() string {
+	return vt.goKeyType
+}
+func (vt *valueType) MapValueGoType() string {
+	return vt.goValueType
+}
+func (vt *valueType) MapKeyProtoType() string {
+	return vt.protoKeyType
+}
+func (vt *valueType) MapValueProtoType() string {
+	return vt.protoValueType
 }
 func (vt *valueType) IsEnum() bool {
 	return vt.isEnum
@@ -157,10 +175,11 @@ var basicValueType = map[string]*valueType{
 	vtGrammar.excel:     vtGrammar,
 }
 
-var basicGoType = map[string]struct{}{
-	"int32":  struct{}{},
-	"int64":  struct{}{},
-	"string": struct{}{},
+// 基础类型是不是数值
+var basicGoType = map[string]bool{
+	"int32":  true,
+	"int64":  true,
+	"string": false,
 }
 
 var regexpMap = regexp.MustCompile(`map\[([\w\.]+)\]([\w]+)`)
@@ -191,24 +210,21 @@ func newValueType(v string) *valueType {
 		}
 
 	} else if strings.HasPrefix(v, "map[") {
-		result := regexpMap.FindAllString(v, -1)
-		if len(result) != 2 {
-			return nil
-		}
+		i := strings.Index(v, "]")
+		mapKeyType := v[len("map["):i]
+		mapValueType := v[i+1:]
 
 		tmpGoKey, tmpGoValue := "", ""
-		tmpProtoKey, tmpProtoValue := result[0], result[1]
+		tmpProtoKey, tmpProtoValue := mapKeyType, mapValueType
 
-		mapKeyType := result[0]
-		mapValueType := result[1]
-		fixedLineMapKey := mapKeyType
+		fixedLineMapKey := ""
 
-		temp := strings.Split(fixedLineMapKey, ".")
+		temp := strings.Split(mapKeyType, ".")
 		if len(temp) == 2 {
 			mapKeyType, fixedLineMapKey = temp[0], temp[1]
 		}
 
-		_, mapKeyIsEnum := mapEnums[mapKeyType]
+		enumKeys, mapKeyIsEnum := mapEnums[mapKeyType]
 		if !mapKeyIsEnum {
 			if _, ok := basicGoType[mapKeyType]; !ok {
 				return nil
@@ -217,6 +233,19 @@ func newValueType(v string) *valueType {
 		} else {
 			tmpGoKey = "ffEnum." + mapKeyType
 			tmpProtoKey = "int32"
+
+			if len(fixedLineMapKey) > 0 {
+				found := false
+				for _, key := range enumKeys {
+					if fixedLineMapKey == key {
+						found = true
+						break
+					}
+				}
+				if !found {
+					return nil
+				}
+			}
 		}
 		_, mapValueIsEnum := mapEnums[mapValueType]
 		if !mapValueIsEnum {
@@ -239,9 +268,15 @@ func newValueType(v string) *valueType {
 			mapValueIsEnum:  mapValueIsEnum,
 			fixedLineMapKey: fixedLineMapKey,
 
+			goKeyType:   "[]" + tmpGoKey,
+			goValueType: "[]" + tmpGoValue,
+
+			protoKeyType:   "repeated " + tmpProtoKey,
+			protoValueType: "repeated " + tmpProtoValue,
+
 			excel:     v,
 			goType:    "map[" + tmpGoKey + "]" + tmpGoValue,
-			protoType: "map[" + tmpProtoKey + "]" + tmpProtoValue,
+			protoType: "map<" + tmpProtoKey + "," + tmpProtoValue + ">",
 		}
 	} else {
 		if _, ok := mapEnums[enumType]; !ok {

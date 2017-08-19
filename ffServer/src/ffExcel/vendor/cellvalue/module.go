@@ -21,6 +21,18 @@ type ValueType interface {
 	// IsMap 是不是字典类型
 	IsMap() bool
 
+	// MapKeyGoType map 的 key 类型
+	MapKeyGoType() string
+
+	// MapValueGoType map 的 value 类型
+	MapValueGoType() string
+
+	// MapKeyProtoType map 的 key 类型
+	MapKeyProtoType() string
+
+	// MapValueProtoType map 的 value 类型
+	MapValueProtoType() string
+
 	// IsEnum 是不是枚举
 	IsEnum() bool
 
@@ -59,6 +71,12 @@ type ValueStore interface {
 
 	// ValueToml 返回导出toml时的字符串
 	ValueToml() string
+
+	// ValueTomlMapKeys 返回Map导出toml时的key字符串
+	ValueTomlMapKeys() string
+
+	// ValueTomlMapValues 返回Map导出toml时的value字符串
+	ValueTomlMapValues() string
 
 	String() string
 }

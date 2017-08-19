@@ -11,9 +11,9 @@ import (
 
 // ExcelExportTest excel ExcelExportTest
 type ExcelExportTest struct {
-	VIPmap    map[int32]VIPmap
+	VIPmap    map[int32]*VIPmap
 	VIPstruct VIPstruct
-	VIPlist   []VIPlist
+	VIPlist   []*VIPlist
 }
 
 func (e *ExcelExportTest) String() string {
