@@ -10,9 +10,9 @@ import (
 
 // Language excel Language
 type Language struct {
-	Common  map[string]Common
-	Special []Special
-	Error   map[string]Error
+	Common  map[string]*Common
+	Special []*Special
+	Error   map[string]*Error
 }
 
 func (l *Language) String() string {

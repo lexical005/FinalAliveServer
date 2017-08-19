@@ -31,9 +31,9 @@ var fmtGoExcelComment = `// %v excel %v
 `
 var fmtGoExcelDefStart = `type %v struct {
 `
-var fmtGoExcelDefFieldList = `   %v []%v
+var fmtGoExcelDefFieldList = `   %v []*%v
 `
-var fmtGoExcelDefFieldMap = `   %v map[%v]%v
+var fmtGoExcelDefFieldMap = `   %v map[%v]*%v
 `
 var fmtGoExcelDefFieldStruct = `   %v %v
 `
@@ -116,9 +116,34 @@ func Read%v() (%v *%v, err error) {
 	if err != nil {
 		return
 	}
-
+	{MapTrans}
 	return
 }
+`
+
+var fmtMapTransInMap = `
+	for _, one := range {ShortExcelName}.{SheetName} {
+		one.{MemberName} = make(map[{MapKeyType}]{MapValueType}, len(one.{MemberName}Key))
+		for index, v := range one.{MemberName}Key {
+			one.{MemberName}[v] = one.{MemberName}Value[index]
+		}
+	}
+`
+
+var fmtMapTransInList = `
+	for _, one := range {ShortExcelName}.{SheetName} {
+		one.{MemberName} = make(map[{MapKeyType}]{MapValueType}, len(one.{MemberName}Key))
+		for index, v := range one.{MemberName}Key {
+			one.{MemberName}[v] = one.{MemberName}Value[index]
+		}
+	}
+`
+
+var fmtMapTransInInst = `
+	one.{MemberName} = make(map[{MapKeyType}]{MapValueType}, len({ShortExcelName}.{SheetName}.{MemberName}Key))
+	for index, v := range {ShortExcelName}.{SheetName}.{MemberName}Key {
+		one.{MemberName}[v] = one.{MemberName}Value[index]
+	}
 `
 
 func getShortName(name string) string {
@@ -143,6 +168,8 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 		mapLineType map[string]string
 	}
 
+	MapTrans := ""
+
 	hasGrammar, hasEnum := false, false
 	excelSheetNames := make([]string, 0, len(excel.sheets))
 	excelSheetTypes := make([]int, 0, len(excel.sheets))
@@ -165,6 +192,28 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 				if _, ok := tmp.mapLineType[line.lineName]; !ok {
 					tmp.lines = append(tmp.lines, line.lineName)
 					tmp.mapLineType[line.lineName] = line.lineType.GoType()
+					if line.lineType.IsMap() {
+						tmp.lines = append(tmp.lines, line.lineName+"Key")
+						tmp.mapLineType[line.lineName+"Key"] = line.lineType.MapKeyGoType()
+
+						tmp.lines = append(tmp.lines, line.lineName+"Value")
+						tmp.mapLineType[line.lineName+"Value"] = line.lineType.MapValueGoType()
+
+						var s = ""
+						if sheet.sheetType == sheetTypeMap {
+							s = fmtMapTransInMap
+						} else if sheet.sheetType == sheetTypeList {
+							s = fmtMapTransInList
+						} else {
+							s = fmtMapTransInInst
+						}
+						s = strings.Replace(s, "{ShortExcelName}", shortExcelName, -1)
+						s = strings.Replace(s, "{SheetName}", sheet.name, -1)
+						s = strings.Replace(s, "{MemberName}", line.lineName, -1)
+						s = strings.Replace(s, "{MapKeyType}", line.lineType.MapKeyGoType()[len("[]"):], -1)
+						s = strings.Replace(s, "{MapValueType}", line.lineType.MapValueGoType()[len("[]"):], -1)
+						MapTrans += s
+					}
 				}
 			}
 		}
@@ -267,20 +316,24 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 	}
 
 	// read excel
+	readExcel := ""
 	if exportLimit == "server" {
-		result += fmt.Sprintf(fmtGoReadFunc,
+		readExcel = fmt.Sprintf(fmtGoReadFunc,
 			excelName, excelName,
 			excelName, shortExcelName, excelName,
 			path.Join(exportConfig.ServerReadTomlDataPath, fmt.Sprintf("%v.toml", excelName)),
 			shortExcelName, excelName,
 			shortExcelName)
 	} else if exportLimit == "client" {
-		result += fmt.Sprintf(fmtGoReadFunc,
+		readExcel = fmt.Sprintf(fmtGoReadFunc,
 			excelName, excelName,
 			excelName, shortExcelName, excelName,
 			path.Join("toml", "client", fmt.Sprintf("%v.toml", excelName)),
 			shortExcelName, excelName,
 			shortExcelName)
 	}
+	readExcel = strings.Replace(readExcel, "{MapTrans}", MapTrans, -1)
+	result += readExcel
+
 	return result
 }

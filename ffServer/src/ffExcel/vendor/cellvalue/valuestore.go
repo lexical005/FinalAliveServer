@@ -76,6 +76,52 @@ func (vs *valueStore) ValueToml() string {
 	panic(fmt.Sprintf("ValueToml failed: ValueType[%v] value[%v:%v]", vs.vt, rv.Kind().String(), vs.value))
 }
 
+func (vs *valueStore) ValueTomlMapKeys() string {
+	t := vs.vt.valueType()
+	// 字典
+	if t.isMap {
+		mapInfo, _ := vs.value.(*mapInfo)
+		result := "["
+		for i := 0; i < len(mapInfo.mapKeys); i++ {
+			if i > 0 {
+				result += ", "
+			}
+
+			if mapInfo.mapKeyIsNumber {
+				result += fmt.Sprintf("%v", mapInfo.mapKeys[i])
+			} else {
+				result += fmt.Sprintf("\"%v\"", mapInfo.mapKeys[i])
+			}
+		}
+		return result + "]"
+	}
+
+	panic(fmt.Sprintf("ValueTomlMapKeys failed: ValueType[%v] value[%v]", vs.vt, vs.value))
+}
+
+func (vs *valueStore) ValueTomlMapValues() string {
+	t := vs.vt.valueType()
+	// 字典
+	if t.isMap {
+		mapInfo, _ := vs.value.(*mapInfo)
+		result := "["
+		for i := 0; i < len(mapInfo.mapValues); i++ {
+			if i > 0 {
+				result += ", "
+			}
+
+			if mapInfo.mapValueIsNumber {
+				result += fmt.Sprintf("%v", mapInfo.mapValues[i])
+			} else {
+				result += fmt.Sprintf("\"%v\"", mapInfo.mapValues[i])
+			}
+		}
+		return result + "]"
+	}
+
+	panic(fmt.Sprintf("ValueTomlMapValues failed: ValueType[%v] value[%v]", vs.vt, vs.value))
+}
+
 func (vs *valueStore) String() string {
 	return fmt.Sprintf("[%v:%v]", vs.GoType(), vs.value)
 }
