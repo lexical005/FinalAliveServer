@@ -1,8 +1,6 @@
 package cellvalue
 
 import (
-	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -18,17 +16,11 @@ func (vs *valueStoreStringArray) Store(data string, vt ValueType) error {
 	}
 
 	if strings.HasPrefix(data, "[") && strings.HasSuffix(data, "]") {
-		var dataOri []interface{}
-		if err := json.Unmarshal([]byte(data), &dataOri); err != nil {
-			return fmt.Errorf("ValueStore[%v] Invalid string array data[%v]", vs.GoType(), data)
+		data = data[1 : len(data)-1]
+		tmp := strings.Split(data, ",")
+		for _, one := range tmp {
+			vs.value = append(vs.value, one)
 		}
-
-		for _, s := range dataOri {
-			str, _ := s.(string)
-
-			vs.value = append(vs.value, str)
-		}
-
 	} else {
 		vs.value = append(vs.value, data)
 	}

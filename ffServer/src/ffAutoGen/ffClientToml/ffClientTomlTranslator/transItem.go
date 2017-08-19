@@ -27,19 +27,24 @@ func transItem() {
 
 	message.ItemTemplateKey = make([]int32, len(tomlItem.ItemTemplate))
 	message.ItemTemplateValue = make([]*Item_StItemTemplate, len(tomlItem.ItemTemplate))
-	for i, key := range ItemTemplateKeys {
-		k := int32(key)
-		//k := int32(key)
-		//k := int32(key)
-		v := tomlItem.ItemTemplate[k]
+	for k, key := range ItemTemplateKeys {
+		i := int32(key)
+		//i := int32(key)
+		//i := int32(key)
+		v := tomlItem.ItemTemplate[i]
 
-		message.ItemTemplateKey[i] = k
-		message.ItemTemplateValue[i] = &Item_StItemTemplate{
-			Name: string(v.Name),
-			Desc: string(v.Desc),
-			SceneKey: string(v.SceneKey),
-			Icon: string(v.Icon),
-			ItemType: int32(v.ItemType),
+		message.ItemTemplateKey[k] = i
+		message.ItemTemplateValue[k] = &Item_StItemTemplate{
+			Name: v.Name,
+			Desc: v.Desc,
+			SceneKey: v.SceneKey,
+			Icon: v.Icon,
+		}
+		
+		message.ItemTemplateValue[k].ItemType = int32(v.ItemType)
+		message.ItemTemplateValue[k].SubType = make([]int32, len(v.SubType), len(v.SubType))
+		for xx, yy := range v.SubType {
+			message.ItemTemplateValue[k].SubType[xx] = int32(yy)
 		}
 	}
 

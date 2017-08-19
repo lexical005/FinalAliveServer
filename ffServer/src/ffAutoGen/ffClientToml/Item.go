@@ -37,6 +37,7 @@ type ItemTemplate struct {
 	SceneKey string
 	Icon     string
 	ItemType ffEnum.EItemType
+	SubType  []ffEnum.EItemType
 }
 
 func (i *ItemTemplate) String() string {
@@ -46,6 +47,7 @@ func (i *ItemTemplate) String() string {
 	result += fmt.Sprintf("SceneKey:%v,", i.SceneKey)
 	result += fmt.Sprintf("Icon:%v,", i.Icon)
 	result += fmt.Sprintf("ItemType:%v,", i.ItemType)
+	result += fmt.Sprintf("SubType:%v,", i.SubType)
 	result += "]"
 	return result
 }

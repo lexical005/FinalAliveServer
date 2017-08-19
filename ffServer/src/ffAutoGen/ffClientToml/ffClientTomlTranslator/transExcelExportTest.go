@@ -27,68 +27,71 @@ func transExcelExportTest() {
 
 	message.VIPmapKey = make([]int32, len(tomlExcelExportTest.VIPmap))
 	message.VIPmapValue = make([]*ExcelExportTest_StVIPmap, len(tomlExcelExportTest.VIPmap))
-	for i, key := range VIPmapKeys {
-		k := int32(key)
-		//k := int32(key)
-		//k := int32(key)
-		v := tomlExcelExportTest.VIPmap[k]
+	for k, key := range VIPmapKeys {
+		i := int32(key)
+		//i := int32(key)
+		//i := int32(key)
+		v := tomlExcelExportTest.VIPmap[i]
 
-		message.VIPmapKey[i] = k
-		message.VIPmapValue[i] = &ExcelExportTest_StVIPmap{
-			InfoInt32: int32(v.InfoInt32),
-			InfoInt64: int64(v.InfoInt64),
-			InfoStr: string(v.InfoStr),
-			InfoInt32Array: []int32(v.InfoInt32Array),
-			InfoInt64Array: []int64(v.InfoInt64Array),
-			InfoStringArray: []string(v.InfoStringArray),
-			ItemClientID: int32(v.ItemClientID),
+		message.VIPmapKey[k] = i
+		message.VIPmapValue[k] = &ExcelExportTest_StVIPmap{
+			InfoInt32: v.InfoInt32,
+			InfoInt64: v.InfoInt64,
+			InfoStr: v.InfoStr,
+			InfoInt32Array: v.InfoInt32Array,
+			InfoInt64Array: v.InfoInt64Array,
+			InfoStringArray: v.InfoStringArray,
+			ItemClientID: v.ItemClientID,
 			Consume: transGrammar(v.Consume),
-			EmptyInt32: int32(v.EmptyInt32),
-			EmptyInt64: int64(v.EmptyInt64),
-			EmptyStr: string(v.EmptyStr),
-			EmptyInt32Array: []int32(v.EmptyInt32Array),
-			EmptyInt64Array: []int64(v.EmptyInt64Array),
-			EmptyStringArray: []string(v.EmptyStringArray),
+			EmptyInt32: v.EmptyInt32,
+			EmptyInt64: v.EmptyInt64,
+			EmptyStr: v.EmptyStr,
+			EmptyInt32Array: v.EmptyInt32Array,
+			EmptyInt64Array: v.EmptyInt64Array,
+			EmptyStringArray: v.EmptyStringArray,
 		}
+		
 	}
 
     // VIPstruct
 	message.VIPstruct = &ExcelExportTest_StVIPstruct{
-			InfoInt32: int32(tomlExcelExportTest.VIPstruct.InfoInt32),
-			InfoInt64: int64(tomlExcelExportTest.VIPstruct.InfoInt64),
-			InfoStr: string(tomlExcelExportTest.VIPstruct.InfoStr),
-			InfoInt32Array: []int32(tomlExcelExportTest.VIPstruct.InfoInt32Array),
-			InfoInt64Array: []int64(tomlExcelExportTest.VIPstruct.InfoInt64Array),
-			InfoStringArray: []string(tomlExcelExportTest.VIPstruct.InfoStringArray),
-			ItemClientID: int32(tomlExcelExportTest.VIPstruct.ItemClientID),
+			InfoInt32: tomlExcelExportTest.VIPstruct.InfoInt32,
+			InfoInt64: tomlExcelExportTest.VIPstruct.InfoInt64,
+			InfoStr: tomlExcelExportTest.VIPstruct.InfoStr,
+			InfoInt32Array: tomlExcelExportTest.VIPstruct.InfoInt32Array,
+			InfoInt64Array: tomlExcelExportTest.VIPstruct.InfoInt64Array,
+			InfoStringArray: tomlExcelExportTest.VIPstruct.InfoStringArray,
+			ItemClientID: tomlExcelExportTest.VIPstruct.ItemClientID,
 			Consume: transGrammar(tomlExcelExportTest.VIPstruct.Consume),
-			EmptyInt32: int32(tomlExcelExportTest.VIPstruct.EmptyInt32),
-			EmptyInt64: int64(tomlExcelExportTest.VIPstruct.EmptyInt64),
-			EmptyStr: string(tomlExcelExportTest.VIPstruct.EmptyStr),
-			EmptyInt32Array: []int32(tomlExcelExportTest.VIPstruct.EmptyInt32Array),
-			EmptyInt64Array: []int64(tomlExcelExportTest.VIPstruct.EmptyInt64Array),
-			EmptyStringArray: []string(tomlExcelExportTest.VIPstruct.EmptyStringArray),
+			EmptyInt32: tomlExcelExportTest.VIPstruct.EmptyInt32,
+			EmptyInt64: tomlExcelExportTest.VIPstruct.EmptyInt64,
+			EmptyStr: tomlExcelExportTest.VIPstruct.EmptyStr,
+			EmptyInt32Array: tomlExcelExportTest.VIPstruct.EmptyInt32Array,
+			EmptyInt64Array: tomlExcelExportTest.VIPstruct.EmptyInt64Array,
+			EmptyStringArray: tomlExcelExportTest.VIPstruct.EmptyStringArray,
 	}
+	
 
 	// VIPlist
 	message.VIPlist = make([]*ExcelExportTest_StVIPlist, len(tomlExcelExportTest.VIPlist))
 	for k, v := range tomlExcelExportTest.VIPlist {
 		message.VIPlist[k] = &ExcelExportTest_StVIPlist{
-			InfoInt32: int32(v.InfoInt32),
-			InfoInt64: int64(v.InfoInt64),
-			InfoStr: string(v.InfoStr),
-			InfoInt32Array: []int32(v.InfoInt32Array),
-			InfoInt64Array: []int64(v.InfoInt64Array),
-			InfoStringArray: []string(v.InfoStringArray),
-			ItemClientID: int32(v.ItemClientID),
+			InfoInt32: v.InfoInt32,
+			InfoInt64: v.InfoInt64,
+			InfoStr: v.InfoStr,
+			InfoInt32Array: v.InfoInt32Array,
+			InfoInt64Array: v.InfoInt64Array,
+			InfoStringArray: v.InfoStringArray,
+			ItemClientID: v.ItemClientID,
 			Consume: transGrammar(v.Consume),
-			EmptyInt32: int32(v.EmptyInt32),
-			EmptyInt64: int64(v.EmptyInt64),
-			EmptyStr: string(v.EmptyStr),
-			EmptyInt32Array: []int32(v.EmptyInt32Array),
-			EmptyInt64Array: []int64(v.EmptyInt64Array),
-			EmptyStringArray: []string(v.EmptyStringArray),
+			EmptyInt32: v.EmptyInt32,
+			EmptyInt64: v.EmptyInt64,
+			EmptyStr: v.EmptyStr,
+			EmptyInt32Array: v.EmptyInt32Array,
+			EmptyInt64Array: v.EmptyInt64Array,
+			EmptyStringArray: v.EmptyStringArray,
 		}
+		
 	}
 
     pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))

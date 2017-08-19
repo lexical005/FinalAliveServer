@@ -57,15 +57,16 @@ var fmtTransStructMap = `
 
 	message.{StructName}Key = make([]{KeyType}, len(toml{FileName}.{StructName}))
 	message.{StructName}Value = make([]*{FileName}_St{StructName}, len(toml{FileName}.{StructName}))
-	for i, key := range {StructName}Keys {
-		{MapKeyInt32Commet}k := {KeyType}(key)
-		{MapKeyInt64Commet}k := {KeyType}(key)
-		{MapKeyStringCommet}k := {KeyType}(key)
-		v := toml{FileName}.{StructName}[k]
+	for k, key := range {StructName}Keys {
+		{MapKeyInt32Commet}i := {KeyType}(key)
+		{MapKeyInt64Commet}i := {KeyType}(key)
+		{MapKeyStringCommet}i := {KeyType}(key)
+		v := toml{FileName}.{StructName}[i]
 
-		message.{StructName}Key[i] = k
-		message.{StructName}Value[i] = &{FileName}_St{StructName}{%v
+		message.{StructName}Key[k] = i
+		message.{StructName}Value[k] = &{FileName}_St{StructName}{%v
 		}
+		%v
 	}
 `
 
@@ -73,6 +74,7 @@ var fmtTransStructStruct = `
     // {StructName}
 	message.{StructName} = &{FileName}_St{StructName}{%v
 	}
+	%v
 `
 
 var fmtTransStructList = `
@@ -81,15 +83,20 @@ var fmtTransStructList = `
 	for k, v := range toml{FileName}.{StructName} {
 		message.{StructName}[k] = &{FileName}_St{StructName}{%v
 		}
+		%v
 	}
 `
 
-var fmtTransMemberBasicMap = "\n\t\t\t%v: {MemberType}(v.%v),"
-var fmtTransMemberBasicList = "\n\t\t\t%v: {MemberType}(v.%v),"
-var fmtTransMemberBasicStruct = "\n\t\t\t%v: {MemberType}(toml{FileName}.{StructName}.%v),"
-var fmtTransMemberGrammarMap = "\n\t\t\t%v: transGrammar(v.%v),"
-var fmtTransMemberGrammarList = "\n\t\t\t%v: transGrammar(v.%v),"
-var fmtTransMemberGrammarStruct = "\n\t\t\t%v: transGrammar(toml{FileName}.{StructName}.%v),"
+var fmtTransMemberBasic = "\n\t\t\t{ProtoVar}: {GoDataVar}.{GoVar},"
+var fmtTransMemberGrammar = "\n\t\t\t{ProtoVar}: transGrammar({GoDataVar}.{GoVar}),"
+
+var fmtTransMemberEnum = "\n\t\tmessage.{StructName}{MapValue}[k].{ProtoVar} = {ProtoType}({GoDataVar}.{GoVar})"
+
+var fmtTransMemberEnumArray = `
+\t\tmessage.{StructName}{MapValue}[k].{ProtoVar} = make({ProtoType}, len({GoDataVar}.{GoVar}), len({GoDataVar}.{GoVar}))
+\t\tfor xx, yy := range {GoDataVar}.{GoVar} {
+\t\t\tmessage.{StructName}{MapValue}[k].{ProtoVar}[xx] = {ProtoVarContentType}(yy)
+\t\t}`
 
 // 正则表达式说明
 // http://www.cnblogs.com/golove/p/3269099.html
@@ -186,6 +193,7 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 			continue
 		}
 
+		// 工作簿在表格主类的成员类型
 		mainStructVarType, mainStructVarTypeMapKey := "struct", ""
 		for j, name := range tomlMainStructDef.vars {
 			if name == tomlDef.name {
@@ -204,31 +212,65 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 
 		protoStructDef := getStructDef(protoFileDef, strings.ToLower(tomlFileDef.name)+"_st"+strings.ToLower(tomlDef.name))
 
+		// 来源go数据变量名称
+		GoDataVar := "v"
+		if mainStructVarType == "struct" {
+			GoDataVar = "toml" + tomlFileDef.name + "." + tomlDef.name
+		}
+
+		// 基本成员变量以及Grammar
+		hasEnumVarIndex := make([]int, 0, 1)
 		members := ""
 		for j := 0; j < len(tomlDef.vars); j++ {
+			member := ""
 			if tomlDef.types[j] != "ffGrammar.Grammar" {
-				member := ""
-				if mainStructVarType == "map" {
-					member = fmt.Sprintf(fmtTransMemberBasicMap, protoStructDef.vars[j], tomlDef.vars[j])
-				} else if mainStructVarType == "list" {
-					member = fmt.Sprintf(fmtTransMemberBasicList, protoStructDef.vars[j], tomlDef.vars[j])
-				} else {
-					t := strings.Replace(fmtTransMemberBasicStruct, "{FileName}", tomlFileDef.name, -1)
-					t = strings.Replace(t, "{StructName}", tomlDef.name, -1)
-					member = fmt.Sprintf(t, protoStructDef.vars[j], tomlDef.vars[j])
+				if tomlDef.types[j] != protoStructDef.types[j] {
+					hasEnumVarIndex = append(hasEnumVarIndex, j)
+					continue
 				}
-				member = strings.Replace(member, "{MemberType}", protoStructDef.types[j], -1)
-				members += member
+
+				member = fmtTransMemberBasic
 			} else {
-				if mainStructVarType == "map" {
-					members += fmt.Sprintf(fmtTransMemberGrammarMap, protoStructDef.vars[j], tomlDef.vars[j])
-				} else if mainStructVarType == "list" {
-					members += fmt.Sprintf(fmtTransMemberGrammarList, protoStructDef.vars[j], tomlDef.vars[j])
+				member = fmtTransMemberGrammar
+			}
+
+			member = strings.Replace(member, "{ProtoVar}", protoStructDef.vars[j], -1)
+			member = strings.Replace(member, "{GoDataVar}", GoDataVar, -1)
+			member = strings.Replace(member, "{GoVar}", tomlDef.vars[j], -1)
+			members += member
+		}
+
+		// 枚举成员
+		enumMembers := ""
+		if len(hasEnumVarIndex) > 0 {
+			for _, j := range hasEnumVarIndex {
+				member := ""
+				ProtoVarContentType := protoStructDef.types[j]
+
+				if strings.HasPrefix(tomlDef.types[j], "[]") {
+					member = fmtTransMemberEnumArray
+					ProtoVarContentType = protoStructDef.types[j][2:]
+				} else if strings.HasPrefix(tomlDef.types[j], "map[") {
+					// member = fmtTransMemberEnumArray
 				} else {
-					t := strings.Replace(fmtTransMemberGrammarStruct, "{FileName}", tomlFileDef.name, -1)
-					t = strings.Replace(t, "{StructName}", tomlDef.name, -1)
-					members += fmt.Sprintf(t, protoStructDef.vars[j], tomlDef.vars[j])
+					member = fmtTransMemberEnum
 				}
+
+				MapValue := ""
+				if mainStructVarType == "map" {
+					MapValue = "Value"
+				}
+
+				member = strings.Replace(member, "{StructName}", tomlDef.name, -1)
+				member = strings.Replace(member, "{ProtoVar}", protoStructDef.vars[j], -1)
+				member = strings.Replace(member, "{ProtoType}", protoStructDef.types[j], -1)
+				member = strings.Replace(member, "{GoDataVar}", GoDataVar, -1)
+				member = strings.Replace(member, "{GoVar}", tomlDef.vars[j], -1)
+				member = strings.Replace(member, "{MapValue}", MapValue, -1)
+				member = strings.Replace(member, "{ProtoVarContentType}", ProtoVarContentType, -1)
+				member = strings.Replace(member, "\\t", "\t", -1)
+
+				enumMembers += member
 			}
 		}
 
@@ -263,7 +305,7 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 			structs = strings.Replace(fmtTransStructStruct, "{FileName}", tomlFileDef.name, -1)
 		}
 		structs = strings.Replace(structs, "{StructName}", tomlDef.name, -1)
-		structs = fmt.Sprintf(structs, members)
+		structs = fmt.Sprintf(structs, members, enumMembers)
 
 		allStructs += structs
 	}
@@ -301,7 +343,7 @@ func transGoToProto(saveFullDir string, protoFilePath string, goFullPathFiles []
 
 		fmt.Printf("%v:\n", filename)
 		for _, v := range protoFileDef.defs {
-			fmt.Printf("%v:%v\n%q\n%q\n\n", v.name, len(v.vars), v.vars, v.types)
+			fmt.Printf("protoFileDef %v:%v\n%q\n%q\n\n", v.name, len(v.vars), v.vars, v.types)
 		}
 		fmt.Printf("\n\n")
 	}
@@ -313,7 +355,7 @@ func transGoToProto(saveFullDir string, protoFilePath string, goFullPathFiles []
 
 		fmt.Printf("%v:\n", filename)
 		for _, v := range tomlFileDef.defs {
-			fmt.Printf("%v:%v\n%q\n%q\n\n", v.name, len(v.vars), v.vars, v.types)
+			fmt.Printf("tomlFileDef %v:%v\n%q\n%q\n\n", v.name, len(v.vars), v.vars, v.types)
 		}
 		fmt.Printf("\n\n")
 

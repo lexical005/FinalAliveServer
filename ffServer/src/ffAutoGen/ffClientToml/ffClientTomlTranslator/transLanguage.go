@@ -27,24 +27,26 @@ func transLanguage() {
 
 	message.CommonKey = make([]string, len(tomlLanguage.Common))
 	message.CommonValue = make([]*Language_StCommon, len(tomlLanguage.Common))
-	for i, key := range CommonKeys {
-		//k := string(key)
-		//k := string(key)
-		k := string(key)
-		v := tomlLanguage.Common[k]
+	for k, key := range CommonKeys {
+		//i := string(key)
+		//i := string(key)
+		i := string(key)
+		v := tomlLanguage.Common[i]
 
-		message.CommonKey[i] = k
-		message.CommonValue[i] = &Language_StCommon{
-			Value: string(v.Value),
+		message.CommonKey[k] = i
+		message.CommonValue[k] = &Language_StCommon{
+			Value: v.Value,
 		}
+		
 	}
 
 	// Special
 	message.Special = make([]*Language_StSpecial, len(tomlLanguage.Special))
 	for k, v := range tomlLanguage.Special {
 		message.Special[k] = &Language_StSpecial{
-			Value: string(v.Value),
+			Value: v.Value,
 		}
+		
 	}
 
     // Error
@@ -62,16 +64,17 @@ func transLanguage() {
 
 	message.ErrorKey = make([]string, len(tomlLanguage.Error))
 	message.ErrorValue = make([]*Language_StError, len(tomlLanguage.Error))
-	for i, key := range ErrorKeys {
-		//k := string(key)
-		//k := string(key)
-		k := string(key)
-		v := tomlLanguage.Error[k]
+	for k, key := range ErrorKeys {
+		//i := string(key)
+		//i := string(key)
+		i := string(key)
+		v := tomlLanguage.Error[i]
 
-		message.ErrorKey[i] = k
-		message.ErrorValue[i] = &Language_StError{
-			Value: string(v.Value),
+		message.ErrorKey[k] = i
+		message.ErrorValue[k] = &Language_StError{
+			Value: v.Value,
 		}
+		
 	}
 
     pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))

@@ -60,6 +60,19 @@ func (vs *valueStore) ValueToml() string {
 		return fmt.Sprintf("\"%v\"", s)
 	}
 
+	// 枚举数组
+	if t.isArray {
+		datas, _ := vs.value.([]string)
+		result := "["
+		for i := 0; i < len(datas); i++ {
+			if i > 0 {
+				result += ", "
+			}
+			result += fmt.Sprintf("\"%v\"", datas[i])
+		}
+		return result + "]"
+	}
+
 	panic(fmt.Sprintf("ValueToml failed: ValueType[%v] value[%v:%v]", vs.vt, rv.Kind().String(), vs.value))
 }
 

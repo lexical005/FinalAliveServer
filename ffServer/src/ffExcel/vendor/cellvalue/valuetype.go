@@ -187,7 +187,7 @@ func newValueType(v string) *valueType {
 
 			excel:     v,
 			goType:    "[]ffEnum." + enumType,
-			protoType: "[]int32",
+			protoType: "repeated int32",
 		}
 
 	} else if strings.HasPrefix(v, "map[") {
