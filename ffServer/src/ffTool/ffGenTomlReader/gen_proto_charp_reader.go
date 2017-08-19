@@ -19,7 +19,8 @@ namespace NConfig
 var fmtCSharpMainClassReader = `
     public static class {FileName}Reader
     {
-        private static {FileName} {FileName};
+        // proto数据, 你需要明确知道怎么使用它. 禁止外界修改它的数据!
+        public static {FileName} {FileName};
 {AllMember}
 
         private static void Trans()
