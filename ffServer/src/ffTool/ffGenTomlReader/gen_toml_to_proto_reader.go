@@ -137,18 +137,22 @@ func getFileDef(content string, filename string) *fileStructDef {
 
 		structDef := &structDef{
 			name:      nameStruct,
-			vars:      make([]string, len(result2), len(result2)),
-			lowerVars: make([]string, len(result2), len(result2)),
-			types:     make([]string, len(result2), len(result2)),
+			vars:      make([]string, 0, len(result2)),
+			lowerVars: make([]string, 0, len(result2)),
+			types:     make([]string, 0, len(result2)),
 		}
 
 		//
-		for j, two := range result2 {
+		for _, two := range result2 {
 			varName := two[1]
 			varType := two[2]
-			structDef.vars[j] = varName
-			structDef.lowerVars[j] = strings.ToLower(varName)
-			structDef.types[j] = varType
+			if filename != nameStruct && strings.HasPrefix(varType, "map[") {
+				continue
+			}
+
+			structDef.vars = append(structDef.vars, varName)
+			structDef.lowerVars = append(structDef.lowerVars, strings.ToLower(varName))
+			structDef.types = append(structDef.types, varType)
 		}
 
 		fileDef.defs[i] = structDef

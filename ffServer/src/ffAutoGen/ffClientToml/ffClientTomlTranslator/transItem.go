@@ -39,12 +39,10 @@ func transItem() {
 			Desc:        v.Desc,
 			SceneKey:    v.SceneKey,
 			Icon:        v.Icon,
-			Attrs1:      v.Attrs1,
 			Attrs1Key:   v.Attrs1Key,
 			Attrs1Value: v.Attrs1Value,
 			Attrs2Value: v.Attrs2Value,
 			Attrs3Value: v.Attrs3Value,
-			Attrs6:      v.Attrs6,
 			Attrs6Key:   v.Attrs6Key,
 			Attrs6Value: v.Attrs6Value,
 		}
