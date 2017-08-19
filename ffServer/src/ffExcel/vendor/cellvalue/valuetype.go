@@ -16,6 +16,8 @@ var vtEmpty = &valueType{
 
 // 本列配置的值为32位有符号整型, 名称字段在头部只能出现一次
 var vtInt32 = &valueType{
+	isNumber: true,
+
 	excel:     "int32",
 	goType:    "int32",
 	protoType: "int32",
@@ -23,6 +25,8 @@ var vtInt32 = &valueType{
 
 // 本列配置的值为32位有符号整型数组
 var vtInt32Array = &valueType{
+	isNumber: true,
+
 	isArray: true,
 
 	excel:     "[]int32",
@@ -32,6 +36,8 @@ var vtInt32Array = &valueType{
 
 // 本列配置的值为64位有符号整型, 名称字段在头部只能出现一次
 var vtInt64 = &valueType{
+	isNumber: true,
+
 	excel:     "int64",
 	goType:    "int64",
 	protoType: "int64",
@@ -39,7 +45,8 @@ var vtInt64 = &valueType{
 
 // 本列配置的值为64位有符号整型数组
 var vtInt64Array = &valueType{
-	isArray: true,
+	isNumber: true,
+	isArray:  true,
 
 	excel:     "[]int64",
 	goType:    "[]int64",
@@ -74,15 +81,11 @@ var vtGrammar = &valueType{
 	protoType: "Grammar",
 }
 
-// 本列配置的值为enum
-var vtEnum = &valueType{}
-
-// 本列配置的值为map字典
-var vtMap = &valueType{}
-
 type valueType struct {
 	ignore  bool
 	grammar bool
+
+	isNumber bool
 
 	isStr bool
 

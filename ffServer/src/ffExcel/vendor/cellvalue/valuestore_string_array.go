@@ -12,7 +12,7 @@ type valueStoreStringArray struct {
 	value []string
 }
 
-func (vs *valueStoreStringArray) Store(data string) error {
+func (vs *valueStoreStringArray) Store(data string, vt ValueType) error {
 	if vs.value == nil {
 		vs.value = make([]string, 0, 1)
 	}
@@ -38,7 +38,7 @@ func (vs *valueStoreStringArray) Store(data string) error {
 }
 
 func init() {
-	mapValueStoreCreator[vtStringArray] = func(vt ValueType) ValueStore {
+	basicValueStoreCreator[vtStringArray] = func(vt ValueType) ValueStore {
 		return &valueStoreStringArray{
 			valueStore: &valueStore{
 				vt: vt,

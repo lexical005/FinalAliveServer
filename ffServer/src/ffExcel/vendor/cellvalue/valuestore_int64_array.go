@@ -15,7 +15,7 @@ type valueStoreInt64Array struct {
 	value []int64
 }
 
-func (vs *valueStoreInt64Array) Store(data string) error {
+func (vs *valueStoreInt64Array) Store(data string, vt ValueType) error {
 	if vs.value == nil {
 		vs.value = make([]int64, 0, 1)
 	}
@@ -42,7 +42,7 @@ func (vs *valueStoreInt64Array) Store(data string) error {
 }
 
 func init() {
-	mapValueStoreCreator[vtInt64Array] = func(vt ValueType) ValueStore {
+	basicValueStoreCreator[vtInt64Array] = func(vt ValueType) ValueStore {
 		return &valueStoreInt64Array{
 			valueStore: &valueStore{
 				vt: vt,

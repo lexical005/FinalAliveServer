@@ -11,7 +11,7 @@ type valueStoreInt32 struct {
 	value int32
 }
 
-func (vs *valueStoreInt32) Store(data string) error {
+func (vs *valueStoreInt32) Store(data string, vt ValueType) error {
 	if len(data) == 0 {
 		vs.value = 0
 		vs.valueStore.value = vs.value
@@ -33,7 +33,7 @@ func (vs *valueStoreInt32) Store(data string) error {
 }
 
 func init() {
-	mapValueStoreCreator[vtInt32] = func(vt ValueType) ValueStore {
+	basicValueStoreCreator[vtInt32] = func(vt ValueType) ValueStore {
 		return &valueStoreInt32{
 			valueStore: &valueStore{
 				vt: vt,

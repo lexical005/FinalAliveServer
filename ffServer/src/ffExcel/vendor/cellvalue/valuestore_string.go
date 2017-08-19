@@ -6,14 +6,14 @@ type valueStoreString struct {
 	value string
 }
 
-func (vs *valueStoreString) Store(data string) error {
+func (vs *valueStoreString) Store(data string, vt ValueType) error {
 	vs.value = data
 	vs.valueStore.value = vs.value
 	return nil
 }
 
 func init() {
-	mapValueStoreCreator[vtString] = func(vt ValueType) ValueStore {
+	basicValueStoreCreator[vtString] = func(vt ValueType) ValueStore {
 		return &valueStoreString{
 			valueStore: &valueStore{
 				vt: vt,

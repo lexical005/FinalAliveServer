@@ -81,7 +81,7 @@ func newContentRow(rowIndex int, row *xlsx.Row, header *sheetHeader) (*contentRo
 				return nil, err
 			}
 		}
-		err = vs.Store(data)
+		err = vs.Store(data, line.lineType)
 		if err != nil {
 			return nil, err
 		}

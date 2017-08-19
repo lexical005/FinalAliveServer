@@ -13,7 +13,7 @@ type valueStoreGrammar struct {
 	value string
 }
 
-func (vs *valueStoreGrammar) Store(data string) error {
+func (vs *valueStoreGrammar) Store(data string, vt ValueType) error {
 	grammar := &ffGrammar.Grammar{}
 	err := grammar.UnmarshalTOML([]byte(data))
 	if err != nil {
@@ -40,7 +40,7 @@ func (vs *valueStoreGrammar) String() string {
 }
 
 func init() {
-	mapValueStoreCreator[vtGrammar] = func(vt ValueType) ValueStore {
+	basicValueStoreCreator[vtGrammar] = func(vt ValueType) ValueStore {
 		return &valueStoreGrammar{
 			vt: vt,
 		}

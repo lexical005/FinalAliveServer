@@ -19,7 +19,7 @@ type fileEnum struct {
 
 // 枚举定义
 //	EItemType: [GunWeapon,Ammunition,Attachment,MelleeWeapon,Equipment,Consumable,Throwable]
-var mapEnums map[string][]string = make(map[string][]string, 16)
+var mapEnums = make(map[string][]string, 16)
 
 func initEnum(tomlFile string) {
 	tomlData, err := util.ReadFile(tomlFile)

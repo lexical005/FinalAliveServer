@@ -6,14 +6,14 @@ type valueStoreEmpty struct {
 	value string
 }
 
-func (vs *valueStoreEmpty) Store(data string) error {
+func (vs *valueStoreEmpty) Store(data string, vt ValueType) error {
 	vs.value = data
 	vs.valueStore.value = vs.value
 	return nil
 }
 
 func init() {
-	mapValueStoreCreator[vtEmpty] = func(vt ValueType) ValueStore {
+	basicValueStoreCreator[vtEmpty] = func(vt ValueType) ValueStore {
 		return &valueStoreEmpty{
 			valueStore: &valueStore{
 				vt: vt,

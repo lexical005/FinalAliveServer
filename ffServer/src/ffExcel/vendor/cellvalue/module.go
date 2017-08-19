@@ -46,7 +46,7 @@ func NewValueType(v string) (ValueType, error) {
 // ValueStore 定义标准的值类型存储
 type ValueStore interface {
 	// Store 将字符串形式的值存储起来
-	Store(data string) error
+	Store(data string, vt ValueType) error
 
 	// GoType 返回Go使用的类型的字符串描述
 	GoType() string
@@ -62,12 +62,11 @@ type ValueStore interface {
 
 // NewValueStore 根据ValueType和字符串形式的值, 返回存储了值的ValueType
 func NewValueStore(vt ValueType) (ValueStore, error) {
-	creator, ok := mapValueStoreCreator[vt.valueType()]
-	if !ok {
+	r := newValueStore(vt)
+	if r == nil {
 		return nil, fmt.Errorf("ValueType[%v] not exist creator", vt.valueType())
 	}
 
-	r := creator(vt)
 	return r, nil
 }
 
