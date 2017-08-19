@@ -41,27 +41,27 @@ var fmtCSharpMainClassReader = `
 `
 
 var fmtCSharpMemberReaderStruct = `
-        public static {FileName}.Types.{ProtoVarType} {OriginalVarType}
+        public static {FileName}.Types.{ProtoVarType} {ProtoVarName}
         {
             get
             {
-                return {FileName}.{OriginalVarType};
+                return {FileName}.{ProtoVarName};
             }
         }
 `
 
 var fmtCSharpMemberReaderList = `
-        public static Google.Protobuf.Collections.RepeatedField<{FileName}.Types.{ProtoVarType}> {OriginalVarType}
+        public static Google.Protobuf.Collections.RepeatedField<{FileName}.Types.{ProtoVarType}> {ProtoVarName}
         {
             get
             {
-                return {FileName}.{OriginalVarType};
+                return {FileName}.{ProtoVarName};
             }
         }
 `
 
 var fmtCSharpMemberReaderMap = `
-        public static Dictionary<{MapKeyType}, {FileName}.Types.{ProtoVarType}> {OriginalVarType}
+        public static Dictionary<{MapKeyType}, {FileName}.Types.{ProtoVarType}> {ProtoVarName}
         {
             get;
             private set;
@@ -69,10 +69,10 @@ var fmtCSharpMemberReaderMap = `
 `
 
 var fmtCSharpMapTrans = `
-            {OriginalVarType} = new Dictionary<{MapKeyType}, {FileName}.Types.{ProtoVarType}>({FileName}.{OriginalVarType}Value.Count);
-            for (int i = 0; i < {FileName}.{OriginalVarType}Value.Count; ++i)
+            {ProtoVarName} = new Dictionary<{MapKeyType}, {FileName}.Types.{ProtoVarType}>({FileName}.{ProtoVarName}Value.Count);
+            for (int i = 0; i < {FileName}.{ProtoVarName}Value.Count; ++i)
             {
-                {OriginalVarType}[{FileName}.{OriginalVarType}Key[i]] = {FileName}.{OriginalVarType}Value[i];
+                {ProtoVarName}[{FileName}.{ProtoVarName}Key[i]] = {FileName}.{ProtoVarName}Value[i];
             }
 `
 
@@ -122,16 +122,23 @@ var fmtReaderManagerOneReader = `
                     readerBuffer = NConfig.{FileName}Reader.Read,
                 },`
 
-var regexpMainClass = regexp.MustCompile(`
-  public sealed partial class ([\w]+) : pb::IMessage`)
-var regexpSubClass = regexp.MustCompile(`
-      public sealed partial class ([\w]+) : pb::IMessage`)
-var regexpMainClassRepeatedFieldMapKey = regexp.MustCompile(`
-    public pbc::RepeatedField<([\w]+)> ([\w]+)`)
-var regexpMainClassRepeatedFieldValue = regexp.MustCompile(`
-    public pbc::RepeatedField<global::NConfig.([\w]+).Types.([\w]+)> ([\w]+)`)
-var regexpMainClassStructValue = regexp.MustCompile(`
-    public global::NConfig.([\w]+).Types.([\w]+) ([\w]+)`)
+var regexpMainClass = regexp.MustCompile("\n  public sealed partial class ([\\w]+) : pb::IMessage")
+var regexpSubClass = regexp.MustCompile("\n      public sealed partial class ([\\w]+) : pb::IMessage")
+
+// excel文件对应的主类里的成员变量, 只有2种可能性:数组,实例.
+// 数组情况下: 如果数组类型是基础类型, 则一定时字典的key数组, 因为工作簿数据数组的格式, 不是这样的
+var regexpMainClassRepeatedFieldMapKey = regexp.MustCompile("\n    public pbc::RepeatedField<([\\w]+)> ([\\w]+)")
+
+// excel文件对应的主类里的成员变量, 只有2种可能性:数组,实例.
+// 工作簿数据数组的情况下, 要结合主类的前一字段的类型, 才能决定自身是独立的工作簿数据数组, 还是字典value数组
+var regexpMainClassRepeatedFieldValue = regexp.MustCompile("\n    public pbc::RepeatedField<global::NConfig.([\\w]+).Types.([\\w]+)> ([\\w]+)")
+
+// excel文件对应的主类里的成员变量, 只有2种可能性:数组,实例.
+// 主类里的工作簿数据实例
+var regexpMainClassStructValue = regexp.MustCompile("\n    public global::NConfig.([\\w]+).Types.([\\w]+) ([\\w]+)")
+
+// 子类里的map成员
+var regexpSubClassMapField = regexp.MustCompile("\n        public pbc::MapField<([\\w]+), ([\\w]+)> ([\\w]+)")
 
 // 配置文件主类
 type mainClassInfo struct {
@@ -139,19 +146,29 @@ type mainClassInfo struct {
 	end   int    // 下一类型的开始
 	name  string // 类名
 
-	subClass []string // 子类型
+	subClass           []string                            // 子类型
+	subClassMapMembers map[string][]*subClassMapMemberInfo // 子类的map成员
 
 	member []*mainClassMemberInfo // 成员
 }
 
 // 主类成员信息
 type mainClassMemberInfo struct {
-	start           int    // 开始
-	originalVarType string // 变量名称
+	start        int    // 开始
+	protoVarName string // 变量名称
 
-	filedType string // 作为主类的成员时, 是什么类型. map/list/struct
+	filedType string // 作为主类的成员时, 是什么类型. mapKey/mapValue/list/struct
 
 	protoVarType string // 自身类型
+}
+
+// 子类map成员信息
+type subClassMapMemberInfo struct {
+	start        int    // 开始
+	protoVarName string // 变量名称
+
+	protoVarKeyType   string // 自身key类型
+	protoVarValueType string // 自身value类型
 }
 
 func organizeClass(content string) (allMainClassInfo []*mainClassInfo) {
@@ -159,7 +176,9 @@ func organizeClass(content string) (allMainClassInfo []*mainClassInfo) {
 
 	// 类型
 	{
-		// 主类
+		subClassMapFields := regexpSubClassMapField.FindAllStringSubmatchIndex(content, -1)
+
+		// 获得excel文件对应的主类
 		result = regexpMainClass.FindAllStringSubmatchIndex(content, -1)
 		result = result[1:]
 		allMainClassInfo = make([]*mainClassInfo, 0, len(result)) // 忽略第一个 Grammar
@@ -179,27 +198,60 @@ func organizeClass(content string) (allMainClassInfo []*mainClassInfo) {
 				end:   end,
 				name:  name,
 
-				subClass: make([]string, 0, 4),
-				member:   make([]*mainClassMemberInfo, 0, 4),
+				subClass:           make([]string, 0, 4),
+				subClassMapMembers: make(map[string][]*subClassMapMemberInfo, 4),
+
+				member: make([]*mainClassMemberInfo, 0, 4),
 			}
 			allMainClassInfo = append(allMainClassInfo, data)
 		}
 
 		// 主类里定义的子类
 		result = regexpSubClass.FindAllStringSubmatchIndex(content, -1)
-		for _, one := range result[1:] {
-			start, end, name := one[0], one[1], content[one[2]:one[3]]
+		result = result[1:]
+		for i, one := range result {
+			subClassStartIndex, name := one[0], content[one[2]:one[3]]
+
 			for _, mainClassInfo := range allMainClassInfo {
-				if start > mainClassInfo.start && end < mainClassInfo.end {
+				if subClassStartIndex > mainClassInfo.start && subClassStartIndex < mainClassInfo.end {
 					// 子类属于该主类
 					mainClassInfo.subClass = append(mainClassInfo.subClass, name)
+
+					subClassEndIndex := 0
+					if i+1 < len(result) {
+						subClassEndIndex = result[i+1][0] - 1
+					} else {
+						subClassEndIndex = mainClassInfo.end - 1
+					}
+
+					// 子类里的map成员
+					tmp := make([]*subClassMapMemberInfo, 0, 1)
+					for _, one := range subClassMapFields {
+						if one[0] > subClassStartIndex {
+							if one[1] < subClassEndIndex {
+								t := &subClassMapMemberInfo{
+									start:        one[0],
+									protoVarName: content[one[6]:one[7]],
+
+									protoVarKeyType:   content[one[2]:one[3]],
+									protoVarValueType: content[one[4]:one[5]],
+								}
+								tmp = append(tmp, t)
+							} else {
+								break
+							}
+						}
+					}
+
+					mainClassInfo.subClassMapMembers[name[len("St"):]] = tmp
+
 					break
 				}
 			}
 		}
 	}
 
-	// 从文本内解析出成员信息, 并按出现顺序排序
+	// 从文本内解析出主类的成员信息, 并按出现顺序排序
 	var allMembers map[int]*mainClassMemberInfo
 	var allMembersKey []int
 	{
@@ -207,14 +259,14 @@ func organizeClass(content string) (allMainClassInfo []*mainClassInfo) {
 		result2 := regexpMainClassRepeatedFieldValue.FindAllStringSubmatchIndex(content, -1)
 		result3 := regexpMainClassStructValue.FindAllStringSubmatchIndex(content, -1)
 		allMembers = make(map[int]*mainClassMemberInfo, len(result1)+len(result2)+len(result3))
-		allMembersKey = make([]int, len(result1)+len(result2)+len(result3))
+		allMembersKey = make([]int, 0, len(result1)+len(result2)+len(result3))
 
 		for _, one := range result1 {
 			allMembers[one[0]] = &mainClassMemberInfo{
-				start:           one[0],
-				originalVarType: content[one[4]:one[5]],
+				start:        one[0],
+				protoVarName: content[one[4]:one[5]],
 
-				filedType: "map",
+				filedType: "mapKey",
 
 				protoVarType: content[one[2]:one[3]],
 			}
@@ -222,8 +274,8 @@ func organizeClass(content string) (allMainClassInfo []*mainClassInfo) {
 
 		for _, one := range result2 {
 			allMembers[one[0]] = &mainClassMemberInfo{
-				start:           one[0],
-				originalVarType: content[one[6]:one[7]],
+				start:        one[0],
+				protoVarName: content[one[6]:one[7]],
 
 				filedType: "list", // 暂时认为是list
 
@@ -233,8 +285,8 @@ func organizeClass(content string) (allMainClassInfo []*mainClassInfo) {
 
 		for _, one := range result3 {
 			allMembers[one[0]] = &mainClassMemberInfo{
-				start:           one[0],
-				originalVarType: content[one[6]:one[7]],
+				start:        one[0],
+				protoVarName: content[one[6]:one[7]],
 
 				filedType: "struct",
 
@@ -242,10 +294,8 @@ func organizeClass(content string) (allMainClassInfo []*mainClassInfo) {
 			}
 		}
 
-		index := 0
 		for key := range allMembers {
-			allMembersKey[index] = key
-			index++
+			allMembersKey = append(allMembersKey, key)
 		}
 		sort.Ints(allMembersKey)
 	}
@@ -288,37 +338,71 @@ func genOutput(readerDir string, allMainClassInfo []*mainClassInfo) {
 		for i := 0; i < len(mainClassInfo.member); i++ {
 			member := mainClassInfo.member[i]
 			if member.filedType == "struct" {
-
 				strMember := strings.Replace(fmtCSharpMemberReaderStruct, "{FileName}", mainClassInfo.name, -1)
 				strMember = strings.Replace(strMember, "{ProtoVarType}", member.protoVarType, -1)
-				strMember = strings.Replace(strMember, "{OriginalVarType}", member.originalVarType, -1)
+				strMember = strings.Replace(strMember, "{ProtoVarName}", member.protoVarName, -1)
 				AllMember += strMember
 
-			} else if member.filedType == "map" {
+			} else if member.filedType == "mapKey" {
 				i++
 				memberValue := mainClassInfo.member[i]
 
-				member.originalVarType = member.originalVarType[:len(member.originalVarType)-len("Key")]
-				memberValue.originalVarType = memberValue.originalVarType[:len(memberValue.originalVarType)-len("Value")]
+				memberValue.filedType = "mapValue"
+
+				member.protoVarName = member.protoVarName[:len(member.protoVarName)-len("Key")]
+				memberValue.protoVarName = memberValue.protoVarName[:len(memberValue.protoVarName)-len("Value")]
 
 				strMember := strings.Replace(fmtCSharpMemberReaderMap, "{FileName}", mainClassInfo.name, -1)
 				strMember = strings.Replace(strMember, "{MapKeyType}", member.protoVarType, -1)
 				strMember = strings.Replace(strMember, "{ProtoVarType}", memberValue.protoVarType, -1)
-				strMember = strings.Replace(strMember, "{OriginalVarType}", memberValue.originalVarType, -1)
+				strMember = strings.Replace(strMember, "{ProtoVarName}", memberValue.protoVarName, -1)
 				AllMember += strMember
 
-				memberTrans := strings.Replace(fmtCSharpMapTrans, "{FileName}", mainClassInfo.name, -1)
-				memberTrans = strings.Replace(memberTrans, "{MapKeyType}", member.protoVarType, -1)
-				memberTrans = strings.Replace(memberTrans, "{ProtoVarType}", memberValue.protoVarType, -1)
-				memberTrans = strings.Replace(memberTrans, "{OriginalVarType}", memberValue.originalVarType, -1)
-				MapTrans += memberTrans
+				mainClassMemberTrans := strings.Replace(fmtCSharpMapTrans, "{FileName}", mainClassInfo.name, -1)
+				mainClassMemberTrans = strings.Replace(mainClassMemberTrans, "{MapKeyType}", member.protoVarType, -1)
+				mainClassMemberTrans = strings.Replace(mainClassMemberTrans, "{ProtoVarType}", memberValue.protoVarType, -1)
+				mainClassMemberTrans = strings.Replace(mainClassMemberTrans, "{ProtoVarName}", memberValue.protoVarName, -1)
+				MapTrans += mainClassMemberTrans
 
 			} else if member.filedType == "list" {
-
 				strMember := strings.Replace(fmtCSharpMemberReaderList, "{FileName}", mainClassInfo.name, -1)
 				strMember = strings.Replace(strMember, "{ProtoVarType}", member.protoVarType, -1)
-				strMember = strings.Replace(strMember, "{OriginalVarType}", member.originalVarType, -1)
+				strMember = strings.Replace(strMember, "{ProtoVarName}", member.protoVarName, -1)
 				AllMember += strMember
+			}
+		}
+
+		// 子类map成员转换
+		var fmtCSharpSubClassMapMemberTrans = `
+		    for (int i = 0; i < {FileName}.{SheetName}{SheetType}.Count; ++i)
+		    {
+		        for (int j = 0; j < {FileName}.{SheetName}{SheetType}[i].{MemberName}Value.Count; ++j)
+		        {
+		            {FileName}.{SheetName}{SheetType}[i].{MemberName}.Add(
+						{FileName}.{SheetName}{SheetType}[i].{MemberName}Key[j],
+						{FileName}.{SheetName}{SheetType}[i].{MemberName}Value[j]
+					);
+		        }
+		    }`
+
+		for subClassName, tmp1 := range mainClassInfo.subClassMapMembers {
+			for _, tmp2 := range tmp1 {
+				for _, member := range mainClassInfo.member {
+					if member.filedType != "mapKey" && member.protoVarName == subClassName {
+						s := fmtCSharpSubClassMapMemberTrans
+						s = strings.Replace(s, "{FileName}", mainClassInfo.name, -1)
+						s = strings.Replace(s, "{SheetName}", subClassName, -1)
+						s = strings.Replace(s, "{MemberName}", tmp2.protoVarName, -1)
+
+						if member.filedType == "mapValue" {
+							s = strings.Replace(s, "{SheetType}", "Value", -1)
+						} else {
+							s = strings.Replace(s, "{SheetType}", "", -1)
+						}
+
+						MapTrans += s
+					}
+				}
 			}
 		}
 

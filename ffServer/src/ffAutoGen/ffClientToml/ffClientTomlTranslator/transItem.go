@@ -35,16 +35,48 @@ func transItem() {
 
 		message.ItemTemplateKey[k] = i
 		message.ItemTemplateValue[k] = &Item_StItemTemplate{
-			Name:     v.Name,
-			Desc:     v.Desc,
-			SceneKey: v.SceneKey,
-			Icon:     v.Icon,
+			Name:        v.Name,
+			Desc:        v.Desc,
+			SceneKey:    v.SceneKey,
+			Icon:        v.Icon,
+			Attrs1:      v.Attrs1,
+			Attrs1Key:   v.Attrs1Key,
+			Attrs1Value: v.Attrs1Value,
+			Attrs2Value: v.Attrs2Value,
+			Attrs3Value: v.Attrs3Value,
+			Attrs6:      v.Attrs6,
+			Attrs6Key:   v.Attrs6Key,
+			Attrs6Value: v.Attrs6Value,
 		}
 
 		message.ItemTemplateValue[k].ItemType = int32(v.ItemType)
 		message.ItemTemplateValue[k].SubType = make([]int32, len(v.SubType), len(v.SubType))
 		for xx, yy := range v.SubType {
 			message.ItemTemplateValue[k].SubType[xx] = int32(yy)
+		}
+		message.ItemTemplateValue[k].Attrs2Key = make([]int32, len(v.Attrs2Key), len(v.Attrs2Key))
+		for xx, yy := range v.Attrs2Key {
+			message.ItemTemplateValue[k].Attrs2Key[xx] = int32(yy)
+		}
+		message.ItemTemplateValue[k].Attrs3Key = make([]int32, len(v.Attrs3Key), len(v.Attrs3Key))
+		for xx, yy := range v.Attrs3Key {
+			message.ItemTemplateValue[k].Attrs3Key[xx] = int32(yy)
+		}
+		message.ItemTemplateValue[k].Attrs4Key = make([]int32, len(v.Attrs4Key), len(v.Attrs4Key))
+		for xx, yy := range v.Attrs4Key {
+			message.ItemTemplateValue[k].Attrs4Key[xx] = int32(yy)
+		}
+		message.ItemTemplateValue[k].Attrs4Value = make([]int32, len(v.Attrs4Value), len(v.Attrs4Value))
+		for xx, yy := range v.Attrs4Value {
+			message.ItemTemplateValue[k].Attrs4Value[xx] = int32(yy)
+		}
+		message.ItemTemplateValue[k].Attrs5Key = make([]int32, len(v.Attrs5Key), len(v.Attrs5Key))
+		for xx, yy := range v.Attrs5Key {
+			message.ItemTemplateValue[k].Attrs5Key[xx] = int32(yy)
+		}
+		message.ItemTemplateValue[k].Attrs5Value = make([]int32, len(v.Attrs5Value), len(v.Attrs5Value))
+		for xx, yy := range v.Attrs5Value {
+			message.ItemTemplateValue[k].Attrs5Value[xx] = int32(yy)
 		}
 	}
 

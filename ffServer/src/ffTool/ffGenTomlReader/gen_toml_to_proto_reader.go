@@ -101,7 +101,7 @@ var fmtTransMemberEnumArray = `
 // 正则表达式说明
 // http://www.cnblogs.com/golove/p/3269099.html
 var regexpStruct = regexp.MustCompile(`type\s+([\w]+)\s+struct\s+{\n(?s)(.+?)\}`)
-var regexpStructVar = regexp.MustCompile(`\s*([\w]+)\s+([\w\[\]\.\*]+)`)
+var regexpStructVar = regexp.MustCompile(`\s*([\w]+)\s+([\w\[\]\.\*]+)`) // 不捕获map
 
 // 结构体定义
 type structDef struct {
