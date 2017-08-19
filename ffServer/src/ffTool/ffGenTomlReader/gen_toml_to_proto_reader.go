@@ -84,9 +84,9 @@ var fmtTransStructList = `
 	}
 `
 
-var fmtTransMemberNormalMap = "\n\t\t\t%v: v.%v,"
-var fmtTransMemberNormalList = "\n\t\t\t%v: v.%v,"
-var fmtTransMemberNormalStruct = "\n\t\t\t%v: toml{FileName}.{StructName}.%v,"
+var fmtTransMemberBasicMap = "\n\t\t\t%v: {MemberType}(v.%v),"
+var fmtTransMemberBasicList = "\n\t\t\t%v: {MemberType}(v.%v),"
+var fmtTransMemberBasicStruct = "\n\t\t\t%v: {MemberType}(toml{FileName}.{StructName}.%v),"
 var fmtTransMemberGrammarMap = "\n\t\t\t%v: transGrammar(v.%v),"
 var fmtTransMemberGrammarList = "\n\t\t\t%v: transGrammar(v.%v),"
 var fmtTransMemberGrammarStruct = "\n\t\t\t%v: transGrammar(toml{FileName}.{StructName}.%v),"
@@ -207,15 +207,18 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 		members := ""
 		for j := 0; j < len(tomlDef.vars); j++ {
 			if tomlDef.types[j] != "ffGrammar.Grammar" {
+				member := ""
 				if mainStructVarType == "map" {
-					members += fmt.Sprintf(fmtTransMemberNormalMap, protoStructDef.vars[j], tomlDef.vars[j])
+					member = fmt.Sprintf(fmtTransMemberBasicMap, protoStructDef.vars[j], tomlDef.vars[j])
 				} else if mainStructVarType == "list" {
-					members += fmt.Sprintf(fmtTransMemberNormalList, protoStructDef.vars[j], tomlDef.vars[j])
+					member = fmt.Sprintf(fmtTransMemberBasicList, protoStructDef.vars[j], tomlDef.vars[j])
 				} else {
-					t := strings.Replace(fmtTransMemberNormalStruct, "{FileName}", tomlFileDef.name, -1)
+					t := strings.Replace(fmtTransMemberBasicStruct, "{FileName}", tomlFileDef.name, -1)
 					t = strings.Replace(t, "{StructName}", tomlDef.name, -1)
-					members += fmt.Sprintf(t, protoStructDef.vars[j], tomlDef.vars[j])
+					member = fmt.Sprintf(t, protoStructDef.vars[j], tomlDef.vars[j])
 				}
+				member = strings.Replace(member, "{MemberType}", protoStructDef.types[j], -1)
+				members += member
 			} else {
 				if mainStructVarType == "map" {
 					members += fmt.Sprintf(fmtTransMemberGrammarMap, protoStructDef.vars[j], tomlDef.vars[j])

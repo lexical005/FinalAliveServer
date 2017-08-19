@@ -4,6 +4,8 @@ import (
 	"cellvalue"
 	"ffCommon/log/log"
 	"ffCommon/util"
+	"sort"
+	"strings"
 
 	"fmt"
 	"os"
@@ -99,7 +101,8 @@ var exportConfig *ExportConfig
 func clearPath(ec *ExportConfig) bool {
 	result := true
 
-	err := util.ClearPath("toml", true, nil)
+	var err error
+	err = util.ClearPath("toml", true, nil)
 	if err != nil {
 		log.RunLogger.Println(err)
 		result = false
@@ -223,6 +226,8 @@ func exportExcel(excel *excel) (err error) {
 func ExportExcelDir(excelDirPath string, _exportConfig *ExportConfig) error {
 	exportConfig = _exportConfig
 
+	allValid := true
+
 	// 配置检查
 	err := exportConfig.check()
 	if err != nil {
@@ -236,10 +241,11 @@ func ExportExcelDir(excelDirPath string, _exportConfig *ExportConfig) error {
 
 	log.RunLogger.Println(exportConfig)
 
-	// 遍历获得所有excel
+	// 遍历获得所有excel路径
+	allExcelPath := make([]string, 0, 16)
 	allExcels := make([]*excel, 0, 16)
 	allConfigExcels := make([]*excel, 0, 16)
-	filepath.Walk(excelDirPath, func(path string, f os.FileInfo, err error) error {
+	err = filepath.Walk(excelDirPath, func(path string, f os.FileInfo, err error) error {
 		if f == nil {
 			return err
 		}
@@ -253,6 +259,62 @@ func ExportExcelDir(excelDirPath string, _exportConfig *ExportConfig) error {
 			return nil
 		}
 
+		log.RunLogger.Println("found excel:", f.Name())
+
+		allExcelPath = append(allExcelPath, path)
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+	sort.Strings(allExcelPath)
+
+	// 优先解析 Error 和 Enum
+	for i := len(allExcelPath) - 1; i >= 0; i = i - 1 {
+		path := allExcelPath[i]
+		if strings.HasSuffix(path, "Error.xlsx") || strings.HasSuffix(path, "Enum.xlsx") {
+
+			// 解析Excel
+			excel, err := parseExcel(path)
+			if err != nil {
+				return err
+			}
+
+			// 检查Excel是否满足导出为toml格式
+			if err = checkToml(excel); err != nil {
+				return err
+			}
+
+			// 导出类型
+			excel.exportType = "config"
+			excel.exportServerGoCodePath = exportConfig.ServerExportGoCodePath
+			excel.exportClientGoCodePath = exportConfig.ClientExportGoCodePath
+			excel.exportClientCSharpCodePath = exportConfig.ClientExportCSharpCodePath
+			for _, exportTypeConfig := range exportConfig.ExcelExportType {
+				if exportTypeConfig.Excel == excel.name {
+					excel.exportType = exportTypeConfig.Type
+					excel.exportServerGoCodePath = exportTypeConfig.ServerExportGoCodePath
+					excel.exportClientCSharpCodePath = exportTypeConfig.ClientExportCSharpCodePath
+					break
+				}
+			}
+
+			err = exportExcel(excel)
+			if err != nil {
+				return err
+			}
+
+			allExcelPath = append(allExcelPath[:i], allExcelPath[i+1:]...)
+		}
+	}
+
+	//
+	cellvalue.InitEnum(path.Join("toml", "server", "Enum.toml"))
+
+	// 配置表
+	for _, path := range allExcelPath {
 		// 解析Excel
 		excel, err := parseExcel(path)
 		if err != nil {
@@ -278,36 +340,14 @@ func ExportExcelDir(excelDirPath string, _exportConfig *ExportConfig) error {
 			}
 		}
 
-		allExcels = append(allExcels, excel)
-
-		if excel.exportType == "config" {
-			allConfigExcels = append(allConfigExcels, excel)
-		}
-		return nil
-	})
-
-	// 依次导出所有excel
-	allValid := true
-	for i := len(allExcels) - 1; i >= 0; i = i - 1 {
-		excel := allExcels[i]
-		if excel.exportType == "error" || excel.exportType == "enum" {
-			err := exportExcel(excel)
-			if err != nil {
-				log.RunLogger.Println(err)
-				allValid = false
-			}
-			allExcels = append(allExcels[:i], allExcels[i+1:]...)
-		}
-	}
-
-	cellvalue.InitEnum(path.Join("toml", "client", "Enum.toml"))
-
-	for _, excel := range allExcels {
-		err := exportExcel(excel)
+		err = exportExcel(excel)
 		if err != nil {
 			log.RunLogger.Println(err)
 			allValid = false
 		}
+
+		allExcels = append(allExcels, excel)
+		allConfigExcels = append(allConfigExcels, excel)
 	}
 
 	// 导出toml数据对应的Proto定义

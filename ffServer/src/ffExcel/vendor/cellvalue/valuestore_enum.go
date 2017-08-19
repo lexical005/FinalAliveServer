@@ -1,5 +1,9 @@
 package cellvalue
 
+import (
+	"fmt"
+)
+
 type valueStoreEnum struct {
 	*valueStore
 
@@ -7,9 +11,18 @@ type valueStoreEnum struct {
 }
 
 func (vs *valueStoreEnum) Store(data string, vt ValueType) error {
-	vs.value = data
-	vs.valueStore.value = vs.value
-	return nil
+	t := vt.valueType()
+
+	allEnumKeys := mapEnums[t.enumType]
+	for _, key := range allEnumKeys {
+		if key == data {
+			vs.value = t.enumType + "." + data
+			vs.valueStore.value = vs.value
+			return nil
+		}
+	}
+
+	return fmt.Errorf("valueStoreEnum.Store invalid data[%v] valueType[%v]", data, vt.toString())
 }
 
 func newValueStoreEnum(vt *valueType) *valueStoreEnum {

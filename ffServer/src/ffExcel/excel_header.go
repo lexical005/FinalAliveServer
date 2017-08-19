@@ -21,6 +21,16 @@ func (h *sheetHeader) hasGrammar() bool {
 	return false
 }
 
+// 判定当前配置的列里面，是否有enum列
+func (h *sheetHeader) hasEnum() bool {
+	for _, line := range h.lines {
+		if line.hasEnum() {
+			return true
+		}
+	}
+	return false
+}
+
 // 判定当前配置的列里面，是否有sheetTypeMapKeyName列
 func (h *sheetHeader) hasMapKey() bool {
 	for _, line := range h.lines {

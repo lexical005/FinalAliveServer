@@ -53,6 +53,13 @@ func (vs *valueStore) ValueToml() string {
 		}
 	}
 
+	// 枚举列
+	if t.isEnum {
+		s := rv.String()
+		s = strings.Replace(s, "\"", "\\\"", -1)
+		return fmt.Sprintf("\"%v\"", s)
+	}
+
 	panic(fmt.Sprintf("ValueToml failed: ValueType[%v] value[%v:%v]", vs.vt, rv.Kind().String(), vs.value))
 }
 

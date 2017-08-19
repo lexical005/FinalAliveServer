@@ -35,7 +35,7 @@ func transLanguage() {
 
 		message.CommonKey[i] = k
 		message.CommonValue[i] = &Language_StCommon{
-			Value: v.Value,
+			Value: string(v.Value),
 		}
 	}
 
@@ -43,7 +43,7 @@ func transLanguage() {
 	message.Special = make([]*Language_StSpecial, len(tomlLanguage.Special))
 	for k, v := range tomlLanguage.Special {
 		message.Special[k] = &Language_StSpecial{
-			Value: v.Value,
+			Value: string(v.Value),
 		}
 	}
 
@@ -70,7 +70,7 @@ func transLanguage() {
 
 		message.ErrorKey[i] = k
 		message.ErrorValue[i] = &Language_StError{
-			Value: v.Value,
+			Value: string(v.Value),
 		}
 	}
 

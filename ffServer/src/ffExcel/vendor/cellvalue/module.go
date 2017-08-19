@@ -24,6 +24,9 @@ type ValueType interface {
 	// IsEnum 是不是枚举
 	IsEnum() bool
 
+	// HasEnum 是否有枚举
+	HasEnum() bool
+
 	// GoType 返回Go使用的类型的字符串描述
 	GoType() string
 

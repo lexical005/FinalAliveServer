@@ -85,6 +85,8 @@ type valueType struct {
 	ignore  bool
 	grammar bool
 
+	hasEnum bool
+
 	isNumber bool
 
 	isStr bool
@@ -132,6 +134,9 @@ func (vt *valueType) IsMap() bool {
 func (vt *valueType) IsEnum() bool {
 	return vt.isEnum
 }
+func (vt *valueType) HasEnum() bool {
+	return vt.hasEnum
+}
 func (vt valueType) toString() string {
 	return vt.excel
 }
@@ -174,6 +179,8 @@ func newValueType(v string) *valueType {
 		}
 
 		return &valueType{
+			hasEnum: true,
+
 			isArray:          true,
 			arrayValueType:   enumType,
 			arrayValueIsEnum: true,
@@ -223,6 +230,8 @@ func newValueType(v string) *valueType {
 		}
 
 		return &valueType{
+			hasEnum: mapKeyIsEnum || mapValueIsEnum,
+
 			isMap:           true,
 			mapKeyType:      mapKeyType,
 			mapKeyIsEnum:    mapKeyIsEnum,
@@ -240,6 +249,8 @@ func newValueType(v string) *valueType {
 		}
 
 		return &valueType{
+			hasEnum: true,
+
 			isEnum:   true,
 			enumType: enumType,
 

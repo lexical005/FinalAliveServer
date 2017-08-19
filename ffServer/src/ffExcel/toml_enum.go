@@ -35,7 +35,7 @@ var fmtGoMapInternalEnumInfo = `
 
 var fmtGoOneEnum = `
 // {EnumType} {EnumType}
-type {EnumType} int
+type {EnumType} int32
 
 const ({AllInternalEnum}
 )

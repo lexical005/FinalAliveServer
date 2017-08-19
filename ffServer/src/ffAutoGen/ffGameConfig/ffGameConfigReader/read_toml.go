@@ -6,6 +6,7 @@ import (
 )
 
 var tomlExcelExportTest *ffGameConfig.ExcelExportTest
+var tomlItem *ffGameConfig.Item
 var tomlLanguage *ffGameConfig.Language
 
 func readToml() {
@@ -14,6 +15,11 @@ func readToml() {
 	tomlExcelExportTest, err = ffGameConfig.ReadExcelExportTest()
 	if err != nil {
 		log.RunLogger.Printf("ReadExcelExportTest get error[%v]", err)
+	}
+
+	tomlItem, err = ffGameConfig.ReadItem()
+	if err != nil {
+		log.RunLogger.Printf("ReadItem get error[%v]", err)
 	}
 
 	tomlLanguage, err = ffGameConfig.ReadLanguage()

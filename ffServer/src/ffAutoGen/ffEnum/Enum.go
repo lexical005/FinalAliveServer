@@ -5,7 +5,7 @@ import (
 )
 
 // EAmmunitionType EAmmunitionType
-type EAmmunitionType int
+type EAmmunitionType int32
 
 const (
 	internalEAmmunitionTypeAmmoMagnum300 EAmmunitionType = EAmmunitionType(0) // 弹夹-.300马格兰
@@ -85,7 +85,7 @@ func (e EAmmunitionType) String() string {
 }
 
 // EAttachmentType EAttachmentType
-type EAttachmentType int
+type EAttachmentType int32
 
 const (
 	internalEAttachmentTypeMuzzleMod EAttachmentType = EAttachmentType(0) // 配件-枪口
@@ -158,7 +158,7 @@ func (e EAttachmentType) String() string {
 }
 
 // EAttr EAttr
-type EAttr int
+type EAttr int32
 
 const (
 	internalEAttrHealth               EAttr = EAttr(0)  // 属性-血量
@@ -413,7 +413,7 @@ func (e EAttr) String() string {
 }
 
 // EConsumableType EConsumableType
-type EConsumableType int
+type EConsumableType int32
 
 const (
 	internalEConsumableTypeAdrenalineSyringe EConsumableType = EConsumableType(0) // 战场消耗品-肾上腺素
@@ -486,7 +486,7 @@ func (e EConsumableType) String() string {
 }
 
 // EEquipmentType EEquipmentType
-type EEquipmentType int
+type EEquipmentType int32
 
 const (
 	internalEEquipmentTypeHelmet EEquipmentType = EEquipmentType(0) // 战场防具-头盔
@@ -538,7 +538,7 @@ func (e EEquipmentType) String() string {
 }
 
 // EGunWeaponType EGunWeaponType
-type EGunWeaponType int
+type EGunWeaponType int32
 
 const (
 	internalEGunWeaponTypeSniperRifle             EGunWeaponType = EGunWeaponType(0) // 枪械-狙击枪-awm
@@ -625,7 +625,7 @@ func (e EGunWeaponType) String() string {
 }
 
 // EItemType EItemType
-type EItemType int
+type EItemType int32
 
 const (
 	internalEItemTypeGunWeapon    EItemType = EItemType(0) // 物品-战场枪械
@@ -712,7 +712,7 @@ func (e EItemType) String() string {
 }
 
 // EMelleeWeaponType EMelleeWeaponType
-type EMelleeWeaponType int
+type EMelleeWeaponType int32
 
 const (
 	internalEMelleeWeaponTypeCrowbar EMelleeWeaponType = EMelleeWeaponType(0) // 战场近战物理武器-撬棒
@@ -778,7 +778,7 @@ func (e EMelleeWeaponType) String() string {
 }
 
 // EShootMode EShootMode
-type EShootMode int
+type EShootMode int32
 
 const (
 	internalEShootModeAutoInterval EShootMode = EShootMode(0) // 射击模式-连续射击-时间间隔
@@ -837,7 +837,7 @@ func (e EShootMode) String() string {
 }
 
 // EThrowableType EThrowableType
-type EThrowableType int
+type EThrowableType int32
 
 const (
 	internalEThrowableTypeFragGrenade     EThrowableType = EThrowableType(0) // 投掷物-破片手雷

@@ -15,22 +15,14 @@ var fmtGoPackage = `package %v
 var fmtGoImport = `
 import (
 	"ffCommon/util"
+	{ImportGrammar}
+	{ImportEnum}
 
 	"fmt"
 
 	"github.com/lexical005/toml"
 )
 
-`
-var fmtGoImportGrammar = `
-import (
-	"ffCommon/util"
-	"ffLogic/ffGrammar"
-
-	"fmt"
-
-	"github.com/lexical005/toml"
-)
 
 `
 
@@ -151,7 +143,7 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 		mapLineType map[string]string
 	}
 
-	hasGrammar := false
+	hasGrammar, hasEnum := false, false
 	excelSheetNames := make([]string, 0, len(excel.sheets))
 	excelSheetTypes := make([]int, 0, len(excel.sheets))
 	excelSheetMapKeyTypes := make([]string, 0, len(excel.sheets))
@@ -192,6 +184,9 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 		if sheet.header.hasGrammar() {
 			hasGrammar = true
 		}
+		if sheet.header.hasEnum() {
+			hasEnum = true
+		}
 	}
 
 	result := ""
@@ -204,11 +199,19 @@ func genTomlDataReadCode(excel *excel, exportConfig *ExportConfig, exportLimit s
 	}
 
 	// import
+	s := fmtGoImport
 	if hasGrammar {
-		result += fmtGoImportGrammar
+		s = strings.Replace(s, "{ImportGrammar}", `"ffLogic/ffGrammar"`, -1)
 	} else {
-		result += fmtGoImport
+		s = strings.Replace(s, "{ImportGrammar}", ``, -1)
 	}
+
+	if hasEnum {
+		s = strings.Replace(s, "{ImportEnum}", `"ffAutoGen/ffEnum"`, -1)
+	} else {
+		s = strings.Replace(s, "{ImportEnum}", ``, -1)
+	}
+	result += s
 
 	// excel struct define
 	result += fmt.Sprintf(fmtGoExcelComment, excelName, excelName)

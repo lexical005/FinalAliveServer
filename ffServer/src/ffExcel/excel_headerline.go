@@ -41,6 +41,11 @@ func (lh *headerLine) isGrammar() bool {
 	return lh.lineType.IsGrammar()
 }
 
+// 本列配置，是否有枚举
+func (lh *headerLine) hasEnum() bool {
+	return lh.lineType.HasEnum()
+}
+
 // 本列配置，是不是必须配值
 func (lh *headerLine) isRequired() bool {
 	return lh.lineRequired.required
