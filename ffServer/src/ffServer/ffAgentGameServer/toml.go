@@ -13,8 +13,8 @@ type sessionConfig struct {
 	InitOnlineCount       int // InitOnlineCount 初始创建多少连接缓存, 必须配置. >=2
 }
 
-// serverUserConfig 为用户提供服务的配置
-type serverUserConfig struct {
+// serveUserConfig 为用户提供服务的配置
+type serveUserConfig struct {
 	// ListenTarget 监听目标
 	ListenTarget string
 
@@ -42,6 +42,7 @@ type serverUserConfig struct {
 
 // 文本日志配置
 type fileLoggerConfig struct {
+	LoggerType      string // 日志类型
 	RelativePath    string // 文本日志的存储相对路径
 	FileLenLimit    int    // 单文本日志的大小限制
 	RunLogger       bool   // 是否启用运行日志
@@ -53,8 +54,8 @@ type applicationConfig struct {
 	// Session 连接配置
 	Session *sessionConfig
 
-	// ServerUser 服务用户的配置
-	ServerUser *serverUserConfig
+	// ServeUser 服务用户的配置
+	ServeUser *serveUserConfig
 
 	// Logger 日志配置
 	Logger *fileLoggerConfig

@@ -9,6 +9,8 @@ import (
 	"ffProto"
 	"fmt"
 	"math/rand"
+	"sync/atomic"
+	"time"
 )
 
 // 协议回调函数
@@ -25,13 +27,14 @@ type userAgent struct {
 	uuidSession uuid.UUID
 
 	sendExtraDataType ffProto.ExtraDataType  // 发送的Proto的附加数据类型
+	sendStatus        int32                  // 运行状态  0不可使用状态 1可发送 2正在发送 -2发送完毕即进入不可使用状态 -1关闭完成
 	chSendProto       chan *ffProto.Proto    // 待发送协议管道
 	chNetEventData    chan base.NetEventData // session网络事件管道
 
 	chClose       chan struct{}   // 用于接收外界通知关闭
 	chAgentClosed chan *userAgent // 用于向外界汇报关闭了, 仅有使用权
 
-	onceClose util.Once // 一次性关闭
+	onceClose util.Once // 一次连接期间, 关闭一次
 }
 
 func (agent *userAgent) String() string {
@@ -55,6 +58,12 @@ func (agent *userAgent) mainLoop(params ...interface{}) {
 			case <-agent.chClose: // 外界通知关闭
 
 				log.RunLogger.Printf("userAgent.mainLoop start close: %v", agent)
+
+				// 发送中状态 ==> 等待发送结束关闭状态
+				if !atomic.CompareAndSwapInt32(&agent.sendStatus, 2, -2) {
+					// 不可使用状态
+					atomic.StoreInt32(&agent.sendStatus, 0)
+				}
 
 				agent.chSendProto <- nil
 
@@ -92,11 +101,20 @@ func (agent *userAgent) onNetEventData(data base.NetEventData) bool {
 // onConnect 连接建立
 func (agent *userAgent) onConnect(data base.NetEventData) {
 	log.RunLogger.Printf("userAgent.onConnect data[%v]: %v", data, agent)
+
+	// 可发送状态
+	atomic.StoreInt32(&agent.sendStatus, 1)
 }
 
 // onDisConnect 连接断开
 func (agent *userAgent) onDisConnect(data base.NetEventData) {
 	log.RunLogger.Printf("userAgent.onDisConnect data[%v]: %v", data, agent)
+
+	// 发送中状态 ==> 等待发送结束关闭状态
+	if !atomic.CompareAndSwapInt32(&agent.sendStatus, 2, -2) {
+		// 不可使用状态
+		atomic.StoreInt32(&agent.sendStatus, 0)
+	}
 
 	agent.chAgentClosed <- agent
 }
@@ -135,18 +153,18 @@ func (agent *userAgent) onProto(data base.NetEventData) {
 }
 
 // Start 初始化, 然后开始收发协议并处理
-func (agent *userAgent) Start(sess base.Session, agentServer *userAgentServer) {
+func (agent *userAgent) Start(sess base.Session, agentManager *userAgentManager) {
 	agent.uuidSession = sess.UUID()
-	agent.sendExtraDataType, agent.chAgentClosed = agentServer.sendExtraDataType, agentServer.chAgentClosed
+	agent.sendExtraDataType, agent.chAgentClosed = agentManager.sendExtraDataType, agentManager.chAgentClosed
 
-	agent.chSendProto = make(chan *ffProto.Proto, agentServer.config.SessionSendProtoCache)
-	agent.chNetEventData = make(chan base.NetEventData, agentServer.config.SessionNetEventDataCache)
+	agent.chSendProto = make(chan *ffProto.Proto, agentManager.config.SessionSendProtoCache)
+	agent.chNetEventData = make(chan base.NetEventData, agentManager.config.SessionNetEventDataCache)
 
 	agent.chClose = make(chan struct{}, 1)
 
 	agent.onceClose.Reset()
 
-	sess.Start(agent.chSendProto, agent.chNetEventData, agentServer.recvExtraDataType)
+	sess.Start(agent.chSendProto, agent.chNetEventData, agentManager.recvExtraDataType)
 
 	go util.SafeGo(agent.mainLoop, agent.mainLoopEnd)
 }
@@ -159,7 +177,13 @@ func (agent *userAgent) Close() {
 }
 
 // SendProto 发送Proto
-func (agent *userAgent) SendProto(proto *ffProto.Proto) {
+//	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
+func (agent *userAgent) SendProto(proto *ffProto.Proto) bool {
+	// 可发送状态 ==> 发送中状态
+	if !atomic.CompareAndSwapInt32(&agent.sendStatus, 1, 2) {
+		return false
+	}
+
 	if agent.sendExtraDataType == ffProto.ExtraDataTypeNormal {
 		proto.SetExtraDataNormal()
 	} else if agent.sendExtraDataType == ffProto.ExtraDataTypeUUID {
@@ -167,6 +191,14 @@ func (agent *userAgent) SendProto(proto *ffProto.Proto) {
 	}
 
 	agent.chSendProto <- proto
+
+	// 发送中状态 ==> 可发送状态
+	if !atomic.CompareAndSwapInt32(&agent.sendStatus, 2, 1) {
+		// 关闭状态
+		atomic.StoreInt32(&agent.sendStatus, 0)
+	}
+
+	return true
 }
 
 // Back 可安全回收了
@@ -174,13 +206,29 @@ func (agent *userAgent) Back() {
 	agent.chAgentClosed = nil
 
 	// 清理待发送Proto
-	close(agent.chSendProto)
-	for proto := range agent.chSendProto {
-		if proto != nil {
-			proto.BackAfterSend()
+	{
+		// 确保关闭完成
+		for index := 0; index < 10; index++ {
+			// 不可使用状态 ==> 关闭完成状态
+			if atomic.CompareAndSwapInt32(&agent.sendStatus, 0, -1) {
+				break
+			}
+
+			// 等待1秒
+			<-time.After(time.Second)
 		}
+
+		// 关闭发送协议管道
+		close(agent.chSendProto)
+		for proto := range agent.chSendProto {
+			if proto != nil {
+				proto.BackAfterSend()
+			} else {
+				break
+			}
+		}
+		agent.chSendProto = nil
 	}
-	agent.chSendProto = nil
 
 	// 关闭
 	close(agent.chNetEventData)

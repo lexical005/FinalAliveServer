@@ -8,8 +8,8 @@ const (
 // appConfig 应用程序配置
 var appConfig = &applicationConfig{}
 
-// agentServerUser
-var agentServerUser = &userAgentServer{}
+// mgrUserAgent
+var mgrUserAgent = &userAgentManager{}
 
 // // tunnelServerAgent 管理
 // var serverAgentMgr = &tunnelServerAgentManager{}
