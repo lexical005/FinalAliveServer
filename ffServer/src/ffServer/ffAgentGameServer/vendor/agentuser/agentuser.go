@@ -1,4 +1,4 @@
-package main
+package agentuser
 
 import (
 	"ffAutoGen/ffError"
@@ -153,7 +153,7 @@ func (agent *agentUser) onProto(data base.NetEventData) {
 }
 
 // Start 初始化, 然后开始收发协议并处理
-func (agent *agentUser) Start(sess base.Session, agentManager *agentUserManager) {
+func (agent *agentUser) Start(sess base.Session, agentManager *Manager) {
 	agent.uuidSession = sess.UUID()
 	agent.sendExtraDataType, agent.chAgentClosed = agentManager.sendExtraDataType, agentManager.chAgentClosed
 

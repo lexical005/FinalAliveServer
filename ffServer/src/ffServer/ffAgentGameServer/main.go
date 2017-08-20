@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// 启动
-	if err = mgrAgentUser.start(appConfig.ServeUser); err != nil {
+	if err = mgrAgentUser.Start(appConfig.ServeUser, &waitApplicationQuit, chApplicationQuit); err != nil {
 		log.FatalLogger.Println(err)
 		return
 	}
@@ -54,7 +54,7 @@ quitLoop:
 			tcpserver.PrintModule()
 			ffProto.PrintModule()
 
-			if atomic.LoadInt32(&waitServerQuit) == 0 {
+			if atomic.LoadInt32(&waitApplicationQuit) == 0 {
 				break quitLoop
 			}
 		}

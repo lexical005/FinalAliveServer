@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ffCommon/net/base"
 	"ffCommon/util"
 
 	"github.com/lexical005/toml"
@@ -86,10 +87,10 @@ type applicationConfig struct {
 	Session *sessionConfig
 
 	// ServeUser 服务用户的配置
-	ServeUser *serveConfig
+	ServeUser *base.ServeConfig
 
 	// ConnectMatchServer 连接MatchServer
-	ConnectMatchServer *connectConfig
+	ConnectMatchServer *base.ConnectConfig
 
 	// Logger 日志配置
 	Logger *fileLoggerConfig

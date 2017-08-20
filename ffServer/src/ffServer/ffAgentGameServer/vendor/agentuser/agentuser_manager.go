@@ -1,4 +1,4 @@
-package main
+package agentuser
 
 import (
 	"ffCommon/log/log"
@@ -11,9 +11,9 @@ import (
 	"sync/atomic"
 )
 
-// AgentUser 管理器
-type agentUserManager struct {
-	config            *serveConfig          // 配置
+// Manager Agent管理器
+type Manager struct {
+	config            *base.ServeConfig     // 配置
 	sendExtraDataType ffProto.ExtraDataType // 发送的协议的附加数据类型
 	recvExtraDataType ffProto.ExtraDataType // 接收的协议的附加数据类型
 
@@ -26,18 +26,22 @@ type agentUserManager struct {
 	chAgentClosed chan *agentUser          // 用于接收Agent关闭事件
 	mapUserAgent  map[uuid.UUID]*agentUser // 所有连接用户
 	agentPool     *agentUserPool           // 所有用户缓存
+
+	countApplicationQuit *int32        // 退出时计数
+	chApplicationQuit    chan struct{} // chApplicationQuit 外界通知退出
 }
 
-func (mgr *agentUserManager) Status() string {
+// Status 内部状态
+func (mgr *Manager) Status() string {
 	return fmt.Sprintf("uuid[%v] chNewSession[%v] chAgentClosed[%v] mapUserAgent[%v] agentPool[%v]",
 		mgr.uuidServer, len(mgr.chNewSession), len(mgr.chAgentClosed), len(mgr.mapUserAgent), mgr.agentPool)
 }
 
-func (mgr *agentUserManager) String() string {
+func (mgr *Manager) String() string {
 	return fmt.Sprintf("uuid[%v]", mgr.uuidServer)
 }
 
-func (mgr *agentUserManager) doClear() {
+func (mgr *Manager) doClear() {
 	close(mgr.chNewSession)
 	mgr.chNewSession = nil
 
@@ -48,16 +52,16 @@ func (mgr *agentUserManager) doClear() {
 	mgr.chAgentClosed = nil
 }
 
-func (mgr *agentUserManager) onBaseServerClosed() {
-	log.RunLogger.Printf("agentUserManager.onBaseServerClosed: %v", mgr)
+func (mgr *Manager) onBaseServerClosed() {
+	log.RunLogger.Printf("AgentUserManager.onBaseServerClosed: %v", mgr)
 
 	mgr.server.Back()
 	mgr.server = nil
 }
 
 // onNewSession 新连接
-func (mgr *agentUserManager) onNewSession(sess base.Session) {
-	log.RunLogger.Printf("agentUserManager.onNewSession sess[%v]: %v", sess, mgr)
+func (mgr *Manager) onNewSession(sess base.Session) {
+	log.RunLogger.Printf("AgentUserManager.onNewSession sess[%v]: %v", sess, mgr)
 
 	agent := mgr.agentPool.apply()
 	mgr.mapUserAgent[sess.UUID()] = agent
@@ -65,8 +69,8 @@ func (mgr *agentUserManager) onNewSession(sess base.Session) {
 }
 
 // onAgentClosed Agent关闭
-func (mgr *agentUserManager) onAgentClosed(agent *agentUser) {
-	log.RunLogger.Printf("agentUserManager.onAgentClosed %v: %v", agent, mgr)
+func (mgr *Manager) onAgentClosed(agent *agentUser) {
+	log.RunLogger.Printf("AgentUserManager.onAgentClosed %v: %v", agent, mgr)
 
 	delete(mgr.mapUserAgent, agent.uuidSession)
 
@@ -78,10 +82,10 @@ func (mgr *agentUserManager) onAgentClosed(agent *agentUser) {
 }
 
 // mainLoop
-func (mgr *agentUserManager) mainLoop(params ...interface{}) {
-	log.RunLogger.Printf("agentUserManager.mainLoop start: %v", mgr)
+func (mgr *Manager) mainLoop(params ...interface{}) {
+	log.RunLogger.Printf("AgentUserManager.mainLoop start: %v", mgr)
 
-	atomic.AddInt32(&waitServerQuit, 1)
+	atomic.AddInt32(mgr.countApplicationQuit, 1)
 
 	// 主循环
 	{
@@ -94,14 +98,14 @@ func (mgr *agentUserManager) mainLoop(params ...interface{}) {
 			case agent := <-mgr.chAgentClosed: // 连接结束
 				mgr.onAgentClosed(agent)
 
-			case <-chApplicationQuit: // 进程退出
+			case <-mgr.chApplicationQuit: // 进程退出
 				mgr.server.StopAccept()
 				break mainLoop
 			}
 		}
 	}
 
-	log.RunLogger.Printf("agentUserManager.mainLoop start application quit: %v", mgr)
+	log.RunLogger.Printf("AgentUserManager.mainLoop start application quit: %v", mgr)
 
 	// 等待底层服务器退出完成
 	{
@@ -110,7 +114,7 @@ func (mgr *agentUserManager) mainLoop(params ...interface{}) {
 		mgr.onBaseServerClosed()
 	}
 
-	log.RunLogger.Printf("agentUserManager.mainLoop application quit step 1: recv base.Server closed: %v", mgr)
+	log.RunLogger.Printf("AgentUserManager.mainLoop application quit step 1: recv base.Server closed: %v", mgr)
 
 	// 继续处理新连接(直接关闭)
 	{
@@ -127,7 +131,7 @@ func (mgr *agentUserManager) mainLoop(params ...interface{}) {
 		}
 	}
 
-	log.RunLogger.Printf("agentUserManager.mainLoop application quit step 2: close all new wait session: %v", mgr)
+	log.RunLogger.Printf("AgentUserManager.mainLoop application quit step 2: close all new wait session: %v", mgr)
 
 	// 关闭所有已建立的连接
 	{
@@ -137,7 +141,7 @@ func (mgr *agentUserManager) mainLoop(params ...interface{}) {
 				agent.Close()
 			}
 
-			log.RunLogger.Printf("agentUserManager.mainLoop application quit step 3: notify user agent close: %v", mgr)
+			log.RunLogger.Printf("AgentUserManager.mainLoop application quit step 3: notify user agent close: %v", mgr)
 
 			// 等待全部退出
 		endSession:
@@ -154,19 +158,19 @@ func (mgr *agentUserManager) mainLoop(params ...interface{}) {
 			}
 		}
 
-		log.RunLogger.Printf("agentUserManager.mainLoop application quit step 4: all user agent closed: %v", mgr)
+		log.RunLogger.Printf("AgentUserManager.mainLoop application quit step 4: all user agent closed: %v", mgr)
 	}
 }
 
 // mainLoopEnd
-func (mgr *agentUserManager) mainLoopEnd() {
-	log.RunLogger.Printf("agentUserManager.mainLoopEnd")
+func (mgr *Manager) mainLoopEnd() {
+	log.RunLogger.Printf("AgentUserManager.mainLoopEnd")
 
-	atomic.AddInt32(&waitServerQuit, -1)
+	atomic.AddInt32(mgr.countApplicationQuit, -1)
 }
 
-// init 根据配置初始化Server
-func (mgr *agentUserManager) start(config *serveConfig) (err error) {
+// Start 根据配置初始化Server
+func (mgr *Manager) Start(config *base.ServeConfig, countApplicationQuit *int32, chApplicationQuit chan struct{}) (err error) {
 	mgr.sendExtraDataType, err = ffProto.GetExtraDataType(config.SendExtraDataType)
 	if err != nil {
 		return err
@@ -203,6 +207,8 @@ func (mgr *agentUserManager) start(config *serveConfig) (err error) {
 	mgr.chAgentClosed = make(chan *agentUser, 2)
 	mgr.mapUserAgent = make(map[uuid.UUID]*agentUser, config.InitOnlineCount)
 	mgr.agentPool = newAgentUserPool(config.InitOnlineCount)
+
+	mgr.countApplicationQuit, mgr.chApplicationQuit = countApplicationQuit, chApplicationQuit
 
 	go util.SafeGo(mgr.mainLoop, mgr.mainLoopEnd)
 
