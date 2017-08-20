@@ -20,7 +20,7 @@ type sessionConfig struct {
 	InitOnlineCount       int // InitOnlineCount 初始创建多少连接缓存, 必须配置. >=2
 }
 
-// serveConfig 为用户提供服务的配置
+// serveConfig 服务配置
 type serveConfig struct {
 	// ListenTarget 监听目标
 	ListenTarget string
@@ -40,10 +40,31 @@ type serveConfig struct {
 	// AcceptNewSessionCache 接受新连接的管道的缓存大小. 影响接受新连接速度.
 	AcceptNewSessionCache int
 
-	// SessionNetEventDataCache 用户网络事件管道的缓存大小. 影响处理网络事件的速度.
+	// SessionNetEventDataCache 网络事件管道的缓存大小. 影响处理网络事件的速度.
 	SessionNetEventDataCache int
 
-	// SessionSendProtoCache 用户待发送协议管道的缓存大小. 影响发送协议的速度
+	// SessionSendProtoCache 待发送协议管道的缓存大小. 影响发送协议的速度
+	SessionSendProtoCache int
+}
+
+// connectConfig 为用户提供服务的配置
+type connectConfig struct {
+	// ConnectTarget 连接目标
+	ConnectTarget string
+
+	// ConnectAddr 连接地址
+	ConnectAddr string
+
+	// SendExtraDataType 发送的协议的附加数据类型
+	SendExtraDataType string
+
+	// RecvExtraDataType 接收的协议的附加数据类型
+	RecvExtraDataType string
+
+	// SessionNetEventDataCache 网络事件管道的缓存大小. 影响处理网络事件的速度.
+	SessionNetEventDataCache int
+
+	// SessionSendProtoCache 待发送协议管道的缓存大小. 影响发送协议的速度
 	SessionSendProtoCache int
 }
 
@@ -66,6 +87,9 @@ type applicationConfig struct {
 
 	// ServeUser 服务用户的配置
 	ServeUser *serveConfig
+
+	// ConnectMatchServer 连接MatchServer
+	ConnectMatchServer *connectConfig
 
 	// Logger 日志配置
 	Logger *fileLoggerConfig
