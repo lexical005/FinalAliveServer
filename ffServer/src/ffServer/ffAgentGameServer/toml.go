@@ -20,8 +20,8 @@ type sessionConfig struct {
 	InitOnlineCount       int // InitOnlineCount 初始创建多少连接缓存, 必须配置. >=2
 }
 
-// serveUserConfig 为用户提供服务的配置
-type serveUserConfig struct {
+// serveConfig 为用户提供服务的配置
+type serveConfig struct {
 	// ListenTarget 监听目标
 	ListenTarget string
 
@@ -65,7 +65,7 @@ type applicationConfig struct {
 	Session *sessionConfig
 
 	// ServeUser 服务用户的配置
-	ServeUser *serveUserConfig
+	ServeUser *serveConfig
 
 	// Logger 日志配置
 	Logger *fileLoggerConfig

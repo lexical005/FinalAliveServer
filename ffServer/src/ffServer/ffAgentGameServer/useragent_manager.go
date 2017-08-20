@@ -13,7 +13,7 @@ import (
 
 // 用户侧管理
 type userAgentManager struct {
-	config            *serveUserConfig      // 配置
+	config            *serveConfig          // 配置
 	sendExtraDataType ffProto.ExtraDataType // 发送的协议的附加数据类型
 	recvExtraDataType ffProto.ExtraDataType // 接收的协议的附加数据类型
 
@@ -166,7 +166,7 @@ func (agentManager *userAgentManager) mainLoopEnd() {
 }
 
 // init 根据配置初始化Server
-func (agentManager *userAgentManager) start(config *serveUserConfig) (err error) {
+func (agentManager *userAgentManager) start(config *serveConfig) (err error) {
 	agentManager.sendExtraDataType, err = ffProto.GetExtraDataType(config.SendExtraDataType)
 	if err != nil {
 		return err

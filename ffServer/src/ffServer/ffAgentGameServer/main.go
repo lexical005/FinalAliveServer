@@ -14,7 +14,7 @@ import (
 
 func main() {
 	defer func() {
-		util.PanicProtect("ffAgentServer.main")
+		util.PanicProtect("ffAgentGameServer.main")
 
 		<-time.After(time.Second)
 	}()
