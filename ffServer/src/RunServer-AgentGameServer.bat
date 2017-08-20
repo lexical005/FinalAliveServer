@@ -5,4 +5,4 @@ move /y ..\bin\ffAgentGameServer.exe ..\..\..\FinalAlive\Server\ffAgentGameServe
 
 cd ..\..\..\FinalAlive\Server\ffAgentGameServer
 
-ffAgentGameServer.exe
+start.bat

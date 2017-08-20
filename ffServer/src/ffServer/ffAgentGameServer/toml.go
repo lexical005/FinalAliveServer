@@ -6,6 +6,13 @@ import (
 	"github.com/lexical005/toml"
 )
 
+// 服务器自身描述
+type serverInfo struct {
+	Channel    string // 渠道
+	ServerType string // 服务器类型
+	ServerID   int    // 服务器编号
+}
+
 // 连接配置
 type sessionConfig struct {
 	ReadDeadTime          int // ReadDeadTime 读取超时N秒. 为0时, 使用系统默认配置值60
@@ -51,6 +58,9 @@ type fileLoggerConfig struct {
 
 // 服务器配置
 type applicationConfig struct {
+	// Server 服务器自身描述
+	Server serverInfo
+
 	// Session 连接配置
 	Session *sessionConfig
 
