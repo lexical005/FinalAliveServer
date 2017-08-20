@@ -15,7 +15,7 @@ import (
 
 // 协议回调函数
 //	返回值表明接收到的Proto是否进入了发送逻辑(如果未正确设置返回值, 将导致泄露或者异常)
-var mapProtoCallback = map[ffProto.MessageType]func(agent *userAgent, proto *ffProto.Proto) bool{
+var mapProtoCallback = map[ffProto.MessageType]func(agent *agentUser, proto *ffProto.Proto) bool{
 	ffProto.MessageType_EnterGameWorld:               onProtoEnterGameWorld,
 	ffProto.MessageType_KeepAlive:                    onProtoKeepAlive,
 	ffProto.MessageType_PrepareLoginPlatformUniqueId: onProtoPrepareLoginPlatformUniqueID,
@@ -23,7 +23,7 @@ var mapProtoCallback = map[ffProto.MessageType]func(agent *userAgent, proto *ffP
 }
 
 // 用户连接到本服务器后的agent
-type userAgent struct {
+type agentUser struct {
 	uuidSession uuid.UUID
 
 	sendExtraDataType ffProto.ExtraDataType  // 发送的Proto的附加数据类型
@@ -32,17 +32,17 @@ type userAgent struct {
 	chNetEventData    chan base.NetEventData // session网络事件管道
 
 	chClose       chan struct{}   // 用于接收外界通知关闭
-	chAgentClosed chan *userAgent // 用于向外界汇报关闭了, 仅有使用权
+	chAgentClosed chan *agentUser // 用于向外界汇报关闭了, 仅有使用权
 
 	onceClose util.Once // 一次连接期间, 关闭一次
 }
 
-func (agent *userAgent) String() string {
+func (agent *agentUser) String() string {
 	return fmt.Sprintf("uuid[%v]", agent.uuidSession)
 }
 
-func (agent *userAgent) mainLoop(params ...interface{}) {
-	log.RunLogger.Printf("userAgent.mainLoop: %v", agent)
+func (agent *agentUser) mainLoop(params ...interface{}) {
+	log.RunLogger.Printf("agentUser.mainLoop: %v", agent)
 
 	// 主循环
 	{
@@ -57,7 +57,7 @@ func (agent *userAgent) mainLoop(params ...interface{}) {
 
 			case <-agent.chClose: // 外界通知关闭
 
-				log.RunLogger.Printf("userAgent.mainLoop start close: %v", agent)
+				log.RunLogger.Printf("agentUser.mainLoop start close: %v", agent)
 
 				// 发送中状态 ==> 等待发送结束关闭状态
 				if !atomic.CompareAndSwapInt32(&agent.sendStatus, 2, -2) {
@@ -79,11 +79,11 @@ func (agent *userAgent) mainLoop(params ...interface{}) {
 		}
 	}
 }
-func (agent *userAgent) mainLoopEnd() {
-	log.RunLogger.Printf("userAgent.mainLoopEnd: %v", agent)
+func (agent *agentUser) mainLoopEnd() {
+	log.RunLogger.Printf("agentUser.mainLoopEnd: %v", agent)
 }
 
-func (agent *userAgent) onNetEventData(data base.NetEventData) bool {
+func (agent *agentUser) onNetEventData(data base.NetEventData) bool {
 	defer data.Back()
 
 	switch data.NetEventType() {
@@ -99,16 +99,16 @@ func (agent *userAgent) onNetEventData(data base.NetEventData) bool {
 }
 
 // onConnect 连接建立
-func (agent *userAgent) onConnect(data base.NetEventData) {
-	log.RunLogger.Printf("userAgent.onConnect data[%v]: %v", data, agent)
+func (agent *agentUser) onConnect(data base.NetEventData) {
+	log.RunLogger.Printf("agentUser.onConnect data[%v]: %v", data, agent)
 
 	// 可发送状态
 	atomic.StoreInt32(&agent.sendStatus, 1)
 }
 
 // onDisConnect 连接断开
-func (agent *userAgent) onDisConnect(data base.NetEventData) {
-	log.RunLogger.Printf("userAgent.onDisConnect data[%v]: %v", data, agent)
+func (agent *agentUser) onDisConnect(data base.NetEventData) {
+	log.RunLogger.Printf("agentUser.onDisConnect data[%v]: %v", data, agent)
 
 	// 发送中状态 ==> 等待发送结束关闭状态
 	if !atomic.CompareAndSwapInt32(&agent.sendStatus, 2, -2) {
@@ -120,8 +120,8 @@ func (agent *userAgent) onDisConnect(data base.NetEventData) {
 }
 
 // onProto 收到Proto
-func (agent *userAgent) onProto(data base.NetEventData) {
-	log.RunLogger.Printf("userAgent.onProto data[%v]: %v", data, agent)
+func (agent *agentUser) onProto(data base.NetEventData) {
+	log.RunLogger.Printf("agentUser.onProto data[%v]: %v", data, agent)
 
 	changedToSendState := false
 
@@ -138,22 +138,22 @@ func (agent *userAgent) onProto(data base.NetEventData) {
 	// todo: 区分协议号, 有些协议直接转发的
 	// 反序列化
 	if err := proto.Unmarshal(); err != nil {
-		log.RunLogger.Printf("userAgent.onProto proto[%v] Unmarshal error[%v]: %v", proto, err, agent)
+		log.RunLogger.Printf("agentUser.onProto proto[%v] Unmarshal error[%v]: %v", proto, err, agent)
 		agent.Close()
 		return
 	}
 
-	log.RunLogger.Printf("userAgent.onProto proto[%v]: %v", proto, agent)
+	log.RunLogger.Printf("agentUser.onProto proto[%v]: %v", proto, agent)
 
 	if callback, ok := mapProtoCallback[protoID]; ok {
 		changedToSendState = callback(agent, proto)
 	} else {
-		log.FatalLogger.Printf("userAgent.onProto unknown protoID[%v]: %v", protoID, agent)
+		log.FatalLogger.Printf("agentUser.onProto unknown protoID[%v]: %v", protoID, agent)
 	}
 }
 
 // Start 初始化, 然后开始收发协议并处理
-func (agent *userAgent) Start(sess base.Session, agentManager *userAgentManager) {
+func (agent *agentUser) Start(sess base.Session, agentManager *agentUserManager) {
 	agent.uuidSession = sess.UUID()
 	agent.sendExtraDataType, agent.chAgentClosed = agentManager.sendExtraDataType, agentManager.chAgentClosed
 
@@ -170,7 +170,7 @@ func (agent *userAgent) Start(sess base.Session, agentManager *userAgentManager)
 }
 
 // Close
-func (agent *userAgent) Close() {
+func (agent *agentUser) Close() {
 	agent.onceClose.Do(func() {
 		agent.chClose <- struct{}{}
 	})
@@ -178,7 +178,7 @@ func (agent *userAgent) Close() {
 
 // SendProto 发送Proto
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
-func (agent *userAgent) SendProto(proto *ffProto.Proto) bool {
+func (agent *agentUser) SendProto(proto *ffProto.Proto) bool {
 	// 可发送状态 ==> 发送中状态
 	if !atomic.CompareAndSwapInt32(&agent.sendStatus, 1, 2) {
 		return false
@@ -202,7 +202,7 @@ func (agent *userAgent) SendProto(proto *ffProto.Proto) bool {
 }
 
 // Back 可安全回收了
-func (agent *userAgent) Back() {
+func (agent *agentUser) Back() {
 	agent.chAgentClosed = nil
 
 	// 清理待发送Proto
@@ -239,7 +239,7 @@ func (agent *userAgent) Back() {
 	agent.chClose = nil
 }
 
-func onProtoEnterGameWorld(agent *userAgent, proto *ffProto.Proto) bool {
+func onProtoEnterGameWorld(agent *agentUser, proto *ffProto.Proto) bool {
 	message, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
 	message.Result = ffError.ErrNone.Code()
 
@@ -248,13 +248,13 @@ func onProtoEnterGameWorld(agent *userAgent, proto *ffProto.Proto) bool {
 	return true
 }
 
-func onProtoKeepAlive(agent *userAgent, proto *ffProto.Proto) bool {
+func onProtoKeepAlive(agent *agentUser, proto *ffProto.Proto) bool {
 	proto.ChangeLimitStateRecvToSend()
 	agent.SendProto(proto)
 	return true
 }
 
-func onProtoPrepareLoginPlatformUniqueID(agent *userAgent, proto *ffProto.Proto) bool {
+func onProtoPrepareLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) bool {
 	fixSalt := rand.Int31()
 	for fixSalt == 0 {
 		fixSalt = rand.Int31()
@@ -268,7 +268,7 @@ func onProtoPrepareLoginPlatformUniqueID(agent *userAgent, proto *ffProto.Proto)
 	return true
 }
 
-func onProtoLoginPlatformUniqueID(agent *userAgent, proto *ffProto.Proto) bool {
+func onProtoLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) bool {
 	message, _ := proto.Message().(*ffProto.MsgLoginPlatformUniqueId)
 	message.UUIDLogin = agent.uuidSession.Value()
 
@@ -277,6 +277,6 @@ func onProtoLoginPlatformUniqueID(agent *userAgent, proto *ffProto.Proto) bool {
 	return true
 }
 
-func newUserAgent() *userAgent {
-	return &userAgent{}
+func newAgentUser() *agentUser {
+	return &agentUser{}
 }

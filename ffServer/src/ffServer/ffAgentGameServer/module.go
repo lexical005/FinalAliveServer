@@ -8,11 +8,8 @@ const (
 // appConfig 应用程序配置
 var appConfig = &applicationConfig{}
 
-// mgrUserAgent
-var mgrUserAgent = &userAgentManager{}
-
-// // tunnelServerAgent 管理
-// var serverAgentMgr = &tunnelServerAgentManager{}
+// mgrAgentUser
+var mgrAgentUser = &agentUserManager{}
 
 // applicationQuit 进程是否要退出
 var applicationQuit = false

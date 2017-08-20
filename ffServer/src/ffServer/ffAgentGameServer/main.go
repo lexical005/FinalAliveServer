@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// 启动
-	if err = mgrUserAgent.start(appConfig.ServeUser); err != nil {
+	if err = mgrAgentUser.start(appConfig.ServeUser); err != nil {
 		log.FatalLogger.Println(err)
 		return
 	}
@@ -49,7 +49,7 @@ quitLoop:
 		case <-time.After(time.Second):
 			closeTime++
 			log.RunLogger.Printf("closing %v", closeTime)
-			log.RunLogger.Printf("useragent_server[%s]", mgrUserAgent.Status())
+			log.RunLogger.Printf("useragent_server[%s]", mgrAgentUser.Status())
 			tcpsession.PrintModule()
 			tcpserver.PrintModule()
 			ffProto.PrintModule()
