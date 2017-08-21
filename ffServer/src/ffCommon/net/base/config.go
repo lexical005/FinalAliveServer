@@ -61,3 +61,9 @@ type SessionConfig struct {
 	InitNetEventDataCount int // InitNetEventDataCount 初始创建多少网络事件数据缓存. 为0时, 使用的值为OnlineCount/4. 最小为2
 	InitOnlineCount       int // InitOnlineCount 初始创建多少连接缓存, 必须配置. >=2
 }
+
+// WebServerConfig WebServer配置
+type WebServerConfig struct {
+	// ListenAddr 监听地址
+	ListenAddr string
+}

@@ -20,22 +20,8 @@ func main() {
 		}
 	}, "ffAgentGameServer")
 
-	// 初始化
+	// 初始化并启动
 	err := startup()
-	if err != nil {
-		log.FatalLogger.Println(err)
-		return
-	}
-
-	// 启动
-	err = instAgentUserServer.Start()
-	if err != nil {
-		log.FatalLogger.Println(err)
-		return
-	}
-
-	// 启动
-	err = instMatchServerClient.Start()
 	if err != nil {
 		log.FatalLogger.Println(err)
 		return

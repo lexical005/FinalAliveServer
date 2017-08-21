@@ -6,6 +6,7 @@ import (
 	"ffCommon/net/tcpsession"
 )
 
+// 初始化并启动
 func startup() (err error) {
 	// 解析
 	err = readToml()
@@ -51,6 +52,20 @@ func startup() (err error) {
 	err = tcpsession.Init(readDeadTime, appConfig.Session.InitOnlineCount, initNetEventDataCount)
 	if err != nil {
 		return err
+	}
+
+	// 启动
+	err = instAgentUserServer.Start()
+	if err != nil {
+		log.FatalLogger.Println(err)
+		return
+	}
+
+	// 启动
+	err = instMatchServerClient.Start()
+	if err != nil {
+		log.FatalLogger.Println(err)
+		return
 	}
 
 	return err

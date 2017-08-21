@@ -14,9 +14,6 @@ var instAgentUserServer = &agentUserServer{}
 // instMatchServerClient
 var instMatchServerClient = &matchServerClient{}
 
-// applicationQuit 进程是否要退出
-var applicationQuit = false
-
 // waitApplicationQuit 等待所有系统退出
 var waitApplicationQuit int32
 

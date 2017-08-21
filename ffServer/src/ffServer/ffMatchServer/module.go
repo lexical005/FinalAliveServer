@@ -11,9 +11,6 @@ var appConfig = &applicationConfig{}
 // agentUserSvr
 var agentUserSvr = &agentGameServerServer{}
 
-// applicationQuit 进程是否要退出
-var applicationQuit = false
-
 // waitApplicationQuit 等待所有系统退出
 var waitApplicationQuit int32
 
