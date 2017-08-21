@@ -18,7 +18,7 @@ type tcpClient struct {
 
 	uuid uuid.UUID // 唯一标识
 
-	chNewSession   chan base.Session // 外界接收新连接被创建事件的管道
+	chNewSession   chan base.Session // 外界接收新连接被创建事件的管道, 在向chClientClosed发送关闭事件前, chNewSession必须有效
 	chClientClosed chan struct{}     // 完成关闭时, 向外界通知
 
 	chNtfWorkExit chan struct{} // 退出
@@ -47,6 +47,13 @@ func (c *tcpClient) Stop() {
 		close(c.chNtfWorkExit)
 		c.chNtfWorkExit = nil
 	})
+}
+
+// ReConnect 已建立的连接断开后, 要求重新建立连接
+func (c *tcpClient) ReConnect() {
+	log.RunLogger.Printf("tcpClient.ReConnect: %v", c)
+
+	c.chReConnect <- struct{}{}
 }
 
 // Back 回收Client资源, 只应在外界通过chServerClose接收到可回收事件之后下执行
@@ -96,17 +103,17 @@ func (c *tcpClient) mainLoop(params ...interface{}) {
 
 			// 连接失败, 自动重连
 			<-time.After(time.Second)
+		}
 
-			// 检查退出逻辑
-			{
-				select {
-				case <-c.chNtfWorkExit:
-					// 退出
-					return
+		// 检查退出逻辑
+		{
+			select {
+			case <-c.chNtfWorkExit:
+				// 退出
+				return
 
-				default:
-					break
-				}
+			default:
+				break
 			}
 		}
 	}

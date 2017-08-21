@@ -14,7 +14,8 @@ type Session interface {
 	//	recvProtoExtraDataType: 接收的协议的附加数据类型
 	Start(chSendProto chan *ffProto.Proto, chNetEventData chan NetEventData, recvProtoExtraDataType ffProto.ExtraDataType)
 
-	// Close 外界决定关闭Client或Server后, 通过此方法, 关闭chNewSession内尚未处理的新建立的连接. 必须发生在Start之前, 一次性, 同步
+	// Close 外界决定关闭Client或Server后, 通过此方法, 关闭chNewSession内尚未处理的新建立的连接. 必须发生在Start之前, 一次性, 同步.
+	// 如果在Start之前就要关闭连接, 则执行Close, 否则, 由外界关闭chSendProto来引发退出
 	Close()
 
 	// UUID 唯一标识
