@@ -1,25 +1,12 @@
 package main
 
 import (
+	"ffCommon/log/log"
 	"ffCommon/net/base"
 	"ffCommon/util"
 
 	"github.com/lexical005/toml"
 )
-
-// 服务器自身描述
-type serverInfo struct {
-	Channel    string // 渠道
-	ServerType string // 服务器类型
-	ServerID   int    // 服务器编号
-}
-
-// 连接配置
-type sessionConfig struct {
-	ReadDeadTime          int // ReadDeadTime 读取超时N秒. 为0时, 使用系统默认配置值60
-	InitNetEventDataCount int // InitNetEventDataCount 初始创建多少网络事件数据缓存. 为0时, 使用的值为OnlineCount/4. 最小为2
-	InitOnlineCount       int // InitOnlineCount 初始创建多少连接缓存, 必须配置. >=2
-}
 
 // 文本日志配置
 type fileLoggerConfig struct {
@@ -33,10 +20,10 @@ type fileLoggerConfig struct {
 // 服务器配置
 type applicationConfig struct {
 	// Server 服务器自身描述
-	Server serverInfo
+	Server *base.ServerInfo
 
 	// Session 连接配置
-	Session *sessionConfig
+	Session *base.SessionConfig
 
 	// ServeAgentGameServer 服务AgentGameServer的配置
 	ServeAgentGameServer *base.ServeConfig
@@ -45,7 +32,7 @@ type applicationConfig struct {
 	ServeAgentBattleServer *base.ServeConfig
 
 	// Logger 日志配置
-	Logger *fileLoggerConfig
+	Logger *log.LoggerConfig
 }
 
 func readToml() error {

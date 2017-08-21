@@ -15,6 +15,9 @@ type INetSession interface {
 
 	// SendProto 发送协议
 	SendProto(proto *ffProto.Proto) bool
+
+	// Close 主动关闭
+	Close()
 }
 
 // INetSessionHandler 连接对象关联的外界逻辑处理对象

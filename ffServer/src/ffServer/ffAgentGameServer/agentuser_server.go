@@ -73,7 +73,7 @@ func (server *agentUserServer) End() {
 	atomic.AddInt32(&waitApplicationQuit, -1)
 }
 
-// Status 当前服务状态描述
+// Status 当前状态描述
 func (server *agentUserServer) Status() string {
 	return fmt.Sprintf("mapAgent[%v] agentPool[%v] netManager[%v]",
 		len(server.mapAgent), server.agentPool, server.netManager.Status())
