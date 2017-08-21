@@ -1,13 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"ffCommon/log/log"
 	"ffCommon/util"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
-	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -18,19 +18,37 @@ type serveLogin struct {
 	listener net.Listener
 }
 
-// handleLoginRequest 响应登录验证
-func (serve *serveLogin) handleLoginRequest(rw http.ResponseWriter, req *http.Request) {
+// handleLoginCustom 响应自定义登录验证
+func (serve *serveLogin) handleLoginCustom(rw http.ResponseWriter, req *http.Request) {
 	// 只响应 POST 方式的请求
 	if req.Method != "POST" {
 		return
 	}
 
+	// 携带的数据格式
+	type customLoginData struct {
+		UUIDPlatform string
+		UUIDAccount  uint64
+		Result       int32 // 0 无错 1 异常返回 2 UUIDPlatform长度不对
+	}
+	data := &customLoginData{
+		Result: 1,
+	}
+
 	// 异常保护
 	defer util.PanicProtect(nil)
 
-	// 成功
+	// 反馈
 	defer func() {
-		rw.Write([]byte(serverIAPResponse))
+		t, err := json.Marshal(data)
+		if err != nil {
+			log.RunLogger.Printf("serveLogin.handleLoginCustom json.Marshal data[%v] error[%v]", data, err)
+			return
+		}
+
+		log.RunLogger.Printf("serveLogin.handleLoginCustom login result data[%v]", data)
+
+		rw.Write(t)
 	}()
 
 	// 解析参数
@@ -38,17 +56,32 @@ func (serve *serveLogin) handleLoginRequest(rw http.ResponseWriter, req *http.Re
 
 	content, err := ioutil.ReadAll(req.Body)
 	if err != nil {
-		log.RunLogger.Printf("serveLogin.handleLoginRequest err[%v]", err)
+		log.RunLogger.Printf("serveLogin.handleLoginCustom ioutil.ReadAll error[%v]", err)
+		return
+	}
+	defer req.Body.Close()
+
+	// 解析数据
+	err = json.Unmarshal(content, data)
+	if err != nil {
+		log.RunLogger.Printf("serveLogin.handleLoginCustom json.Unmarshal content[%v] get error[%v]", string(content), err)
 		return
 	}
 
-	defer req.Body.Close()
+	// UUIDPlatform 有效性判定
+	UUIDPlatform := []byte(data.UUIDPlatform)
+	if len(UUIDPlatform) < 1 || len(UUIDPlatform) > 16 {
+		data.Result = 2
+		log.RunLogger.Printf("serveLogin.handleLoginCustom invalid UUIDPlatform length content[%v] get error[%v]", string(content), err)
+		return
+	}
 
-	s := string(content)
-	s = strings.Replace(s, "\r\n", "", -1)
-	s = strings.Replace(s, "\n", "", -1)
-
-	log.RunLogger.Println("onServerRequestIAP:", s)
+	// 生成 UUIDAccount
+	data.Result = 0
+	data.UUIDAccount = 0
+	for i := 0; i < len(UUIDPlatform); i++ {
+		data.UUIDAccount += (uint64(UUIDPlatform[i])) << (uint(i) * 4)
+	}
 }
 
 // mainLoop
@@ -58,7 +91,7 @@ func (serve *serveLogin) mainLoop(params ...interface{}) {
 	atomic.AddInt32(&waitApplicationQuit, 1)
 
 	// 响应客户端的请求
-	http.HandleFunc("/login", serve.handleLoginRequest)
+	http.HandleFunc("/login", serve.handleLoginCustom)
 
 	serve.s.Serve(serve.listener)
 }
