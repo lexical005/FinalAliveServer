@@ -1,9 +1,5 @@
 package main
 
-import (
-	"ffCommon/net/netmanager"
-)
-
 const (
 	listenTargetUser       = "User"
 	listenTargetGameServer = "GameServer"
@@ -12,8 +8,8 @@ const (
 // appConfig 应用程序配置
 var appConfig = &applicationConfig{}
 
-// mgrAgentUser
-var mgrAgentUser *netmanager.Manager
+// agentUserSvr
+var agentUserSvr = &agentUserServer{}
 
 // applicationQuit 进程是否要退出
 var applicationQuit = false
