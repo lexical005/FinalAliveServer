@@ -17,111 +17,111 @@ namespace NConfig
 `
 
 var fmtCSharpMainClassReader = `
-    public static class {FileName}Reader
-    {
-        // proto数据, 你需要明确知道怎么使用它. 禁止外界修改它的数据!
-        public static {FileName} {FileName};
+	public static class {FileName}Reader
+	{
+		// proto数据, 你需要明确知道怎么使用它. 禁止外界修改它的数据!
+		public static {FileName} {FileName};
 {AllMember}
 
-        private static void Trans()
-        {{MapTrans}
-        }
+		private static void Trans()
+		{{MapTrans}
+		}
 
-        public static void Read(System.IO.Stream stream)
-        {
-            {FileName} = NConfig.{FileName}.Parser.ParseFrom(stream);
-            Trans();
-        }
+		public static void Read(System.IO.Stream stream)
+		{
+			{FileName} = NConfig.{FileName}.Parser.ParseFrom(stream);
+			Trans();
+		}
 
-        public static void Read(byte[] stream)
-        {
-            {FileName} = NConfig.{FileName}.Parser.ParseFrom(stream);
-            Trans();
-        }
+		public static void Read(byte[] stream)
+		{
+			{FileName} = NConfig.{FileName}.Parser.ParseFrom(stream);
+			Trans();
+		}
     }
 `
 
 var fmtCSharpMemberReaderStruct = `
-        public static {FileName}.Types.{ProtoVarType} {ProtoVarName}
-        {
-            get
-            {
-                return {FileName}.{ProtoVarName};
-            }
-        }
+		public static {FileName}.Types.{ProtoVarType} {ProtoVarName}
+		{
+			get
+			{
+				return {FileName}.{ProtoVarName};
+			}
+		}
 `
 
 var fmtCSharpMemberReaderList = `
-        public static Google.Protobuf.Collections.RepeatedField<{FileName}.Types.{ProtoVarType}> {ProtoVarName}
-        {
-            get
-            {
-                return {FileName}.{ProtoVarName};
-            }
-        }
+		public static Google.Protobuf.Collections.RepeatedField<{FileName}.Types.{ProtoVarType}> {ProtoVarName}
+		{
+			get
+			{
+				return {FileName}.{ProtoVarName};
+			}
+		}
 `
 
 var fmtCSharpMemberReaderMap = `
-        public static Dictionary<{MapKeyType}, {FileName}.Types.{ProtoVarType}> {ProtoVarName}
-        {
-            get;
-            private set;
-        }
+		public static Dictionary<{MapKeyType}, {FileName}.Types.{ProtoVarType}> {ProtoVarName}
+		{
+			get;
+			private set;
+		}
 `
 
 var fmtCSharpMapTrans = `
-            {ProtoVarName} = new Dictionary<{MapKeyType}, {FileName}.Types.{ProtoVarType}>({FileName}.{ProtoVarName}Value.Count);
-            for (int i = 0; i < {FileName}.{ProtoVarName}Value.Count; ++i)
-            {
-                {ProtoVarName}[{FileName}.{ProtoVarName}Key[i]] = {FileName}.{ProtoVarName}Value[i];
-            }
+			{ProtoVarName} = new Dictionary<{MapKeyType}, {FileName}.Types.{ProtoVarType}>({FileName}.{ProtoVarName}Value.Count);
+			for (int i = 0; i < {FileName}.{ProtoVarName}Value.Count; ++i)
+			{
+				{ProtoVarName}[{FileName}.{ProtoVarName}Key[i]] = {FileName}.{ProtoVarName}Value[i];
+			}
 `
 
 var fmtReaderManager = `using System.Collections.Generic;
 
 namespace NConfig
 {
-    public static class ConfigReaderManager
-    {
-        public delegate void ConfigReaderStream(System.IO.Stream stream);
-        public delegate void ConfigReaderBuffer(byte[] stream);
-        public class Reader
-        {
-            public string config;
-            public ConfigReaderStream readerStream;
-            public ConfigReaderBuffer readerBuffer;
-        }
-        public static readonly List<Reader> AllReader;
-        public static Reader LanguageReader
-        {
-            get;
-            private set;
-        }
+	public static class ConfigReaderManager
+	{
+		public delegate void ConfigReaderStream(System.IO.Stream stream);
+		public delegate void ConfigReaderBuffer(byte[] stream);
+		public class Reader
+		{
+			public string config;
+			public ConfigReaderStream readerStream;
+			public ConfigReaderBuffer readerBuffer;
+		}
+		public static readonly List<Reader> AllReader;
+		public static Reader LanguageReader
+		{
+			get;
+			private set;
+		}
 
-        static ConfigReaderManager()
-        {
-            AllReader = new List<Reader>()
-            {{AllReader}
-            };
+		static ConfigReaderManager()
+		{
+			AllReader = new List<Reader>()
+			{{AllReader}
+			};
 
-            LanguageReader = new Reader()
-            {
-                config = "Language",
-                readerStream = NConfig.LanguageReader.Read,
-                readerBuffer = NConfig.LanguageReader.Read,
-            };
-        }
-    }
+			LanguageReader = new Reader()
+			{
+				config = "Language",
+				readerStream = NConfig.LanguageReader.Read,
+				readerBuffer = NConfig.LanguageReader.Read,
+			};
+		}
+	}
 }
 `
 
 var fmtReaderManagerOneReader = `
-                new Reader()
-                {
-                    config = "{FileName}",
-                    readerStream = NConfig.{FileName}Reader.Read,
-                    readerBuffer = NConfig.{FileName}Reader.Read,
-                },`
+				new Reader()
+				{
+					config = "{FileName}",
+					readerStream = NConfig.{FileName}Reader.Read,
+					readerBuffer = NConfig.{FileName}Reader.Read,
+				},`
 
 var regexpMainClass = regexp.MustCompile("\n  public sealed partial class ([\\w]+) : pb::IMessage")
 var regexpSubClass = regexp.MustCompile("\n      public sealed partial class ([\\w]+) : pb::IMessage")
@@ -375,18 +375,25 @@ func genOutput(readerDir string, allMainClassInfo []*mainClassInfo) {
 
 		// 子类map成员转换
 		var fmtCSharpSubClassMapMemberTrans = `
-		    for (int i = 0; i < {FileName}.{SheetName}{SheetType}.Count; ++i)
-		    {
-		        for (int j = 0; j < {FileName}.{SheetName}{SheetType}[i].{MemberName}Value.Count; ++j)
-		        {
-		            {FileName}.{SheetName}{SheetType}[i].{MemberName}.Add(
+			for (int i = 0; i < {FileName}.{SheetName}{SheetType}.Count; ++i)
+			{
+				for (int j = 0; j < {FileName}.{SheetName}{SheetType}[i].{MemberName}Value.Count; ++j)
+				{
+					{FileName}.{SheetName}{SheetType}[i].{MemberName}.Add(
 						{FileName}.{SheetName}{SheetType}[i].{MemberName}Key[j],
 						{FileName}.{SheetName}{SheetType}[i].{MemberName}Value[j]
 					);
-		        }
-		    }`
+				}
+			}`
 
-		for subClassName, tmp1 := range mainClassInfo.subClassMapMembers {
+		allSubClassName := make([]string, 0, len(mainClassInfo.subClassMapMembers))
+		for subClassName := range mainClassInfo.subClassMapMembers {
+			allSubClassName = append(allSubClassName, subClassName)
+		}
+		sort.Strings(allSubClassName)
+
+		for _, subClassName := range allSubClassName {
+			tmp1 := mainClassInfo.subClassMapMembers[subClassName]
 			for _, tmp2 := range tmp1 {
 				for _, member := range mainClassInfo.member {
 					if member.filedType != "mapKey" && member.protoVarName == subClassName {
