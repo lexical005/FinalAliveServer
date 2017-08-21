@@ -28,7 +28,7 @@ func reads() {
 }
 
 func main() {
-	defer util.PanicProtect()
+	defer util.PanicProtect(nil)
 
 	reads()
 

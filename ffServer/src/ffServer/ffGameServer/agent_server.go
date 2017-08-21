@@ -116,7 +116,7 @@ func (as *agentServer) init() error {
 // Server启动监听
 func (as *agentServer) start() error {
 	// 新起一个协程, 用于定时向已建立的连接发送KeepAlive协议, 以避免连接被自然断开
-	go util.SafeGo(as.keepAliveLoop)
+	go util.SafeGo(as.keepAliveLoop, nil)
 
 	return as.server.Start(as, ffProto.ExtraDataTypeUUID)
 }

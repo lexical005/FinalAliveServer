@@ -9,7 +9,7 @@ var mapSetupIAP = make(map[string]func(string, map[string]string) (string, error
 
 func onClientSetupIAP(reqClient string, dictData map[string]string) (string, error) {
 	// 异常保护
-	defer util.PanicProtect()
+	defer util.PanicProtect(nil)
 
 	if channel, ok := dictData["channel"]; !ok {
 		return "", fmt.Errorf("onClientSetupIAP dictData not contain channel")

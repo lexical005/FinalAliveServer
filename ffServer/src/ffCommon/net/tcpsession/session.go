@@ -132,8 +132,8 @@ func (s *tcpSession) mainSend(params ...interface{}) {
 	}
 }
 
-func (s *tcpSession) mainSendEnd() {
-	log.RunLogger.Printf("tcpSession.mainSendEnd: %v", s)
+func (s *tcpSession) mainSendEnd(isPanic bool) {
+	log.RunLogger.Printf("tcpSession.mainSendEnd isPanic[%v]: %v", isPanic, s)
 
 	s.chWaitRecvSendGoroutineExit <- struct{}{}
 
@@ -207,8 +207,8 @@ func (s *tcpSession) mainRecv(params ...interface{}) {
 		}
 	}
 }
-func (s *tcpSession) mainRecvEnd() {
-	log.RunLogger.Printf("tcpSession.mainRecvEnd: %v", s)
+func (s *tcpSession) mainRecvEnd(isPanic bool) {
+	log.RunLogger.Printf("tcpSession.mainRecvEnd isPanic[%v]: %v", isPanic, s)
 
 	s.chWaitRecvSendGoroutineExit <- struct{}{}
 

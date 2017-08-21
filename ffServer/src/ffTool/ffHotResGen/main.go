@@ -6,6 +6,7 @@ import (
 	"ffCommon/util"
 	"ffCommon/version"
 	"flag"
+	"time"
 
 	"github.com/lexical005/toml"
 
@@ -273,11 +274,16 @@ func genResult() (needUpload bool, result []interface{}, err error) {
 }
 
 func main() {
-	defer util.PanicProtect()
+	defer util.PanicProtect(func(isPanic bool) {
+		if isPanic {
+			log.RunLogger.Println("异常退出, 以上是错误堆栈")
+			<-time.After(time.Hour)
+		}
+	}, "ffHotResGen")
 
 	defer func() {
 		// 清理生成目录
-		err := util.ClearPath(config.ChannelExcelClient)
+		err := util.ClearPath(config.ChannelExcelClient, true, nil)
 		if err != nil {
 			log.RunLogger.Println(err)
 			return

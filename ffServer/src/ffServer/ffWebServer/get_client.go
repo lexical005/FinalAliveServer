@@ -25,7 +25,7 @@ func onClientRequest(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// 异常保护
-	defer util.PanicProtect()
+	defer util.PanicProtect(nil)
 
 	// 成功
 	result := "SUCCESS"

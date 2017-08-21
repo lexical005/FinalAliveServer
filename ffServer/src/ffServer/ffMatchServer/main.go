@@ -13,11 +13,12 @@ import (
 )
 
 func main() {
-	defer func() {
-		util.PanicProtect("ffAgentGameServer.main")
-
-		<-time.After(time.Second)
-	}()
+	defer util.PanicProtect(func(isPanic bool) {
+		if isPanic {
+			log.RunLogger.Println("异常退出, 以上是错误堆栈")
+			<-time.After(time.Hour)
+		}
+	}, "ffAgentGameServer")
 
 	// 初始化
 	err := startup()

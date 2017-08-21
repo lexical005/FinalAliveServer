@@ -48,6 +48,6 @@ deadLoop:
 		}
 	}
 }
-func (conn *mysqlConn) queryLoopEnd() {
+func (conn *mysqlConn) queryLoopEnd(isPanic bool) {
 	conn.wgClose.Done()
 }

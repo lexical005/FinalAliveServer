@@ -162,8 +162,8 @@ func (mgr *Manager) mainLoop(params ...interface{}) {
 }
 
 // mainLoopEnd
-func (mgr *Manager) mainLoopEnd() {
-	log.RunLogger.Printf("%v.mainLoopEnd", mgr.name)
+func (mgr *Manager) mainLoopEnd(isPanic bool) {
+	log.RunLogger.Printf("%v.mainLoopEnd isPanic[%v]", mgr.name, isPanic)
 
 	mgr.net.Clear()
 

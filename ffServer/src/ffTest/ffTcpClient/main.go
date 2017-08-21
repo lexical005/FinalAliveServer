@@ -15,10 +15,12 @@ var waitQuitCount int32
 var chApplicationQuit = make(chan struct{}, 1)
 
 func main() {
-	defer func() {
-		util.PanicProtect("main")
-		<-time.After(time.Second)
-	}()
+	defer util.PanicProtect(func(isPanic bool) {
+		if isPanic {
+			log.RunLogger.Println("异常退出, 以上是错误堆栈")
+			<-time.After(time.Hour)
+		}
+	}, "ffTcpClient")
 
 	// logfile.InitRunLog("", logfile.DefaultLogFileLengthLimit, logfile.DefaultLogFileRunPrefix)
 	log.RunLogger = log.NewLoggerEmpty()

@@ -8,8 +8,11 @@ const (
 // appConfig 应用程序配置
 var appConfig = &applicationConfig{}
 
-// agentUserSvr
-var agentUserSvr = &agentUserServer{}
+// instAgentUserServer
+var instAgentUserServer = &agentUserServer{}
+
+// instMatchServerClient
+var instMatchServerClient = &matchServerClient{}
 
 // applicationQuit 进程是否要退出
 var applicationQuit = false

@@ -11,7 +11,12 @@ import (
 
 func main() {
 	// 异常保护
-	defer util.PanicProtect()
+	defer util.PanicProtect(func(isPanic bool) {
+		if isPanic {
+			log.RunLogger.Println("异常退出, 以上是错误堆栈")
+			<-time.After(time.Hour)
+		}
+	}, "ffResServer")
 
 	// 读取配置文件
 	var err error

@@ -76,8 +76,8 @@ func (agent *agentSession) mainLoop(params ...interface{}) {
 		}
 	}
 }
-func (agent *agentSession) mainLoopEnd() {
-	log.RunLogger.Printf("%v.mainLoopEnd", agent.name)
+func (agent *agentSession) mainLoopEnd(isPanic bool) {
+	log.RunLogger.Printf("%v.mainLoopEnd isPanic[%v]", agent.name, isPanic)
 }
 
 func (agent *agentSession) onNetEventData(data base.NetEventData) bool {

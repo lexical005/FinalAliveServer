@@ -118,8 +118,8 @@ func (c *tcpClient) mainLoop(params ...interface{}) {
 		}
 	}
 }
-func (c *tcpClient) mainLoopEnd() {
-	log.RunLogger.Printf("tcpClient.mainLoopEnd: %v", c)
+func (c *tcpClient) mainLoopEnd(isPanic bool) {
+	log.RunLogger.Printf("tcpClient.mainLoopEnd isPanic[%v]: %v", isPanic, c)
 
 	c.chClientClosed <- struct{}{}
 }

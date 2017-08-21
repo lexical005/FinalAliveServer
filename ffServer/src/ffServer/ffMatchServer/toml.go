@@ -8,15 +8,6 @@ import (
 	"github.com/lexical005/toml"
 )
 
-// 文本日志配置
-type fileLoggerConfig struct {
-	LoggerType      string // 日志类型
-	RelativePath    string // 文本日志的存储相对路径
-	FileLenLimit    int    // 单文本日志的大小限制
-	RunLogger       bool   // 是否启用运行日志
-	RunLoggerPrefix string // 运行日志文件的前缀
-}
-
 // 服务器配置
 type applicationConfig struct {
 	// Server 服务器自身描述

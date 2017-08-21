@@ -13,11 +13,12 @@ import (
 )
 
 func main() {
-	defer func() {
-		util.PanicProtect("ffAgentGameServer.main")
-
-		<-time.After(time.Second)
-	}()
+	defer util.PanicProtect(func(isPanic bool) {
+		if isPanic {
+			log.RunLogger.Println("异常退出, 以上是错误堆栈")
+			<-time.After(time.Hour)
+		}
+	}, "ffAgentGameServer")
 
 	// 初始化
 	err := startup()
@@ -27,7 +28,14 @@ func main() {
 	}
 
 	// 启动
-	err = agentUserSvr.Start()
+	err = instAgentUserServer.Start()
+	if err != nil {
+		log.FatalLogger.Println(err)
+		return
+	}
+
+	// 启动
+	err = instMatchServerClient.Start()
 	if err != nil {
 		log.FatalLogger.Println(err)
 		return
@@ -50,7 +58,7 @@ quitLoop:
 		case <-time.After(time.Second):
 			closeTime++
 			log.RunLogger.Printf("closing %v", closeTime)
-			log.RunLogger.Printf("useragent_server[%s]", agentUserSvr.Status())
+			log.RunLogger.Printf("useragent_server[%s]", instAgentUserServer.Status())
 			tcpsession.PrintModule()
 			tcpserver.PrintModule()
 			ffProto.PrintModule()

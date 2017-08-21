@@ -142,8 +142,8 @@ func (s *tcpServer) mainAccept(params ...interface{}) {
 }
 
 // mainAcceptEnd 接受客户端连接彻底退出了
-func (s *tcpServer) mainAcceptEnd() {
-	log.RunLogger.Printf("tcpServer.mainAcceptEnd: %v", s)
+func (s *tcpServer) mainAcceptEnd(isPanic bool) {
+	log.RunLogger.Printf("tcpServer.mainAcceptEnd isPanic[%v]: %v", isPanic, s)
 
 	// 退出完成
 	s.chServerClosed <- struct{}{}

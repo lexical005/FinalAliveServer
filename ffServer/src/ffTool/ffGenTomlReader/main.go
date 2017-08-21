@@ -7,11 +7,17 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // main 将excel导出的go代码文件导入到一个工程, 生成exe, 读取配置文件, 以检测是否正常
 func main() {
-	defer util.PanicProtect()
+	defer util.PanicProtect(func(isPanic bool) {
+		if isPanic {
+			log.RunLogger.Println("异常退出, 以上是错误堆栈")
+			<-time.After(time.Hour)
+		}
+	}, "ffGenTomlReader")
 
 	// 命令行参数解析
 	gocodedir := flag.String("gocodedir", "", "golang read toml code directory")

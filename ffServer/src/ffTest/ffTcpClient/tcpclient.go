@@ -48,7 +48,7 @@ func (client *tcpClient) mainLoop(params ...interface{}) {
 		}
 	}
 }
-func (client *tcpClient) mainLoopEnd() {
+func (client *tcpClient) mainLoopEnd(isPanic bool) {
 	atomic.AddInt32(&waitQuitCount, -1)
 }
 
