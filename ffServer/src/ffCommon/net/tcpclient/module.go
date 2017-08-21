@@ -12,13 +12,13 @@ var mutexClient sync.Mutex
 var mapClients = make(map[uuid.UUID]*tcpClient, 1)
 var uuidGenerator uuid.Generator
 
-// Init 初始tcpclient模块
-func Init() (err error) {
+func init() {
 	log.RunLogger.Printf("tcpclient.Init")
 
+	var err error
 	uuidGenerator, err = uuid.NewGeneratorSafe(0)
 	if err != nil {
-		return err
+		log.FatalLogger.Printf("tcpserver init failed: %v", err)
 	}
 
 	return
