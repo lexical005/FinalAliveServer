@@ -47,3 +47,17 @@ type ConnectConfig struct {
 	// SessionSendProtoCache 待发送协议管道的缓存大小. 影响发送协议的速度
 	SessionSendProtoCache int
 }
+
+// ServerInfo 服务器自身描述
+type ServerInfo struct {
+	Channel    string // 渠道
+	ServerType string // 服务器类型
+	ServerID   int32  // 服务器编号
+}
+
+// SessionConfig 连接配置
+type SessionConfig struct {
+	ReadDeadTime          int // ReadDeadTime 读取超时N秒. 为0时, 使用系统默认配置值60
+	InitNetEventDataCount int // InitNetEventDataCount 初始创建多少网络事件数据缓存. 为0时, 使用的值为OnlineCount/4. 最小为2
+	InitOnlineCount       int // InitOnlineCount 初始创建多少连接缓存, 必须配置. >=2
+}
