@@ -2,7 +2,6 @@ package main
 
 import (
 	"ffCommon/log/log"
-	"ffCommon/net/netmanager"
 	"ffCommon/net/tcpclient"
 	"ffCommon/net/tcpserver"
 	"ffCommon/net/tcpsession"
@@ -28,7 +27,7 @@ func main() {
 	}
 
 	// 启动
-	mgrAgentGameServer, err = netmanager.NewServer(appConfig.ServeUser, &waitApplicationQuit, chApplicationQuit)
+	err = agentUserSvr.Start()
 	if err != nil {
 		log.FatalLogger.Println(err)
 		return
@@ -51,7 +50,7 @@ quitLoop:
 		case <-time.After(time.Second):
 			closeTime++
 			log.RunLogger.Printf("closing %v", closeTime)
-			log.RunLogger.Printf("useragent_server[%s]", mgrAgentGameServer.Status())
+			log.RunLogger.Printf("useragent_server[%s]", agentUserSvr.Status())
 			tcpsession.PrintModule()
 			tcpserver.PrintModule()
 			ffProto.PrintModule()
