@@ -1,6 +1,8 @@
 package main
 
-import "agentuser"
+import (
+	"ffCommon/net/netmanager"
+)
 
 const (
 	listenTargetUser       = "User"
@@ -11,7 +13,7 @@ const (
 var appConfig = &applicationConfig{}
 
 // mgrAgentUser
-var mgrAgentUser *agentuser.Manager
+var mgrAgentUser *netmanager.Manager
 
 // applicationQuit 进程是否要退出
 var applicationQuit = false

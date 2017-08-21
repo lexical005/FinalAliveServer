@@ -1,8 +1,8 @@
 package main
 
 import (
-	"agentuser"
 	"ffCommon/log/log"
+	"ffCommon/net/netmanager"
 	"ffCommon/net/tcpclient"
 	"ffCommon/net/tcpserver"
 	"ffCommon/net/tcpsession"
@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// 启动
-	mgrAgentUser, err = agentuser.NewServer(appConfig.ServeUser, &waitApplicationQuit, chApplicationQuit)
+	mgrAgentUser, err = netmanager.NewServer(appConfig.ServeUser, &waitApplicationQuit, chApplicationQuit)
 	if err != nil {
 		log.FatalLogger.Println(err)
 		return
