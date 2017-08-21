@@ -13,12 +13,54 @@ import (
 // Item excel Item
 type Item struct {
 	ItemTemplate map[int32]*ItemTemplate
+	GunWeapon    map[int32]*GunWeapon
+	Ammunition   map[int32]*Ammunition
+	Attachment   map[int32]*Attachment
+	MelleeWeapon map[int32]*MelleeWeapon
+	Equipment    map[int32]*Equipment
+	Consumable   map[int32]*Consumable
+	Throwable    map[int32]*Throwable
 }
 
 func (i *Item) String() string {
 	result := ""
 	result += "ItemTemplate"
 	for k, v := range i.ItemTemplate {
+		result += fmt.Sprintf("%v:%v\n", k, v)
+	}
+
+	result += "GunWeapon"
+	for k, v := range i.GunWeapon {
+		result += fmt.Sprintf("%v:%v\n", k, v)
+	}
+
+	result += "Ammunition"
+	for k, v := range i.Ammunition {
+		result += fmt.Sprintf("%v:%v\n", k, v)
+	}
+
+	result += "Attachment"
+	for k, v := range i.Attachment {
+		result += fmt.Sprintf("%v:%v\n", k, v)
+	}
+
+	result += "MelleeWeapon"
+	for k, v := range i.MelleeWeapon {
+		result += fmt.Sprintf("%v:%v\n", k, v)
+	}
+
+	result += "Equipment"
+	for k, v := range i.Equipment {
+		result += fmt.Sprintf("%v:%v\n", k, v)
+	}
+
+	result += "Consumable"
+	for k, v := range i.Consumable {
+		result += fmt.Sprintf("%v:%v\n", k, v)
+	}
+
+	result += "Throwable"
+	for k, v := range i.Throwable {
 		result += fmt.Sprintf("%v:%v\n", k, v)
 	}
 
@@ -32,30 +74,11 @@ func (i *Item) Name() string {
 
 // ItemTemplate sheet ItemTemplate of excel Item
 type ItemTemplate struct {
-	Name        string
-	Desc        string
-	SceneKey    string
-	Icon        string
-	ItemType    ffEnum.EItemType
-	SubType     []ffEnum.EItemType
-	Attrs1      map[int32]int32
-	Attrs1Key   []int32
-	Attrs1Value []int32
-	Attrs2      map[ffEnum.EItemType]int32
-	Attrs2Key   []ffEnum.EItemType
-	Attrs2Value []int32
-	Attrs3      map[ffEnum.EItemType]int32
-	Attrs3Key   []ffEnum.EItemType
-	Attrs3Value []int32
-	Attrs4      map[ffEnum.EItemType]ffEnum.EShootMode
-	Attrs4Key   []ffEnum.EItemType
-	Attrs4Value []ffEnum.EShootMode
-	Attrs5      map[ffEnum.EItemType]ffEnum.EShootMode
-	Attrs5Key   []ffEnum.EItemType
-	Attrs5Value []ffEnum.EShootMode
-	Attrs6      map[string]string
-	Attrs6Key   []string
-	Attrs6Value []string
+	Name     string
+	Desc     string
+	SceneKey string
+	Icon     string
+	ItemType ffEnum.EItemType
 }
 
 func (i *ItemTemplate) String() string {
@@ -65,25 +88,150 @@ func (i *ItemTemplate) String() string {
 	result += fmt.Sprintf("SceneKey:%v,", i.SceneKey)
 	result += fmt.Sprintf("Icon:%v,", i.Icon)
 	result += fmt.Sprintf("ItemType:%v,", i.ItemType)
-	result += fmt.Sprintf("SubType:%v,", i.SubType)
-	result += fmt.Sprintf("Attrs1:%v,", i.Attrs1)
-	result += fmt.Sprintf("Attrs1Key:%v,", i.Attrs1Key)
-	result += fmt.Sprintf("Attrs1Value:%v,", i.Attrs1Value)
-	result += fmt.Sprintf("Attrs2:%v,", i.Attrs2)
-	result += fmt.Sprintf("Attrs2Key:%v,", i.Attrs2Key)
-	result += fmt.Sprintf("Attrs2Value:%v,", i.Attrs2Value)
-	result += fmt.Sprintf("Attrs3:%v,", i.Attrs3)
-	result += fmt.Sprintf("Attrs3Key:%v,", i.Attrs3Key)
-	result += fmt.Sprintf("Attrs3Value:%v,", i.Attrs3Value)
-	result += fmt.Sprintf("Attrs4:%v,", i.Attrs4)
-	result += fmt.Sprintf("Attrs4Key:%v,", i.Attrs4Key)
-	result += fmt.Sprintf("Attrs4Value:%v,", i.Attrs4Value)
-	result += fmt.Sprintf("Attrs5:%v,", i.Attrs5)
-	result += fmt.Sprintf("Attrs5Key:%v,", i.Attrs5Key)
-	result += fmt.Sprintf("Attrs5Value:%v,", i.Attrs5Value)
-	result += fmt.Sprintf("Attrs6:%v,", i.Attrs6)
-	result += fmt.Sprintf("Attrs6Key:%v,", i.Attrs6Key)
-	result += fmt.Sprintf("Attrs6Value:%v,", i.Attrs6Value)
+	result += "]"
+	return result
+}
+
+// GunWeapon sheet GunWeapon of excel Item
+type GunWeapon struct {
+	GunWeaponType   ffEnum.EGunWeaponType
+	ShootMode       []ffEnum.EShootMode
+	AmmunitionType  ffEnum.EAmmunitionType
+	AttachmentTypes []ffEnum.EAttachmentType
+	Attrs           map[ffEnum.EAttr]int32
+	AttrsKey        []ffEnum.EAttr
+	AttrsValue      []int32
+}
+
+func (g *GunWeapon) String() string {
+	result := "["
+	result += fmt.Sprintf("GunWeaponType:%v,", g.GunWeaponType)
+	result += fmt.Sprintf("ShootMode:%v,", g.ShootMode)
+	result += fmt.Sprintf("AmmunitionType:%v,", g.AmmunitionType)
+	result += fmt.Sprintf("AttachmentTypes:%v,", g.AttachmentTypes)
+	result += fmt.Sprintf("Attrs:%v,", g.Attrs)
+	result += fmt.Sprintf("AttrsKey:%v,", g.AttrsKey)
+	result += fmt.Sprintf("AttrsValue:%v,", g.AttrsValue)
+	result += "]"
+	return result
+}
+
+// Ammunition sheet Ammunition of excel Item
+type Ammunition struct {
+	AmmunitionType  ffEnum.EAmmunitionType
+	AmmunitionStack int32
+}
+
+func (a *Ammunition) String() string {
+	result := "["
+	result += fmt.Sprintf("AmmunitionType:%v,", a.AmmunitionType)
+	result += fmt.Sprintf("AmmunitionStack:%v,", a.AmmunitionStack)
+	result += "]"
+	return result
+}
+
+// Attachment sheet Attachment of excel Item
+type Attachment struct {
+	AttachmentType ffEnum.EAttachmentType
+	GunWeapons     []int32
+	ShutSound      int32
+	ShutFire       int32
+	Attrs          map[ffEnum.EAttr]int32
+	AttrsKey       []ffEnum.EAttr
+	AttrsValue     []int32
+	Clip           map[int32]int32
+	ClipKey        []int32
+	ClipValue      []int32
+}
+
+func (a *Attachment) String() string {
+	result := "["
+	result += fmt.Sprintf("AttachmentType:%v,", a.AttachmentType)
+	result += fmt.Sprintf("GunWeapons:%v,", a.GunWeapons)
+	result += fmt.Sprintf("ShutSound:%v,", a.ShutSound)
+	result += fmt.Sprintf("ShutFire:%v,", a.ShutFire)
+	result += fmt.Sprintf("Attrs:%v,", a.Attrs)
+	result += fmt.Sprintf("AttrsKey:%v,", a.AttrsKey)
+	result += fmt.Sprintf("AttrsValue:%v,", a.AttrsValue)
+	result += fmt.Sprintf("Clip:%v,", a.Clip)
+	result += fmt.Sprintf("ClipKey:%v,", a.ClipKey)
+	result += fmt.Sprintf("ClipValue:%v,", a.ClipValue)
+	result += "]"
+	return result
+}
+
+// MelleeWeapon sheet MelleeWeapon of excel Item
+type MelleeWeapon struct {
+	MelleeWeaponType ffEnum.EMelleeWeaponType
+	Attrs            map[ffEnum.EAttr]int32
+	AttrsKey         []ffEnum.EAttr
+	AttrsValue       []int32
+}
+
+func (m *MelleeWeapon) String() string {
+	result := "["
+	result += fmt.Sprintf("MelleeWeaponType:%v,", m.MelleeWeaponType)
+	result += fmt.Sprintf("Attrs:%v,", m.Attrs)
+	result += fmt.Sprintf("AttrsKey:%v,", m.AttrsKey)
+	result += fmt.Sprintf("AttrsValue:%v,", m.AttrsValue)
+	result += "]"
+	return result
+}
+
+// Equipment sheet Equipment of excel Item
+type Equipment struct {
+	EquipmentType ffEnum.EEquipmentType
+	Attrs         map[ffEnum.EAttr]int32
+	AttrsKey      []ffEnum.EAttr
+	AttrsValue    []int32
+}
+
+func (e *Equipment) String() string {
+	result := "["
+	result += fmt.Sprintf("EquipmentType:%v,", e.EquipmentType)
+	result += fmt.Sprintf("Attrs:%v,", e.Attrs)
+	result += fmt.Sprintf("AttrsKey:%v,", e.AttrsKey)
+	result += fmt.Sprintf("AttrsValue:%v,", e.AttrsValue)
+	result += "]"
+	return result
+}
+
+// Consumable sheet Consumable of excel Item
+type Consumable struct {
+	ConsumableType      ffEnum.EConsumableType
+	UseTime             int32
+	UseHpLimit          int32
+	UseRecover          int32
+	UseRecoverUpLimit   int32
+	KeepTime            int32
+	KeepRecoverInterval int32
+	KeepRecover         int32
+}
+
+func (c *Consumable) String() string {
+	result := "["
+	result += fmt.Sprintf("ConsumableType:%v,", c.ConsumableType)
+	result += fmt.Sprintf("UseTime:%v,", c.UseTime)
+	result += fmt.Sprintf("UseHpLimit:%v,", c.UseHpLimit)
+	result += fmt.Sprintf("UseRecover:%v,", c.UseRecover)
+	result += fmt.Sprintf("UseRecoverUpLimit:%v,", c.UseRecoverUpLimit)
+	result += fmt.Sprintf("KeepTime:%v,", c.KeepTime)
+	result += fmt.Sprintf("KeepRecoverInterval:%v,", c.KeepRecoverInterval)
+	result += fmt.Sprintf("KeepRecover:%v,", c.KeepRecover)
+	result += "]"
+	return result
+}
+
+// Throwable sheet Throwable of excel Item
+type Throwable struct {
+	ThrowableType ffEnum.EThrowableType
+	RadiusClose   int32
+}
+
+func (t *Throwable) String() string {
+	result := "["
+	result += fmt.Sprintf("ThrowableType:%v,", t.ThrowableType)
+	result += fmt.Sprintf("RadiusClose:%v,", t.RadiusClose)
 	result += "]"
 	return result
 }
@@ -103,45 +251,38 @@ func ReadItem() (i *Item, err error) {
 		return
 	}
 
-	for _, one := range i.ItemTemplate {
-		one.Attrs1 = make(map[int32]int32, len(one.Attrs1Key))
-		for index, v := range one.Attrs1Key {
-			one.Attrs1[v] = one.Attrs1Value[index]
+	for _, one := range i.GunWeapon {
+		one.Attrs = make(map[ffEnum.EAttr]int32, len(one.AttrsKey))
+		for index, v := range one.AttrsKey {
+			one.Attrs[v] = one.AttrsValue[index]
 		}
 	}
 
-	for _, one := range i.ItemTemplate {
-		one.Attrs2 = make(map[ffEnum.EItemType]int32, len(one.Attrs2Key))
-		for index, v := range one.Attrs2Key {
-			one.Attrs2[v] = one.Attrs2Value[index]
+	for _, one := range i.Attachment {
+		one.Attrs = make(map[ffEnum.EAttr]int32, len(one.AttrsKey))
+		for index, v := range one.AttrsKey {
+			one.Attrs[v] = one.AttrsValue[index]
 		}
 	}
 
-	for _, one := range i.ItemTemplate {
-		one.Attrs3 = make(map[ffEnum.EItemType]int32, len(one.Attrs3Key))
-		for index, v := range one.Attrs3Key {
-			one.Attrs3[v] = one.Attrs3Value[index]
+	for _, one := range i.Attachment {
+		one.Clip = make(map[int32]int32, len(one.ClipKey))
+		for index, v := range one.ClipKey {
+			one.Clip[v] = one.ClipValue[index]
 		}
 	}
 
-	for _, one := range i.ItemTemplate {
-		one.Attrs4 = make(map[ffEnum.EItemType]ffEnum.EShootMode, len(one.Attrs4Key))
-		for index, v := range one.Attrs4Key {
-			one.Attrs4[v] = one.Attrs4Value[index]
+	for _, one := range i.MelleeWeapon {
+		one.Attrs = make(map[ffEnum.EAttr]int32, len(one.AttrsKey))
+		for index, v := range one.AttrsKey {
+			one.Attrs[v] = one.AttrsValue[index]
 		}
 	}
 
-	for _, one := range i.ItemTemplate {
-		one.Attrs5 = make(map[ffEnum.EItemType]ffEnum.EShootMode, len(one.Attrs5Key))
-		for index, v := range one.Attrs5Key {
-			one.Attrs5[v] = one.Attrs5Value[index]
-		}
-	}
-
-	for _, one := range i.ItemTemplate {
-		one.Attrs6 = make(map[string]string, len(one.Attrs6Key))
-		for index, v := range one.Attrs6Key {
-			one.Attrs6[v] = one.Attrs6Value[index]
+	for _, one := range i.Equipment {
+		one.Attrs = make(map[ffEnum.EAttr]int32, len(one.AttrsKey))
+		for index, v := range one.AttrsKey {
+			one.Attrs[v] = one.AttrsValue[index]
 		}
 	}
 
