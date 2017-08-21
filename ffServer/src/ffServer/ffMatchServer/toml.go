@@ -21,54 +21,6 @@ type sessionConfig struct {
 	InitOnlineCount       int // InitOnlineCount 初始创建多少连接缓存, 必须配置. >=2
 }
 
-// serveConfig 服务配置
-type serveConfig struct {
-	// ListenTarget 监听目标
-	ListenTarget string
-
-	// ListenAddr 监听地址
-	ListenAddr string
-
-	// InitOnlineCount 初始多少同时连接存在
-	InitOnlineCount int
-
-	// SendExtraDataType 发送的协议的附加数据类型
-	SendExtraDataType string
-
-	// RecvExtraDataType 接收的协议的附加数据类型
-	RecvExtraDataType string
-
-	// AcceptNewSessionCache 接受新连接的管道的缓存大小. 影响接受新连接速度.
-	AcceptNewSessionCache int
-
-	// SessionNetEventDataCache 网络事件管道的缓存大小. 影响处理网络事件的速度.
-	SessionNetEventDataCache int
-
-	// SessionSendProtoCache 待发送协议管道的缓存大小. 影响发送协议的速度
-	SessionSendProtoCache int
-}
-
-// connectConfig 为用户提供服务的配置
-type connectConfig struct {
-	// ConnectTarget 连接目标
-	ConnectTarget string
-
-	// ConnectAddr 连接地址
-	ConnectAddr string
-
-	// SendExtraDataType 发送的协议的附加数据类型
-	SendExtraDataType string
-
-	// RecvExtraDataType 接收的协议的附加数据类型
-	RecvExtraDataType string
-
-	// SessionNetEventDataCache 网络事件管道的缓存大小. 影响处理网络事件的速度.
-	SessionNetEventDataCache int
-
-	// SessionSendProtoCache 待发送协议管道的缓存大小. 影响发送协议的速度
-	SessionSendProtoCache int
-}
-
 // 文本日志配置
 type fileLoggerConfig struct {
 	LoggerType      string // 日志类型
@@ -86,11 +38,11 @@ type applicationConfig struct {
 	// Session 连接配置
 	Session *sessionConfig
 
-	// ServeUser 服务用户的配置
-	ServeUser *base.ServeConfig
+	// ServeAgentGameServer 服务AgentGameServer的配置
+	ServeAgentGameServer *base.ServeConfig
 
-	// ConnectMatchServer 连接MatchServer
-	ConnectMatchServer *base.ConnectConfig
+	// ServeAgentBattleServer 服务BattleGameServer的配置
+	ServeAgentBattleServer *base.ServeConfig
 
 	// Logger 日志配置
 	Logger *fileLoggerConfig

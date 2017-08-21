@@ -51,15 +51,15 @@ func (server *agentGameServerServer) Back(handler netmanager.INetSessionHandler)
 func (server *agentGameServerServer) Start() error {
 	log.RunLogger.Printf("agentUserServer.Start")
 
-	manager, err := netmanager.NewServer(server, appConfig.ServeUser, &waitApplicationQuit, chApplicationQuit)
+	manager, err := netmanager.NewServer(server, appConfig.ServeAgentGameServer, &waitApplicationQuit, chApplicationQuit)
 	if err != nil {
 		log.FatalLogger.Println(err)
 		return err
 	}
 
 	server.netManager = manager
-	server.mapAgent = make(map[uuid.UUID]*agentGameServer, appConfig.ServeUser.InitOnlineCount)
-	server.agentPool = newAgentGameServerPool("agentUserServer", appConfig.ServeUser.InitOnlineCount)
+	server.mapAgent = make(map[uuid.UUID]*agentGameServer, appConfig.ServeAgentGameServer.InitOnlineCount)
+	server.agentPool = newAgentGameServerPool("agentUserServer", appConfig.ServeAgentGameServer.InitOnlineCount)
 
 	atomic.AddInt32(&waitApplicationQuit, 1)
 
