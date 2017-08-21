@@ -2,6 +2,7 @@ package main
 
 import (
 	"ffCommon/log/log"
+	"ffCommon/net/netmanager"
 	"ffCommon/net/tcpclient"
 	"ffCommon/net/tcpserver"
 	"ffCommon/net/tcpsession"
@@ -14,7 +15,7 @@ import (
 
 func main() {
 	defer func() {
-		util.PanicProtect("ffMatchServer.main")
+		util.PanicProtect("ffAgentGameServer.main")
 
 		<-time.After(time.Second)
 	}()
@@ -27,7 +28,8 @@ func main() {
 	}
 
 	// 启动
-	if err = mgrAgentGameServer.start(appConfig.ServeAgentGameServer); err != nil {
+	mgrAgentGameServer, err = netmanager.NewServer(appConfig.ServeUser, &waitApplicationQuit, chApplicationQuit)
+	if err != nil {
 		log.FatalLogger.Println(err)
 		return
 	}
@@ -54,7 +56,7 @@ quitLoop:
 			tcpserver.PrintModule()
 			ffProto.PrintModule()
 
-			if atomic.LoadInt32(&waitServerQuit) == 0 {
+			if atomic.LoadInt32(&waitApplicationQuit) == 0 {
 				break quitLoop
 			}
 		}
