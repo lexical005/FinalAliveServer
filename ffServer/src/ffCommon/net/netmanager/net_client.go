@@ -23,6 +23,12 @@ type netClient struct {
 	chNetExit chan struct{}
 }
 
+func (net *netClient) onAgentClosed() {
+	if net.client != nil {
+		net.client.ReConnect()
+	}
+}
+
 func (net *netClient) Stop() {
 	net.client.Stop()
 }

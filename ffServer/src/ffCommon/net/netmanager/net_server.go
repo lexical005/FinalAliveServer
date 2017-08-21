@@ -23,6 +23,9 @@ type netServer struct {
 	chNetExit chan struct{}
 }
 
+func (net *netServer) onAgentClosed() {
+}
+
 func (net *netServer) Stop() {
 	net.server.StopAccept()
 }

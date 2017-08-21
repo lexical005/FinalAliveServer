@@ -7,6 +7,9 @@ import (
 )
 
 type inet interface {
+	// onAgentClosed 连接断开事件
+	onAgentClosed()
+
 	// Stop 通知底层停止
 	Stop()
 

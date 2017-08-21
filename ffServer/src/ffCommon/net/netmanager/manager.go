@@ -78,6 +78,9 @@ func (mgr *Manager) onAgentClosed(agent *agentSession) {
 
 	// 缓存
 	mgr.agentPool.back(agent)
+
+	//
+	mgr.net.onAgentClosed()
 }
 
 // mainLoop
