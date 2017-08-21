@@ -66,6 +66,11 @@ func (agent *agentUser) Back() {
 	agent.netsession = nil
 }
 
+// Close 主动关闭
+func (agent *agentUser) Close() {
+	agent.netsession.Close()
+}
+
 func newAgentUser() *agentUser {
 	return &agentUser{}
 }
