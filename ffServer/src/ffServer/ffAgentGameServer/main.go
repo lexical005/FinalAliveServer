@@ -1,6 +1,7 @@
 package main
 
 import (
+	"agentuser"
 	"ffCommon/log/log"
 	"ffCommon/net/tcpclient"
 	"ffCommon/net/tcpserver"
@@ -27,7 +28,8 @@ func main() {
 	}
 
 	// 启动
-	if err = mgrAgentUser.Start(appConfig.ServeUser, &waitApplicationQuit, chApplicationQuit); err != nil {
+	mgrAgentUser, err = agentuser.NewServer(appConfig.ServeUser, &waitApplicationQuit, chApplicationQuit)
+	if err != nil {
 		log.FatalLogger.Println(err)
 		return
 	}
