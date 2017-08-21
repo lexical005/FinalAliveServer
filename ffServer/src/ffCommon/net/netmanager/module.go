@@ -4,11 +4,55 @@ import (
 	"ffCommon/net/base"
 	"ffCommon/util"
 	"ffCommon/uuid"
+	"ffProto"
 	"fmt"
 )
 
+// INetSession 连接对象对外提供的方法
+type INetSession interface {
+	// UUID 唯一标识
+	UUID() uuid.UUID
+
+	// SendProto 发送协议
+	SendProto(proto *ffProto.Proto) bool
+}
+
+// INetSessionHandler 连接对象关联的外界逻辑处理对象
+//	INetSessionHandler 内部, 是单线的
+//	INetSessionHandler 之间, 没有任何耦合
+type INetSessionHandler interface {
+	// UUID 唯一标识
+	UUID() uuid.UUID
+
+	// Init 初始化
+	Init(netsession INetSession)
+
+	// OnConnect 连接建立完成事件
+	OnConnect()
+
+	// OnDisConnect 连接关闭事件
+	OnDisConnect()
+
+	// OnProto 接收到协议, 返回值表明接收到的Proto是否进入了发送逻辑, 必须正确设置, 否则将导致泄露或者异常
+	OnProto(proto *ffProto.Proto) bool
+}
+
+// INetSessionHandlerManager INetSessionHandler 管理器, 不会被异步调用
+type INetSessionHandlerManager interface {
+	// Create 创建INetSessionHandler
+	Create(netSession INetSession) INetSessionHandler
+
+	// Back 回收INetSessionHandler
+	Back(handler INetSessionHandler)
+
+	// End 退出完成
+	End()
+}
+
 // NewServer 根据配置返回一个Server管理器
-func NewServer(config *base.ServeConfig,
+func NewServer(
+	handlerManager INetSessionHandlerManager,
+	config *base.ServeConfig,
 	countApplicationQuit *int32,
 	chApplicationQuit chan struct{}) (mgr *Manager, err error) {
 
@@ -21,6 +65,8 @@ func NewServer(config *base.ServeConfig,
 
 	mgr = &Manager{
 		name: name,
+
+		handlerManager: handlerManager,
 
 		net: net,
 
@@ -38,7 +84,9 @@ func NewServer(config *base.ServeConfig,
 }
 
 // NewClient 根据配置返回一个Client管理器
-func NewClient(config *base.ConnectConfig,
+func NewClient(
+	handlerManager INetSessionHandlerManager,
+	config *base.ConnectConfig,
 	countApplicationQuit *int32,
 	chApplicationQuit chan struct{}) (mgr *Manager, err error) {
 
@@ -51,6 +99,8 @@ func NewClient(config *base.ConnectConfig,
 
 	mgr = &Manager{
 		name: name,
+
+		handlerManager: handlerManager,
 
 		net: net,
 

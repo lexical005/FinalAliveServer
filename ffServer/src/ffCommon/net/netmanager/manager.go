@@ -12,6 +12,9 @@ import (
 type Manager struct {
 	name string
 
+	// handlerManager
+	handlerManager INetSessionHandlerManager
+
 	// net 底层实现
 	net inet
 
@@ -49,16 +52,26 @@ func (mgr *Manager) onNetExit() {
 func (mgr *Manager) onNewSession(sess base.Session) {
 	log.RunLogger.Printf("%v.onNewSession sess[%v]", mgr.name, sess)
 
+	//
 	agent := mgr.agentPool.apply()
-	mgr.mapAgent[sess.UUID()] = agent
-	agent.Start(sess, mgr.net, mgr.chAgentClosed)
+	agent.init(sess, mgr.net, mgr.chAgentClosed)
+
+	//
+	handler := mgr.handlerManager.Create(agent)
+
+	//
+	mgr.mapAgent[agent.UUID()] = agent
+
+	agent.Start(sess, mgr.net, handler)
 }
 
 // onAgentClosed Agent关闭
 func (mgr *Manager) onAgentClosed(agent *agentSession) {
 	log.RunLogger.Printf("%v.onAgentClosed %v", mgr.name, agent)
 
-	delete(mgr.mapAgent, agent.uuidSession)
+	delete(mgr.mapAgent, agent.UUID())
+
+	mgr.handlerManager.Back(agent.handler)
 
 	// 回收清理
 	agent.Back()
@@ -157,5 +170,10 @@ func (mgr *Manager) mainLoopEnd() {
 	close(mgr.chAgentClosed)
 	mgr.chAgentClosed = nil
 
+	handlerManager := mgr.handlerManager
+	mgr.handlerManager = nil
+
 	atomic.AddInt32(mgr.countApplicationQuit, -1)
+
+	handlerManager.End()
 }

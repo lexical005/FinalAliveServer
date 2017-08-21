@@ -13,8 +13,9 @@ import (
 
 // 连接对象
 type agentSession struct {
-	name        string
-	uuidSession uuid.UUID
+	name    string
+	uuid    uuid.UUID
+	handler INetSessionHandler
 
 	status int32 // 运行状态  0初始状态 1可使用 2使用中 -1关闭中(阻碍进入使用状态) -2完成了所有关闭工作(阻碍进入使用状态) -3关闭完成
 
@@ -30,6 +31,11 @@ type agentSession struct {
 
 func (agent *agentSession) String() string {
 	return agent.name
+}
+
+// UUID 唯一标识
+func (agent *agentSession) UUID() uuid.UUID {
+	return agent.uuid
 }
 
 func (agent *agentSession) mainLoop(params ...interface{}) {
@@ -95,6 +101,8 @@ func (agent *agentSession) onConnect(data base.NetEventData) {
 
 	// 0初始状态 ==> 1可使用
 	atomic.CompareAndSwapInt32(&agent.status, 0, 1)
+
+	agent.handler.OnConnect()
 }
 
 // onDisConnect 连接断开, 此事件处理完毕后, session将不可用
@@ -106,6 +114,8 @@ func (agent *agentSession) onDisConnect(data base.NetEventData) {
 		// -2完成了所有关闭工作(阻碍进入使用状态)
 		atomic.StoreInt32(&agent.status, -2)
 	}
+
+	agent.handler.OnConnect()
 
 	agent.chAgentClosed <- agent
 }
@@ -126,27 +136,30 @@ func (agent *agentSession) onProto(data base.NetEventData) {
 		}
 	}()
 
-	// todo: 区分协议号, 有些协议直接转发的
-	// 反序列化
-	if err := proto.Unmarshal(); err != nil {
-		log.RunLogger.Printf("%v.onProto proto[%v] Unmarshal error[%v]", agent.name, proto, err)
-		agent.Close()
-		return
-	}
+	if protoID == ffProto.MessageType_KeepAlive || protoID == ffProto.MessageType_ServerKeepAlive {
 
-	log.RunLogger.Printf("%v.onProto proto[%v]", agent.name, proto)
+		// 维持活跃协议, 直接返回
+		changedToSendState = true
+		proto.ChangeLimitStateRecvToSend()
+		agent.SendProto(proto)
 
-	if callback, ok := mapProtoCallback[protoID]; ok {
-		changedToSendState = callback(agent, proto)
 	} else {
-		log.FatalLogger.Printf("%v.onProto unknown protoID[%v]", agent.name, protoID)
+
+		// 其他协议, 则反序列化
+		if err := proto.Unmarshal(); err != nil {
+			log.RunLogger.Printf("%v.onProto proto[%v] Unmarshal error[%v]", agent.name, proto, err)
+			agent.Close()
+			return
+		}
+
+		changedToSendState = agent.handler.OnProto(proto)
 	}
 }
 
-// Start 初始化, 然后开始收发协议并处理
-func (agent *agentSession) Start(sess base.Session, net inet, chAgentClosed chan *agentSession) {
+// init 初始化
+func (agent *agentSession) init(sess base.Session, net inet, chAgentClosed chan *agentSession) {
 	agent.name = fmt.Sprintf("agentSession[%v]", sess.UUID())
-	agent.uuidSession = sess.UUID()
+	agent.uuid = sess.UUID()
 
 	agent.sendExtraDataType, agent.chAgentClosed = net.SendExtraDataType(), chAgentClosed
 
@@ -158,6 +171,11 @@ func (agent *agentSession) Start(sess base.Session, net inet, chAgentClosed chan
 	agent.onceClose.Reset()
 
 	agent.status = 0
+}
+
+// Start 启动, 收发协议
+func (agent *agentSession) Start(sess base.Session, net inet, handler INetSessionHandler) {
+	agent.handler = handler
 
 	sess.Start(agent.chSendProto, agent.chNetEventData, net.RecvExtraDataType())
 
@@ -182,7 +200,7 @@ func (agent *agentSession) SendProto(proto *ffProto.Proto) bool {
 	if agent.sendExtraDataType == ffProto.ExtraDataTypeNormal {
 		proto.SetExtraDataNormal()
 	} else if agent.sendExtraDataType == ffProto.ExtraDataTypeUUID {
-		proto.SetExtraDataUUID(agent.uuidSession.Value())
+		proto.SetExtraDataUUID(agent.uuid.Value())
 	}
 
 	agent.chSendProto <- proto
@@ -199,6 +217,7 @@ func (agent *agentSession) SendProto(proto *ffProto.Proto) bool {
 // Back 可安全回收了
 func (agent *agentSession) Back() {
 	agent.chAgentClosed = nil
+	agent.handler = nil
 
 	// 清理待发送Proto
 	{
