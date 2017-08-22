@@ -234,7 +234,7 @@ func (agent *agentSession) Back() {
 
 			waitCount++
 			if waitCount > maxWaitCount {
-				log.FatalLogger.Printf("Back wait SendProto too long time[%v] to exit", waitCount)
+				log.FatalLogger.Printf("%v.Back wait SendProto too long time[%v] to exit", agent.name, waitCount)
 				break
 			}
 		}

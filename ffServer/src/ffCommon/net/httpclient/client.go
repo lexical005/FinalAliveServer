@@ -11,6 +11,7 @@ import (
 // Client http Client
 //	从请求Close开始, 已发起了的请求, 依然会返回结果, 管道内尚未处理的, 则全部忽略
 type Client struct {
+	url    string
 	client *http.Client
 
 	chExit    chan struct{} // 退出完成时, 向外界通知, 仅有使用权
@@ -42,7 +43,7 @@ func (c *Client) doPost(request Request) {
 		return
 	}
 
-	resp, err := c.client.Post(request.URL(), postContentTypeJSON, bytes.NewBuffer(data))
+	resp, err := c.client.Post(c.url, postContentTypeJSON, bytes.NewBuffer(data))
 	if err != nil {
 		return
 	}

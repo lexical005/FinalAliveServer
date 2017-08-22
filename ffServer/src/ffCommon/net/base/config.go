@@ -75,4 +75,7 @@ type HTTPClientConfig struct {
 
 	// RequestWorkerCount 使用几个协程发送验证请求
 	RequestWorkerCount int
+
+	// RequestCountCache 最多缓存几个验证请求
+	RequestCountCache int
 }
