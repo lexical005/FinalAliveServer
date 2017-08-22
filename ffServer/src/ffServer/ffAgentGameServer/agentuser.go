@@ -13,6 +13,9 @@ type agentUser struct {
 	name string
 
 	netsession netmanager.INetSession
+
+	uuidPlatformLogin string // 用户平台唯一标识
+	uuidAccount       uint64 // 用户唯一id
 }
 
 func (agent *agentUser) String() string {

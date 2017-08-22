@@ -14,6 +14,9 @@ var instAgentUserServer = &agentUserServer{}
 // instMatchServerClient
 var instMatchServerClient = &matchServerClient{}
 
+// instHTTPLoginClient
+var instHTTPLoginClient = &httpClientLogin{}
+
 // waitApplicationQuit 等待所有系统退出
 var waitApplicationQuit int32
 

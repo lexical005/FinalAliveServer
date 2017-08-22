@@ -22,6 +22,9 @@ type applicationConfig struct {
 	// ConnectMatchServer 连接MatchServer
 	ConnectMatchServer *base.ConnectConfig
 
+	// ConnectLogin 连接到http服务器进行登录验证
+	ConnectLogin *base.HTTPClientConfig
+
 	// Logger 日志配置
 	Logger *log.LoggerConfig
 }

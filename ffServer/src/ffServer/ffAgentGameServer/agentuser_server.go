@@ -5,19 +5,24 @@ import (
 	"ffCommon/net/netmanager"
 	"ffCommon/uuid"
 	"fmt"
+	"sync"
 	"sync/atomic"
 )
 
 type agentUserServer struct {
 	netManager *netmanager.Manager
 
-	mapAgent  map[uuid.UUID]*agentUser // mapAgent 所有连接
-	agentPool *agentUserPool           // agentPool 所有连接缓存
+	mutexAgent sync.Mutex               // mutexAgent 锁
+	mapAgent   map[uuid.UUID]*agentUser // mapAgent 所有连接
+	agentPool  *agentUserPool           // agentPool 所有连接缓存
 }
 
 // Create 创建
 func (server *agentUserServer) Create(netsession netmanager.INetSession) netmanager.INetSessionHandler {
 	log.RunLogger.Printf("agentUserServer.Create netsession[%v]", netsession)
+
+	server.mutexAgent.Lock()
+	defer server.mutexAgent.Unlock()
 
 	// 申请
 	agent := server.agentPool.apply()
@@ -34,6 +39,9 @@ func (server *agentUserServer) Create(netsession netmanager.INetSession) netmana
 // Back 回收
 func (server *agentUserServer) Back(handler netmanager.INetSessionHandler) {
 	log.RunLogger.Printf("agentUserServer.Back handler[%v]", handler)
+
+	server.mutexAgent.Lock()
+	defer server.mutexAgent.Unlock()
 
 	agent, _ := handler.(*agentUser)
 
@@ -77,4 +85,19 @@ func (server *agentUserServer) End() {
 func (server *agentUserServer) Status() string {
 	return fmt.Sprintf("mapAgent[%v] agentPool[%v] netManager[%v]",
 		len(server.mapAgent), server.agentPool, server.netManager.Status())
+}
+
+// OnCustomLoginResult Login检查结果
+func (server *agentUserServer) OnCustomLoginResult(result *httpClientCustomLoginData) {
+	log.RunLogger.Printf("agentUserServer.OnCustomLoginResult result[%v]", result)
+
+	server.mutexAgent.Lock()
+	defer server.mutexAgent.Unlock()
+
+	agent, ok := server.mapAgent[result.uuidRequester]
+	log.RunLogger.Printf("agentUserServer.OnCustomLoginResult find agent[%v] result[%v]", result.uuidRequester, ok)
+
+	if ok {
+		onCustomLoginResult(agent, result)
+	}
 }

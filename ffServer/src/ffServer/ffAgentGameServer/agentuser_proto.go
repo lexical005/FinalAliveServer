@@ -32,16 +32,47 @@ func onProtoPrepareLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto)
 	message, _ := proto.Message().(*ffProto.MsgPrepareLoginPlatformUniqueId)
 	message.FixSalt = fixSalt
 
+	agent.uuidPlatformLogin = message.UUIDPlatformLogin
+
 	proto.ChangeLimitStateRecvToSend()
 	agent.SendProto(proto)
 	return true
 }
 
 func onProtoLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) bool {
-	message, _ := proto.Message().(*ffProto.MsgLoginPlatformUniqueId)
-	message.UUIDLogin = agent.UUID().Value()
+	// message, _ := proto.Message().(*ffProto.MsgLoginPlatformUniqueId)
+	// message.UUIDLogin = agent.UUID().Value()
 
-	proto.ChangeLimitStateRecvToSend()
+	// proto.ChangeLimitStateRecvToSend()
+	// agent.SendProto(proto)
+	// return true
+
+	loginData := &httpClientCustomLoginData{
+		// 请求者
+		uuidRequester: agent.UUID(),
+
+		// 请求数据
+		UUIDPlatform: agent.uuidPlatformLogin,
+	}
+
+	// 无法请求登录验证
+	if !instHTTPLoginClient.PostCustomLogin(loginData) {
+		agent.Close()
+	}
+
+	return false
+}
+
+func onCustomLoginResult(agent *agentUser, result *httpClientCustomLoginData) {
+	proto := ffProto.ApplyProtoForSend(ffProto.MessageType_LoginPlatformUniqueId)
+	message := proto.Message().(*ffProto.MsgLoginPlatformUniqueId)
+
+	if result.err != nil {
+		message.Result = ffError.ErrUnknown.Code()
+	} else {
+		agent.uuidAccount = result.UUIDAccount
+		message.UUIDLogin = result.UUIDAccount
+	}
+
 	agent.SendProto(proto)
-	return true
 }

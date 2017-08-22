@@ -68,5 +68,12 @@ func startup() (err error) {
 		return
 	}
 
+	// 启动
+	err = instHTTPLoginClient.Start()
+	if err != nil {
+		log.FatalLogger.Println(err)
+		return
+	}
+
 	return err
 }
