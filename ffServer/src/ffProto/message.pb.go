@@ -1,8 +1,8 @@
 package ffProto
 
 var listMessageID = []MessageType{
+	MessageType_KeepAlive,
 	MessageType_ServerRegister,
-	MessageType_ServerKeepAlive,
 	MessageType_PrepareLoginPlatformUniqueId,
 	MessageType_LoginPlatformUniqueId,
 	MessageType_LoginPlatformSidToken,
@@ -10,7 +10,6 @@ var listMessageID = []MessageType{
 	MessageType_Kick,
 	MessageType_EnterGameWorld,
 	MessageType_AgentDisConnect,
-	MessageType_KeepAlive,
 	MessageType_EnterTeam,
 	MessageType_InviteJoinTeam,
 	MessageType_AnswerJoinTeam,
@@ -21,11 +20,11 @@ var listMessageID = []MessageType{
 }
 
 var mapMessageCreator = map[MessageType]func() interface{}{
+	MessageType_KeepAlive: func() interface{} {
+		return &MsgKeepAlive{}
+	},
 	MessageType_ServerRegister: func() interface{} {
 		return &MsgServerRegister{}
-	},
-	MessageType_ServerKeepAlive: func() interface{} {
-		return &MsgServerKeepAlive{}
 	},
 	MessageType_PrepareLoginPlatformUniqueId: func() interface{} {
 		return &MsgPrepareLoginPlatformUniqueId{}
@@ -47,9 +46,6 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	},
 	MessageType_AgentDisConnect: func() interface{} {
 		return &MsgAgentDisConnect{}
-	},
-	MessageType_KeepAlive: func() interface{} {
-		return &MsgKeepAlive{}
 	},
 	MessageType_EnterTeam: func() interface{} {
 		return &MsgEnterTeam{}

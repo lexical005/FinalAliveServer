@@ -56,9 +56,6 @@ func (as *agentServer) OnEvent(protoID ffProto.MessageType, data interface{}) {
 		wg, _ := data.(*sync.WaitGroup)
 		wg.Done()
 
-	} else if protoID == ffProto.MessageType_ServerKeepAlive {
-
-		// 维持连接不断开协议(什么都不需要做)
 
 	} else {
 		p, _ := data.(*ffProto.Proto)

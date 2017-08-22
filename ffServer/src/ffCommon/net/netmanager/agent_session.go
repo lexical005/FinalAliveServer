@@ -136,7 +136,7 @@ func (agent *agentSession) onProto(data base.NetEventData) {
 		}
 	}()
 
-	if protoID == ffProto.MessageType_KeepAlive || protoID == ffProto.MessageType_ServerKeepAlive {
+	if protoID == ffProto.MessageType_KeepAlive {
 
 		// 维持活跃协议, 直接返回
 		changedToSendState = true
@@ -256,6 +256,10 @@ func (agent *agentSession) Back() {
 	// 关闭
 	close(agent.chClose)
 	agent.chClose = nil
+}
+
+// KeepAlive 定时发送KeepAlive协议, 保持连接有效
+func (agent *agentSession) KeepAlive() {
 }
 
 func newAgentSession() *agentSession {
