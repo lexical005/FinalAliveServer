@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"sort"
 
-	proto "github.com/golang/protobuf/proto"
+    proto "github.com/golang/protobuf/proto"
 )
 
 func transLanguage() {
-	message := &Language{}
+    message := &Language{}
 
-	// Common
+    // Common
 	//CommonKeys := make([]int, 0, len(tomlLanguage.Common)) // 必须使用64位机器
 	//CommonKeys := make([]int, 0, len(tomlLanguage.Common)) // 必须使用64位机器
 	CommonKeys := make([]string, 0, len(tomlLanguage.Common)) // 必须使用64位机器
@@ -37,7 +37,7 @@ func transLanguage() {
 		message.CommonValue[k] = &Language_StCommon{
 			Value: v.Value,
 		}
-
+		
 	}
 
 	// Special
@@ -46,10 +46,10 @@ func transLanguage() {
 		message.Special[k] = &Language_StSpecial{
 			Value: v.Value,
 		}
-
+		
 	}
 
-	// Error
+    // Error
 	//ErrorKeys := make([]int, 0, len(tomlLanguage.Error)) // 必须使用64位机器
 	//ErrorKeys := make([]int, 0, len(tomlLanguage.Error)) // 必须使用64位机器
 	ErrorKeys := make([]string, 0, len(tomlLanguage.Error)) // 必须使用64位机器
@@ -74,18 +74,18 @@ func transLanguage() {
 		message.ErrorValue[k] = &Language_StError{
 			Value: v.Value,
 		}
-
+		
 	}
 
-	pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
-	if err := pbBuf.Marshal(message); err != nil {
-		log.RunLogger.Printf("transLanguage err[%v]", err)
-		return
-	}
+    pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
+    if err := pbBuf.Marshal(message); err != nil {
+        log.RunLogger.Printf("transLanguage err[%v]", err)
+        return
+    }
 
-	util.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", tomlLanguage.Name()+".bytes"), pbBuf.Bytes())
+    util.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", tomlLanguage.Name()+".bytes"), pbBuf.Bytes())
 }
 
 func init() {
-	allTrans = append(allTrans, transLanguage)
+    allTrans = append(allTrans, transLanguage)
 }
