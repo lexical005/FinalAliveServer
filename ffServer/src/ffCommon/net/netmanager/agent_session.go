@@ -244,8 +244,6 @@ func (agent *agentSession) Back() {
 		for proto := range agent.chSendProto {
 			if proto != nil {
 				proto.BackAfterSend()
-			} else {
-				break
 			}
 		}
 		agent.chSendProto = nil

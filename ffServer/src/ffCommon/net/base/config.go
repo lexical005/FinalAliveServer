@@ -67,3 +67,12 @@ type WebServerConfig struct {
 	// ListenAddr 监听地址
 	ListenAddr string
 }
+
+// HTTPClientConfig WebClient配置
+type HTTPClientConfig struct {
+	// URL 连接地址
+	URL string
+
+	// RequestWorkerCount 使用几个协程发送验证请求
+	RequestWorkerCount int
+}
