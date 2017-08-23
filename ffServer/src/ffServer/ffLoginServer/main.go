@@ -9,17 +9,21 @@ import (
 )
 
 func main() {
+	var err error
 	defer util.PanicProtect(func(isPanic bool) {
 		if isPanic {
 			log.RunLogger.Println("异常退出, 以上是错误堆栈")
+			<-time.After(time.Hour)
+		} else if err != nil {
+			util.PrintPanicStack(err)
+			log.RunLogger.Println("启动出错, 以上是错误堆栈")
 			<-time.After(time.Hour)
 		}
 	}, "ffLoginServer")
 
 	// 启动
-	err := startup()
+	err = startup()
 	if err != nil {
-		log.RunLogger.Println(err)
 		return
 	}
 

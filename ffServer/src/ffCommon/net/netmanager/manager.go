@@ -6,11 +6,20 @@ import (
 	"ffCommon/uuid"
 	"fmt"
 	"sync/atomic"
+	"time"
 )
 
 // Manager Agent管理器
 type Manager struct {
 	name string
+
+	// 接收KeepAlive超时, 通过Session的ReadDeadTime实现
+	// sendKeepAliveLeftTime 隔多久再次向对端发送KeepAlive协议, 只有当Manager作为Client时才需要
+	sendKeepAliveLeftTime time.Duration
+	// nextSendKeepAliveTime 下一次向对端发送KeepAlive协议的时间, 只有当Manager作为Client时才需要
+	nextSendKeepAliveTime time.Time
+	// sendKeepAliveInterval 定时发送KeepAlive协议的间隔
+	sendKeepAliveInterval time.Duration
 
 	// handlerManager
 	handlerManager INetSessionHandlerManager
@@ -54,7 +63,7 @@ func (mgr *Manager) onNewSession(sess base.Session) {
 
 	//
 	agent := mgr.agentPool.apply()
-	agent.init(sess, mgr.net, mgr.chAgentClosed)
+	agent.init(sess, mgr.net, mgr.chAgentClosed, mgr.sendKeepAliveInterval == 0)
 
 	//
 	handler := mgr.handlerManager.Create(agent)
@@ -83,6 +92,18 @@ func (mgr *Manager) onAgentClosed(agent *agentSession) {
 	mgr.net.onAgentClosed()
 }
 
+// 通知现有每个连接向对端发送KeepAlive, 只有Manager作为Client时才会触发
+func (mgr *Manager) sendKeepAlive() {
+	log.RunLogger.Printf("%v.sendKeepAlive sendKeepAliveLeftTime[%v]", mgr.name, mgr.sendKeepAliveLeftTime)
+
+	mgr.sendKeepAliveLeftTime += mgr.sendKeepAliveInterval
+	mgr.nextSendKeepAliveTime = time.Now().Add(mgr.sendKeepAliveLeftTime)
+
+	for _, agent := range mgr.mapAgent {
+		agent.keepAlive()
+	}
+}
+
 // mainLoop
 func (mgr *Manager) mainLoop(params ...interface{}) {
 	log.RunLogger.Printf("%v.mainLoop start", mgr.name)
@@ -91,18 +112,57 @@ func (mgr *Manager) mainLoop(params ...interface{}) {
 
 	// 主循环
 	{
-	mainLoop:
-		for {
-			select {
-			case sess := <-mgr.net.NewSessionChan(): // 新连接
-				mgr.onNewSession(sess)
+		if mgr.sendKeepAliveInterval == 0 { //无KeepAlive
 
-			case agent := <-mgr.chAgentClosed: // 连接结束
-				mgr.onAgentClosed(agent)
+		mainLoopNoKeepAlive:
+			for {
+				select {
+				case sess := <-mgr.net.NewSessionChan(): // 新连接
+					mgr.onNewSession(sess)
 
-			case <-mgr.chApplicationQuit: // 进程退出
-				mgr.net.Stop()
-				break mainLoop
+				case agent := <-mgr.chAgentClosed: // 连接结束
+					mgr.onAgentClosed(agent)
+
+				case <-mgr.chApplicationQuit: // 进程退出
+					mgr.net.Stop()
+					break mainLoopNoKeepAlive
+				}
+			}
+
+		} else { // 有KeepAlive
+
+			// 最近发送KeepAlive时间
+			mgr.sendKeepAliveLeftTime = mgr.sendKeepAliveInterval
+			mgr.nextSendKeepAliveTime = time.Now().Add(mgr.sendKeepAliveLeftTime)
+
+		mainLoopKeepAlive:
+			for {
+				triggerKeepAlive := false
+				select {
+				case sess := <-mgr.net.NewSessionChan(): // 新连接
+					mgr.onNewSession(sess)
+
+				case agent := <-mgr.chAgentClosed: // 连接结束
+					mgr.onAgentClosed(agent)
+
+				case <-time.After(mgr.sendKeepAliveLeftTime):
+					triggerKeepAlive = true
+					mgr.sendKeepAliveLeftTime = time.Now().Sub(mgr.nextSendKeepAliveTime)
+
+				case <-mgr.chApplicationQuit: // 进程退出
+					mgr.net.Stop()
+					break mainLoopKeepAlive
+				}
+
+				// 发送KeepAlive
+				if !triggerKeepAlive {
+					mgr.sendKeepAliveLeftTime = time.Now().Sub(mgr.nextSendKeepAliveTime)
+					triggerKeepAlive = mgr.sendKeepAliveLeftTime < 1
+				}
+
+				if triggerKeepAlive {
+					mgr.sendKeepAlive()
+				}
 			}
 		}
 	}

@@ -35,7 +35,7 @@ func (client *matchServerClient) Back(handler netmanager.INetSessionHandler) {
 func (client *matchServerClient) Start() error {
 	log.RunLogger.Printf("matchServerClient.Start")
 
-	manager, err := netmanager.NewClient(client, appConfig.ConnectMatchServer, &waitApplicationQuit, chApplicationQuit)
+	manager, err := netmanager.NewClient(client, appConfig.ConnectMatchServer, appConfig.Session, &waitApplicationQuit, chApplicationQuit)
 	if err != nil {
 		log.FatalLogger.Println(err)
 		return err

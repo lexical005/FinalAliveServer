@@ -241,7 +241,7 @@ func (s *tcpSession) doRecvHeader() error {
 	// solve dead link problem:
 	// physical disconnection without any communcation between client and server
 	// will cause the read to block FOREVER, so a timeout is a rescue.
-	s.conn.SetReadDeadline(time.Now().Add(time.Duration(readDeadtime) * time.Second))
+	s.conn.SetReadDeadline(time.Now().Add(time.Duration(sessionConfig.ReadDeadTime) * time.Second))
 
 	// read Proto header
 	_, err := io.ReadFull(s.conn, s.recvHeaderBuf)
@@ -274,7 +274,7 @@ func (s *tcpSession) doRecvContent() (data base.NetEventData, err error) {
 	// solve dead link problem:
 	// physical disconnection without any communcation between client and server
 	// will cause the read to block FOREVER, so a timeout is a rescue.
-	s.conn.SetReadDeadline(time.Now().Add(time.Duration(readDeadtime) * time.Second))
+	s.conn.SetReadDeadline(time.Now().Add(time.Duration(sessionConfig.ReadDeadTime) * time.Second))
 
 	_, err = io.ReadFull(s.conn, buf)
 	if err != nil {

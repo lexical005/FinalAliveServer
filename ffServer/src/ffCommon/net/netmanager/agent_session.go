@@ -13,9 +13,10 @@ import (
 
 // 连接对象
 type agentSession struct {
-	name    string
-	uuid    uuid.UUID
-	handler INetSessionHandler
+	name              string
+	uuid              uuid.UUID
+	handler           INetSessionHandler
+	responseKeepAlive bool // 是否响应并返回KeepAlive协议
 
 	status int32 // 运行状态  0初始状态 1可使用 2使用中 -1关闭中(阻碍进入使用状态) -2完成了所有关闭工作(阻碍进入使用状态) -3关闭完成
 
@@ -115,7 +116,7 @@ func (agent *agentSession) onDisConnect(data base.NetEventData) {
 		atomic.StoreInt32(&agent.status, -2)
 	}
 
-	agent.handler.OnConnect()
+	agent.handler.OnDisConnect()
 
 	agent.chAgentClosed <- agent
 }
@@ -138,10 +139,12 @@ func (agent *agentSession) onProto(data base.NetEventData) {
 
 	if protoID == ffProto.MessageType_KeepAlive {
 
-		// 维持活跃协议, 直接返回
-		changedToSendState = true
-		proto.ChangeLimitStateRecvToSend()
-		agent.SendProto(proto)
+		if agent.responseKeepAlive {
+			// 维持活跃协议, 直接返回
+			changedToSendState = true
+			proto.ChangeLimitStateRecvToSend()
+			agent.SendProto(proto)
+		}
 
 	} else {
 
@@ -157,9 +160,10 @@ func (agent *agentSession) onProto(data base.NetEventData) {
 }
 
 // init 初始化
-func (agent *agentSession) init(sess base.Session, net inet, chAgentClosed chan *agentSession) {
+func (agent *agentSession) init(sess base.Session, net inet, chAgentClosed chan *agentSession, responseKeepAlive bool) {
 	agent.name = fmt.Sprintf("agentSession[%v]", sess.UUID())
 	agent.uuid = sess.UUID()
+	agent.responseKeepAlive = responseKeepAlive
 
 	agent.sendExtraDataType, agent.chAgentClosed = net.SendExtraDataType(), chAgentClosed
 
@@ -190,10 +194,12 @@ func (agent *agentSession) Close() {
 }
 
 // SendProto 发送Proto
-//	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
+//	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端. 当协议未被添加到待发送管道内时, 将被执行回收
 func (agent *agentSession) SendProto(proto *ffProto.Proto) bool {
 	// 1可使用 ==> 2使用中
 	if !atomic.CompareAndSwapInt32(&agent.status, 1, 2) {
+		// 直接回收
+		proto.BackAfterSend()
 		return false
 	}
 
@@ -258,8 +264,12 @@ func (agent *agentSession) Back() {
 	agent.chClose = nil
 }
 
-// KeepAlive 定时发送KeepAlive协议, 保持连接有效
-func (agent *agentSession) KeepAlive() {
+// keepAlive 发送KeepAlive协议, 保持连接有效
+func (agent *agentSession) keepAlive() {
+	proto := ffProto.ApplyProtoForSend(ffProto.MessageType_KeepAlive)
+	message := proto.Message().(*ffProto.MsgKeepAlive)
+	message.Number = 0
+	agent.SendProto(proto)
 }
 
 func newAgentSession() *agentSession {

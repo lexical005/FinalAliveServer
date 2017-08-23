@@ -35,6 +35,9 @@ type ConnectConfig struct {
 	// ConnectAddr 连接地址
 	ConnectAddr string
 
+	// KeepAliveInterval 间隔多少秒, 就发送一次KeepAlive, 以保持与对端的连接. 该值必须大于0, 小于等于SessionConfig.ReadDeadTime/2
+	KeepAliveInterval int
+
 	// SendExtraDataType 发送的协议的附加数据类型
 	SendExtraDataType string
 
@@ -58,8 +61,28 @@ type ServerInfo struct {
 // SessionConfig 连接配置
 type SessionConfig struct {
 	ReadDeadTime          int // ReadDeadTime 读取超时N秒. 为0时, 使用系统默认配置值60
-	InitNetEventDataCount int // InitNetEventDataCount 初始创建多少网络事件数据缓存. 为0时, 使用的值为OnlineCount/4. 最小为2
 	InitOnlineCount       int // InitOnlineCount 初始创建多少连接缓存, 必须配置. >=2
+	InitNetEventDataCount int // InitNetEventDataCount 初始创建多少网络事件数据缓存. 为0时, 使用的值为OnlineCount/4. 最小为2
+}
+
+// Check 检查配置
+func (config *SessionConfig) Check() error {
+	if config.ReadDeadTime == 0 {
+		config.ReadDeadTime = 60
+	}
+
+	if config.InitOnlineCount < 2 {
+		config.InitOnlineCount = 2
+	}
+
+	if config.InitNetEventDataCount == 0 {
+		config.InitNetEventDataCount = config.InitOnlineCount / 4
+	}
+	if config.InitNetEventDataCount < 2 {
+		config.InitNetEventDataCount = 2
+	}
+
+	return nil
 }
 
 // WebServerConfig WebServer配置

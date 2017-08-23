@@ -4,6 +4,7 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/net/base"
 	"ffCommon/util"
+	"fmt"
 
 	"github.com/lexical005/toml"
 )
@@ -27,6 +28,22 @@ type applicationConfig struct {
 
 	// Logger 日志配置
 	Logger *log.LoggerConfig
+}
+
+// Check 配置检查
+func (config *applicationConfig) Check() (err error) {
+	err = config.Session.Check()
+	if err != nil {
+		return
+	}
+
+	if config.ConnectMatchServer.KeepAliveInterval < 1 || config.ConnectMatchServer.KeepAliveInterval > config.Session.ReadDeadTime/2 {
+		err = fmt.Errorf("invalid KeepAliveInterval[%v], must >0 and <= [%v](SessionConfig.ReadDeadTime/2)",
+			config.ConnectMatchServer.KeepAliveInterval, config.Session.ReadDeadTime)
+		return
+	}
+
+	return nil
 }
 
 func readToml() error {

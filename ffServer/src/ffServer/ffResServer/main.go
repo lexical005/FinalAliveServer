@@ -10,19 +10,21 @@ import (
 )
 
 func main() {
-	// 异常保护
+	var err error
 	defer util.PanicProtect(func(isPanic bool) {
 		if isPanic {
 			log.RunLogger.Println("异常退出, 以上是错误堆栈")
+			<-time.After(time.Hour)
+		} else if err != nil {
+			util.PrintPanicStack(err)
+			log.RunLogger.Println("启动出错, 以上是错误堆栈")
 			<-time.After(time.Hour)
 		}
 	}, "ffResServer")
 
 	// 读取配置文件
-	var err error
 	serverConfig, err = loadServerConfig("cfg/cfg.cfg")
 	if err != nil {
-		log.RunLogger.Println(err)
 		return
 	}
 

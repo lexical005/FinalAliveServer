@@ -38,7 +38,7 @@ func PrintModule() {
 }
 
 // NewClient 创建一个base.Client
-//	addr: 监听地址
+//	addr: 连接地址
 func NewClient(addr string) (c base.Client, err error) {
 	mutexClient.Lock()
 	defer mutexClient.Unlock()

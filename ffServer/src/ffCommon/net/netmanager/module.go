@@ -6,6 +6,7 @@ import (
 	"ffCommon/uuid"
 	"ffProto"
 	"fmt"
+	"time"
 )
 
 // INetSession 连接对象对外提供的方法
@@ -69,6 +70,8 @@ func NewServer(
 	mgr = &Manager{
 		name: name,
 
+		sendKeepAliveInterval: 0,
+
 		handlerManager: handlerManager,
 
 		net: net,
@@ -89,11 +92,12 @@ func NewServer(
 // NewClient 根据配置返回一个Client管理器
 func NewClient(
 	handlerManager INetSessionHandlerManager,
-	config *base.ConnectConfig,
+	configConnect *base.ConnectConfig,
+	configSession *base.SessionConfig,
 	countApplicationQuit *int32,
 	chApplicationQuit chan struct{}) (mgr *Manager, err error) {
 
-	net, err := newNetClient(config)
+	net, err := newNetClient(configConnect)
 	if err != nil {
 		return
 	}
@@ -102,6 +106,8 @@ func NewClient(
 
 	mgr = &Manager{
 		name: name,
+
+		sendKeepAliveInterval: time.Duration(configConnect.KeepAliveInterval) * time.Second,
 
 		handlerManager: handlerManager,
 

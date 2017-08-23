@@ -4,6 +4,8 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/log/logfile"
 	"ffCommon/net/tcpsession"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // 初始化并启动
@@ -15,7 +17,14 @@ func startup() (err error) {
 	}
 
 	// 输出配置文件
-	log.RunLogger.Printf("startup appConfig:\n%v", appConfig)
+	log.RunLogger.Printf("startup appConfig:\n%v", spew.Sdump(appConfig))
+
+	// 检查配置
+	err = appConfig.Check()
+	if err != nil {
+		return err
+	}
+	log.RunLogger.Printf("application Config:\n%v", spew.Sdump(appConfig))
 
 	// 初始化log
 	if appConfig.Logger.LoggerType == "file" {
@@ -38,18 +47,7 @@ func startup() (err error) {
 	}
 
 	// 初始化Session
-	readDeadTime := tcpsession.DefaultReadDeadTime
-	if appConfig.Session.ReadDeadTime > 0 {
-		readDeadTime = appConfig.Session.ReadDeadTime
-	}
-	initNetEventDataCount := appConfig.Session.InitNetEventDataCount
-	if initNetEventDataCount == 0 {
-		initNetEventDataCount = appConfig.Session.InitOnlineCount / 4
-	}
-	if initNetEventDataCount < 2 {
-		initNetEventDataCount = 2
-	}
-	err = tcpsession.Init(readDeadTime, appConfig.Session.InitOnlineCount, initNetEventDataCount)
+	err = tcpsession.Init(appConfig.Session)
 	if err != nil {
 		return err
 	}
@@ -57,7 +55,6 @@ func startup() (err error) {
 	// 启动
 	err = agentUserSvr.Start()
 	if err != nil {
-		log.FatalLogger.Println(err)
 		return
 	}
 

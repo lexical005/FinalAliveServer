@@ -14,14 +14,22 @@ var appConfig = &applicationConfig{}
 var mysql = &mysqlManager{}
 
 func main() {
-	// 异常保护
-	defer util.PanicProtect(nil)
+	var err error
+	defer util.PanicProtect(func(isPanic bool) {
+		if isPanic {
+			log.RunLogger.Println("异常退出, 以上是错误堆栈")
+			<-time.After(time.Hour)
+		} else if err != nil {
+			util.PrintPanicStack(err)
+			log.RunLogger.Println("启动出错, 以上是错误堆栈")
+			<-time.After(time.Hour)
+		}
+	}, "ffWebServer")
 
 	// 读取配置文件
-	var err error
 	err = readAppToml()
 	if err != nil {
-		panic(err)
+		return
 	}
 	log.RunLogger.Println("appConfig:")
 	log.RunLogger.Println(appConfig)
@@ -39,7 +47,7 @@ func main() {
 	// 建立监听服务
 	l, err := net.Listen("tcp", appConfig.Net.ListenAddr+":"+appConfig.Net.ListenPort)
 	if err != nil {
-		panic(err)
+		return
 	}
 	defer l.Close()
 

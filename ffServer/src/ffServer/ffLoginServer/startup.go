@@ -3,6 +3,8 @@ package main
 import (
 	"ffCommon/log/log"
 	"ffCommon/log/logfile"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 func startup() (err error) {
@@ -13,7 +15,14 @@ func startup() (err error) {
 	}
 
 	// 输出配置文件
-	log.RunLogger.Printf("startup appConfig:\n%v", appConfig)
+	log.RunLogger.Printf("startup appConfig:\n%v", spew.Sdump(appConfig))
+
+	// 检查配置
+	err = appConfig.Check()
+	if err != nil {
+		return err
+	}
+	log.RunLogger.Printf("application Config:\n%v", spew.Sdump(appConfig))
 
 	// 初始化log
 	if appConfig.Logger.LoggerType == "file" {
@@ -38,7 +47,6 @@ func startup() (err error) {
 	// 启动服务
 	err = serveLoginInst.start()
 	if err != nil {
-		log.RunLogger.Println(err)
 		return
 	}
 

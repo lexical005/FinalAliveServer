@@ -20,6 +20,11 @@ type applicationConfig struct {
 	Logger *log.LoggerConfig
 }
 
+// Check 配置检查
+func (config *applicationConfig) Check() (err error) {
+	return nil
+}
+
 func readToml() error {
 	// 读取文件内容
 	fileContent, err := util.ReadFile("toml/config.toml")
