@@ -50,7 +50,7 @@ func (agent *agentUser) OnProto(proto *ffProto.Proto) bool {
 // SendProto 发送Proto
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
 func (agent *agentUser) SendProto(proto *ffProto.Proto) bool {
-	return agent.netsession.SendProto(proto)
+	return agent.netsession.SendProtoExtraDataNormal(proto)
 }
 
 // UUID 本次连接唯一标识

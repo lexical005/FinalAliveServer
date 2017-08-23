@@ -35,7 +35,7 @@ func (server *agentUserServer) Create(netsession netmanager.INetSession) netmana
 
 	return agent
 }
-
+ 
 // Back 回收
 func (server *agentUserServer) Back(handler netmanager.INetSessionHandler) {
 	log.RunLogger.Printf("agentUserServer.Back handler[%v]", handler)
