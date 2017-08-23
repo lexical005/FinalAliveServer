@@ -14,8 +14,11 @@ type INetSession interface {
 	// UUID 唯一标识
 	UUID() uuid.UUID
 
-	// SendProto 发送协议
-	SendProto(proto *ffProto.Proto) bool
+	// SendProtoExtraDataNormal 发送协议
+	SendProtoExtraDataNormal(proto *ffProto.Proto) bool
+
+	// SendProtoExtraDataUUID 发送协议
+	SendProtoExtraDataUUID(uuidSender uuid.UUID, proto *ffProto.Proto) bool
 
 	// Close 主动关闭
 	Close()

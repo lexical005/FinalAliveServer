@@ -130,7 +130,7 @@ func (agent *agentSession) onProto(data base.NetEventData) {
 			// 维持活跃协议, 直接返回
 			changedToSendState = true
 			proto.ChangeLimitStateRecvToSend()
-			agent.SendProto(proto)
+			agent.SendProtoExtraDataNormal(proto)
 		}
 
 	} else {
@@ -176,9 +176,16 @@ func (agent *agentSession) Close() {
 	agent.status.Close()
 }
 
-// SendProto 发送Proto
+// SendProtoExtraDataNormal 发送Proto, 附加数据类型ExtraDataTypeNormal
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端. 当协议未被添加到待发送管道内时, 将被执行回收
-func (agent *agentSession) SendProto(proto *ffProto.Proto) bool {
+func (agent *agentSession) SendProtoExtraDataNormal(proto *ffProto.Proto) bool {
+	if agent.sendExtraDataType != ffProto.ExtraDataTypeNormal {
+		proto.BackAfterSend()
+
+		log.FatalLogger.Printf("%v.SendProtoExtraDataNormal not match agent sendExtraDataType[%v]", agent.name, agent.sendExtraDataType)
+		return false
+	}
+
 	work := agent.status.EnterWork()
 
 	defer func() {
@@ -191,11 +198,37 @@ func (agent *agentSession) SendProto(proto *ffProto.Proto) bool {
 	}()
 
 	if work {
-		if agent.sendExtraDataType == ffProto.ExtraDataTypeNormal {
-			proto.SetExtraDataNormal()
-		} else if agent.sendExtraDataType == ffProto.ExtraDataTypeUUID {
-			proto.SetExtraDataUUID(agent.uuid.Value())
+		proto.SetExtraDataNormal()
+
+		agent.chSendProto <- proto
+	}
+
+	return work
+}
+
+// SendProtoExtraDataUUID 发送Proto, 附加数据类型ExtraDataTypeUUID
+//	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端. 当协议未被添加到待发送管道内时, 将被执行回收
+func (agent *agentSession) SendProtoExtraDataUUID(uuidSender uuid.UUID, proto *ffProto.Proto) bool {
+	if agent.sendExtraDataType != ffProto.ExtraDataTypeUUID {
+		proto.BackAfterSend()
+
+		log.FatalLogger.Printf("%v.SendProtoExtraDataUUID not match agent sendExtraDataType[%v]", agent.name, agent.sendExtraDataType)
+		return false
+	}
+
+	work := agent.status.EnterWork()
+
+	defer func() {
+		agent.status.LeaveWork(work)
+
+		// 直接回收
+		if !work {
+			proto.BackAfterSend()
 		}
+	}()
+
+	if work {
+		proto.SetExtraDataUUID(uuidSender.Value())
 
 		agent.chSendProto <- proto
 	}
@@ -237,7 +270,7 @@ func (agent *agentSession) keepAlive() {
 	proto := ffProto.ApplyProtoForSend(ffProto.MessageType_KeepAlive)
 	message := proto.Message().(*ffProto.MsgKeepAlive)
 	message.Number = 0
-	agent.SendProto(proto)
+	agent.SendProtoExtraDataNormal(proto)
 }
 
 func newAgentSession() *agentSession {
