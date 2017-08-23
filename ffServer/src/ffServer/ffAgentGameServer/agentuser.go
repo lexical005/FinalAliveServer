@@ -53,7 +53,7 @@ func (agent *agentUser) SendProto(proto *ffProto.Proto) bool {
 	return agent.netsession.SendProto(proto)
 }
 
-// UUID
+// UUID 本次连接唯一标识
 func (agent *agentUser) UUID() uuid.UUID {
 	return agent.netsession.UUID()
 }

@@ -7,8 +7,6 @@ import (
 	"ffCommon/uuid"
 	"ffProto"
 	"fmt"
-	"sync/atomic"
-	"time"
 )
 
 // 连接对象
@@ -18,8 +16,6 @@ type agentSession struct {
 	handler           INetSessionHandler
 	responseKeepAlive bool // 是否响应并返回KeepAlive协议
 
-	status int32 // 运行状态  0初始状态 1可使用 2使用中 -1关闭中(阻碍进入使用状态) -2完成了所有关闭工作(阻碍进入使用状态) -3关闭完成
-
 	sendExtraDataType ffProto.ExtraDataType  // 发送的Proto的附加数据类型
 	chSendProto       chan *ffProto.Proto    // 待发送协议管道
 	chNetEventData    chan base.NetEventData // session网络事件管道
@@ -27,11 +23,11 @@ type agentSession struct {
 	chClose       chan struct{}      // 用于接收外界通知关闭
 	chAgentClosed chan *agentSession // 用于向外界汇报关闭了, 仅有使用权
 
-	onceClose util.Once // 一次连接期间, 关闭一次
+	status util.Worker // 可使用性状态管理, 内含一次性关闭
 }
 
 func (agent *agentSession) String() string {
-	return agent.name
+	return fmt.Sprintf("name[%v] status[%v]", agent.name, agent.status.String())
 }
 
 // UUID 唯一标识
@@ -57,11 +53,7 @@ func (agent *agentSession) mainLoop(params ...interface{}) {
 
 				log.RunLogger.Printf("%v.mainLoop start close", agent.name)
 
-				// 2使用中 ==> -1关闭中(阻碍进入使用状态)
-				if !atomic.CompareAndSwapInt32(&agent.status, 2, -1) {
-					// -2完成了所有关闭工作(阻碍进入使用状态)
-					atomic.StoreInt32(&agent.status, -2)
-				}
+				agent.Close()
 
 				agent.chSendProto <- nil
 
@@ -100,8 +92,7 @@ func (agent *agentSession) onNetEventData(data base.NetEventData) bool {
 func (agent *agentSession) onConnect(data base.NetEventData) {
 	log.RunLogger.Printf("%v.onConnect data[%v]", agent.name, data)
 
-	// 0初始状态 ==> 1可使用
-	atomic.CompareAndSwapInt32(&agent.status, 0, 1)
+	agent.status.Ready()
 
 	agent.handler.OnConnect()
 }
@@ -110,11 +101,7 @@ func (agent *agentSession) onConnect(data base.NetEventData) {
 func (agent *agentSession) onDisConnect(data base.NetEventData) {
 	log.RunLogger.Printf("%v.onDisConnect data[%v]", agent.name, data)
 
-	// 2使用中 ==> -1关闭中(阻碍进入使用状态)
-	if !atomic.CompareAndSwapInt32(&agent.status, 2, -1) {
-		// -2完成了所有关闭工作(阻碍进入使用状态)
-		atomic.StoreInt32(&agent.status, -2)
-	}
+	agent.status.Close()
 
 	agent.handler.OnDisConnect()
 
@@ -172,9 +159,7 @@ func (agent *agentSession) init(sess base.Session, net inet, chAgentClosed chan 
 
 	agent.chClose = make(chan struct{}, 1)
 
-	agent.onceClose.Reset()
-
-	agent.status = 0
+	agent.status.Reset()
 }
 
 // Start 启动, 收发协议
@@ -188,36 +173,34 @@ func (agent *agentSession) Start(sess base.Session, net inet, handler INetSessio
 
 // Close
 func (agent *agentSession) Close() {
-	agent.onceClose.Do(func() {
-		agent.chClose <- struct{}{}
-	})
+	agent.status.Close()
 }
 
 // SendProto 发送Proto
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端. 当协议未被添加到待发送管道内时, 将被执行回收
 func (agent *agentSession) SendProto(proto *ffProto.Proto) bool {
-	// 1可使用 ==> 2使用中
-	if !atomic.CompareAndSwapInt32(&agent.status, 1, 2) {
+	work := agent.status.EnterWork()
+
+	defer func() {
+		agent.status.LeaveWork(work)
+
 		// 直接回收
-		proto.BackAfterSend()
-		return false
+		if !work {
+			proto.BackAfterSend()
+		}
+	}()
+
+	if work {
+		if agent.sendExtraDataType == ffProto.ExtraDataTypeNormal {
+			proto.SetExtraDataNormal()
+		} else if agent.sendExtraDataType == ffProto.ExtraDataTypeUUID {
+			proto.SetExtraDataUUID(agent.uuid.Value())
+		}
+
+		agent.chSendProto <- proto
 	}
 
-	if agent.sendExtraDataType == ffProto.ExtraDataTypeNormal {
-		proto.SetExtraDataNormal()
-	} else if agent.sendExtraDataType == ffProto.ExtraDataTypeUUID {
-		proto.SetExtraDataUUID(agent.uuid.Value())
-	}
-
-	agent.chSendProto <- proto
-
-	// 2使用中 ==> 1可使用
-	if !atomic.CompareAndSwapInt32(&agent.status, 2, 1) {
-		// -2完成了所有关闭工作(阻碍进入使用状态)
-		atomic.StoreInt32(&agent.status, -2)
-	}
-
-	return true
+	return work
 }
 
 // Back 可安全回收了
@@ -225,26 +208,11 @@ func (agent *agentSession) Back() {
 	agent.chAgentClosed = nil
 	agent.handler = nil
 
+	// 等待使用完毕
+	agent.status.WaitWorkEnd(10)
+
 	// 清理待发送Proto
 	{
-		// 等待发送方法执行完毕
-		waitCount, maxWaitCount := 0, 10
-		for {
-			// -2完成了所有关闭工作(阻碍进入使用状态) ==> -3关闭完成
-			if atomic.CompareAndSwapInt32(&agent.status, -2, -3) {
-				break
-			}
-
-			// 等待1秒
-			<-time.After(time.Second)
-
-			waitCount++
-			if waitCount > maxWaitCount {
-				log.FatalLogger.Printf("%v.Back wait SendProto too long time[%v] to exit", agent.name, waitCount)
-				break
-			}
-		}
-
 		// 关闭发送协议管道
 		close(agent.chSendProto)
 		for proto := range agent.chSendProto {

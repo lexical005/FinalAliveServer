@@ -5,7 +5,6 @@ import (
 	"ffCommon/net/httpclient"
 	"ffCommon/util"
 	"fmt"
-	"time"
 
 	"sync/atomic"
 )
@@ -15,7 +14,7 @@ type httpClientLogin struct {
 	workerCount int
 	client      *httpclient.Client
 
-	status int32 // 运行状态  0初始状态 1可使用 2使用中 -1关闭中(阻碍进入使用状态) -2完成了所有关闭工作(阻碍进入使用状态) -3关闭完成
+	status util.Worker // 可使用性状态管理, 内含一次性关闭
 
 	chPostRequest chan httpclient.Request
 
@@ -24,7 +23,7 @@ type httpClientLogin struct {
 
 func (c *httpClientLogin) String() string {
 	return fmt.Sprintf("url[%v] workerCount[%v] status[%v] c.chPostRequest[%v]",
-		c.url, c.workerCount, c.status, len(c.chPostRequest))
+		c.url, c.workerCount, c.status.String(), len(c.chPostRequest))
 }
 
 func (c *httpClientLogin) Start() error {
@@ -36,8 +35,7 @@ func (c *httpClientLogin) Start() error {
 	c.client = httpclient.NewClient(c.url, c.chExit, c.chPostRequest)
 	c.client.Start(c.workerCount)
 
-	// 0初始状态 ==> 1可使用
-	atomic.CompareAndSwapInt32(&c.status, 0, 1)
+	c.status.Ready()
 
 	go util.SafeGo(c.mainLoop, c.mainLoopEnd)
 
@@ -52,11 +50,7 @@ func (c *httpClientLogin) mainLoop(params ...interface{}) {
 	// 等待进程退出
 	<-chApplicationQuit
 
-	// 2使用中 ==> -1关闭中(阻碍进入使用状态)
-	if !atomic.CompareAndSwapInt32(&c.status, 2, -1) {
-		// -2完成了所有关闭工作(阻碍进入使用状态)
-		atomic.StoreInt32(&c.status, -2)
-	}
+	c.status.Close()
 
 	// 通知底层退出
 	c.chPostRequest <- nil
@@ -70,25 +64,8 @@ func (c *httpClientLogin) mainLoop(params ...interface{}) {
 func (c *httpClientLogin) mainLoopEnd(isPanic bool) {
 	log.RunLogger.Println("httpClientLogin.mainLoopEnd", isPanic)
 
-	// 等待发送方法执行完毕
-	{
-		waitCount, maxWaitCount := 0, 10
-		for {
-			// -2完成了所有关闭工作(阻碍进入使用状态) ==> -3关闭完成
-			if atomic.CompareAndSwapInt32(&c.status, -2, -3) {
-				break
-			}
-
-			// 等待1秒
-			<-time.After(time.Second)
-
-			waitCount++
-			if waitCount > maxWaitCount {
-				log.FatalLogger.Printf("httpClientLogin.mainLoopEnd wait status change to -3 too long time[%v] to exit", waitCount)
-				break
-			}
-		}
-	}
+	// 等待使用完毕
+	c.status.WaitWorkEnd(10)
 
 	// 清理
 	close(c.chPostRequest)
@@ -106,18 +83,15 @@ func (c *httpClientLogin) mainLoopEnd(isPanic bool) {
 }
 
 func (c *httpClientLogin) PostCustomLogin(request *httpClientCustomLoginData) bool {
-	// 1可使用 ==> 2使用中
-	if !atomic.CompareAndSwapInt32(&c.status, 1, 2) {
-		return false
+	work := c.status.EnterWork()
+
+	defer func() {
+		c.status.LeaveWork(work)
+	}()
+
+	if work {
+		c.chPostRequest <- request
 	}
 
-	c.chPostRequest <- request
-
-	// 2使用中 ==> 1可使用
-	if !atomic.CompareAndSwapInt32(&c.status, 2, 1) {
-		// -2完成了所有关闭工作(阻碍进入使用状态)
-		atomic.StoreInt32(&c.status, -2)
-	}
-
-	return true
+	return work
 }
