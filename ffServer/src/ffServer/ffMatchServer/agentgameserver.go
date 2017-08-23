@@ -46,7 +46,7 @@ func (agent *agentGameServer) OnProto(proto *ffProto.Proto) bool {
 
 // SendProto 发送Proto
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
-func (agent *agentGameServer) SendProto(uuidSender uuid.UUID, proto *ffProto.Proto) bool {
+func (agent *agentGameServer) SendProto(uuidSender uint64, proto *ffProto.Proto) bool {
 	return agent.netsession.SendProtoExtraDataUUID(uuidSender, proto)
 }
 

@@ -28,7 +28,7 @@ func (agent *matchServer) OnConnect() {
 	message.ServerID = appConfig.Server.ServerID
 	message.ServerType = appConfig.Server.ServerType
 
-	agent.netsession.SendProtoExtraDataUUID(agent.UUID(), proto)
+	agent.netsession.SendProtoExtraDataUUID(agent.UUID().Value(), proto)
 }
 
 // OnDisConnect 连接断开, 此事件处理完毕后, session将不可用
@@ -54,7 +54,7 @@ func (agent *matchServer) OnProto(proto *ffProto.Proto) bool {
 // SendProto 发送Proto
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
 func (agent *matchServer) SendProto(user *agentUser, proto *ffProto.Proto) bool {
-	return agent.netsession.SendProtoExtraDataUUID(user.UUID(), proto)
+	return agent.netsession.SendProtoExtraDataUUID(user.UUID().Value(), proto)
 }
 
 // UUID

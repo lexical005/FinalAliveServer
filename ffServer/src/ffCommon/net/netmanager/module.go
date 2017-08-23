@@ -18,7 +18,7 @@ type INetSession interface {
 	SendProtoExtraDataNormal(proto *ffProto.Proto) bool
 
 	// SendProtoExtraDataUUID 发送协议
-	SendProtoExtraDataUUID(uuidSender uuid.UUID, proto *ffProto.Proto) bool
+	SendProtoExtraDataUUID(uuidSender uint64, proto *ffProto.Proto) bool
 
 	// Close 主动关闭
 	Close()

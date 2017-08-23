@@ -130,7 +130,12 @@ func (agent *agentSession) onProto(data base.NetEventData) {
 			// 维持活跃协议, 直接返回
 			changedToSendState = true
 			proto.ChangeLimitStateRecvToSend()
-			agent.SendProtoExtraDataNormal(proto)
+
+			if agent.sendExtraDataType == ffProto.ExtraDataTypeNormal {
+				agent.SendProtoExtraDataNormal(proto)
+			} else if agent.sendExtraDataType == ffProto.ExtraDataTypeUUID {
+				agent.SendProtoExtraDataUUID(proto.ExtraData(), proto)
+			}
 		}
 
 	} else {
@@ -157,6 +162,8 @@ func (agent *agentSession) init(sess base.Session, net inet, chAgentClosed chan 
 	agent.chSendProto = make(chan *ffProto.Proto, net.SessionSendProtoCache())
 	agent.chNetEventData = make(chan base.NetEventData, net.SessionNetEventDataCache())
 
+	log.RunLogger.Printf("%v.init sendExtraDataType[%v]", agent.name, agent.sendExtraDataType)
+
 	agent.chClose = make(chan struct{}, 1)
 
 	agent.status.Reset()
@@ -180,9 +187,10 @@ func (agent *agentSession) Close() {
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端. 当协议未被添加到待发送管道内时, 将被执行回收
 func (agent *agentSession) SendProtoExtraDataNormal(proto *ffProto.Proto) bool {
 	if agent.sendExtraDataType != ffProto.ExtraDataTypeNormal {
-		proto.BackAfterSend()
+		log.FatalLogger.Printf("%v.SendProtoExtraDataNormal not match agent sendExtraDataType[%v] vs [%v]",
+			agent.name, agent.sendExtraDataType, ffProto.ExtraDataTypeNormal)
 
-		log.FatalLogger.Printf("%v.SendProtoExtraDataNormal not match agent sendExtraDataType[%v]", agent.name, agent.sendExtraDataType)
+		proto.BackAfterSend()
 		return false
 	}
 
@@ -208,11 +216,13 @@ func (agent *agentSession) SendProtoExtraDataNormal(proto *ffProto.Proto) bool {
 
 // SendProtoExtraDataUUID 发送Proto, 附加数据类型ExtraDataTypeUUID
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端. 当协议未被添加到待发送管道内时, 将被执行回收
-func (agent *agentSession) SendProtoExtraDataUUID(uuidSender uuid.UUID, proto *ffProto.Proto) bool {
+func (agent *agentSession) SendProtoExtraDataUUID(uuidSender uint64, proto *ffProto.Proto) bool {
 	if agent.sendExtraDataType != ffProto.ExtraDataTypeUUID {
+		log.FatalLogger.Printf("%v.SendProtoExtraDataUUID not match agent sendExtraDataType[%v] vs [%v]",
+			agent.name, agent.sendExtraDataType, ffProto.ExtraDataTypeUUID)
+
 		proto.BackAfterSend()
 
-		log.FatalLogger.Printf("%v.SendProtoExtraDataUUID not match agent sendExtraDataType[%v]", agent.name, agent.sendExtraDataType)
 		return false
 	}
 
@@ -228,7 +238,7 @@ func (agent *agentSession) SendProtoExtraDataUUID(uuidSender uuid.UUID, proto *f
 	}()
 
 	if work {
-		proto.SetExtraDataUUID(uuidSender.Value())
+		proto.SetExtraDataUUID(uuidSender)
 
 		agent.chSendProto <- proto
 	}
@@ -270,7 +280,7 @@ func (agent *agentSession) keepAlive() {
 	proto := ffProto.ApplyProtoForSend(ffProto.MessageType_KeepAlive)
 	message := proto.Message().(*ffProto.MsgKeepAlive)
 	message.Number = 0
-	agent.SendProtoExtraDataNormal(proto)
+	agent.SendProtoExtraDataUUID(agent.UUID().Value(), proto)
 }
 
 func newAgentSession() *agentSession {

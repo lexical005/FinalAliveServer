@@ -156,7 +156,7 @@ func (mgr *Manager) mainLoop(params ...interface{}) {
 
 				// 发送KeepAlive
 				if !triggerKeepAlive {
-					mgr.sendKeepAliveLeftTime = time.Now().Sub(mgr.nextSendKeepAliveTime)
+					mgr.sendKeepAliveLeftTime = mgr.nextSendKeepAliveTime.Sub(time.Now())
 					triggerKeepAlive = mgr.sendKeepAliveLeftTime < 1
 				}
 
