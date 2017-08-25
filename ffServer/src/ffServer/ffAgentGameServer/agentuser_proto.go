@@ -12,6 +12,9 @@ var mapAgentUserProtoCallback = map[ffProto.MessageType]func(agent *agentUser, p
 	ffProto.MessageType_EnterGameWorld:               onProtoEnterGameWorld,
 	ffProto.MessageType_PrepareLoginPlatformUniqueId: onProtoPrepareLoginPlatformUniqueID,
 	ffProto.MessageType_LoginPlatformUniqueId:        onProtoLoginPlatformUniqueID,
+
+	ffProto.MessageType_StartMatch: onProtoStartMatch,
+	ffProto.MessageType_StopMatch:  onProtoStopMatch,
 }
 
 func onProtoEnterGameWorld(agent *agentUser, proto *ffProto.Proto) (result bool) {
