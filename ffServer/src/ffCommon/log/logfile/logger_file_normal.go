@@ -26,7 +26,9 @@ type loggerFileNormal struct {
 	filePath    string // 日志文件存储的绝对目录
 	filePrefix  string // 日志文件名的前缀
 	outLen      int    // 累计输出的日志长度
-	outLenLimit int    // 累计输出的日志长度达到极限后，将自动换输出目标，目前仅用于日志文件输出
+	outLenLimit int    // 累计输出的日志长度达到此值后，将自动换输出目标，目前仅用于日志文件输出
+
+	fileLenLimit int // 文件长度限制
 }
 
 // 写 log 对象内容到日志文件
@@ -41,44 +43,16 @@ func (l *loggerFileNormal) closeFile() {
 }
 
 // 切换输出目标(本方法，不会被外界直接调用到，模块内部确保锁的正确性)
-func (l *loggerFileNormal) switchOut() (err error) {
+func (l *loggerFileNormal) switchOut(forceSwitch bool) (err error) {
 	// 关闭
 	l.closeFile()
 
-	// 时间
-	now := time.Now()
-
-	bufFileName := make([]byte, 0, 512)
-	buf := &bufFileName
-
-	// 前缀
-	*buf = append(*buf, l.filePrefix...)
-	*buf = append(*buf, ' ')
-
-	// 日期与时间
-	year, month, day := now.Date()
-	itoa(buf, year, 4)
-	*buf = append(*buf, '-')
-	itoa(buf, int(month), 2)
-	*buf = append(*buf, '-')
-	itoa(buf, day, 2)
-	*buf = append(*buf, ' ')
-
-	hour, min, sec := now.Clock()
-	*buf = append(*buf, byte('0'+hour/10))
-	*buf = append(*buf, byte('0'+hour%10))
-	*buf = append(*buf, '-')
-	*buf = append(*buf, byte('0'+min/10))
-	*buf = append(*buf, byte('0'+min%10))
-	*buf = append(*buf, '-')
-	*buf = append(*buf, byte('0'+sec/10))
-	*buf = append(*buf, byte('0'+sec%10))
-
-	// 后缀
-	*buf = append(*buf, ".log"...)
+	// 实际应该使用的名称, 以及写入长度限制
+	latestName, outLenLimit := latestName(l.filePath, l.filePrefix, l.fileLenLimit, forceSwitch)
+	l.outLenLimit = outLenLimit
 
 	// 创建文件
-	if l.file, err = util.CreateFile(path.Join(l.filePath, string(*buf))); err != nil {
+	if l.file, err = util.CreateFile(path.Join(l.filePath, latestName)); err != nil {
 		return err
 	}
 
@@ -101,13 +75,13 @@ func (l *loggerFileNormal) write(one *logRequest) (err error) {
 
 		l.outLen += nWriteLen
 		if l.outLenLimit > 0 && l.outLen >= l.outLenLimit {
-			l.switchOut()
+			l.switchOut(true)
 		}
 		return err
 	}
 
 	// 尝试切换文件
-	if err = l.switchOut(); err != nil {
+	if err = l.switchOut(true); err != nil {
 		return err
 	}
 
@@ -121,7 +95,7 @@ func (l *loggerFileNormal) write(one *logRequest) (err error) {
 
 		l.outLen += nWriteLen
 		if l.outLenLimit > 0 && l.outLen >= l.outLenLimit {
-			l.switchOut()
+			l.switchOut(true)
 		}
 		return err
 	}
@@ -265,9 +239,11 @@ func newFileLoggerNormal(filePath string, filePrefix string, fileLenLimit int) (
 		filePath:    filePath,
 		filePrefix:  filePrefix,
 		outLenLimit: fileLenLimit,
+
+		fileLenLimit: fileLenLimit,
 	}
 
-	if err = f.switchOut(); err == nil {
+	if err = f.switchOut(false); err == nil {
 		go util.SafeGo(f.goWrite, nil)
 	}
 

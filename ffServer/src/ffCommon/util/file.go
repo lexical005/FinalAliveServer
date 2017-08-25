@@ -404,7 +404,7 @@ func ReadFile(filename string) ([]byte, error) {
 }
 
 // Walk walks the file tree rooted at root, calling walkFn for each file or directory in the tree, including root.
-// 不会递归遍历子目录(filepath.Walk会地柜遍历子目录)
+// 不会递归遍历子目录(filepath.Walk会递归遍历子目录)
 func Walk(root string, walkFn func(f os.FileInfo) error) error {
 	files, err := ioutil.ReadDir(root)
 	if err != nil {
