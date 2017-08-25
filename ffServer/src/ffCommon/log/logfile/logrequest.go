@@ -8,6 +8,8 @@ type logRequest struct {
 	stdout  bool     // 是否同时输出到标准输出
 	outSync bool     // 同步输出标记
 	level   logLevel // log level
+
+	day int // 哪天, 用于隔天切换日志
 }
 
 // Cheap integer to fixed-width decimal ASCII.  Give a negative width to avoid zero-padding.

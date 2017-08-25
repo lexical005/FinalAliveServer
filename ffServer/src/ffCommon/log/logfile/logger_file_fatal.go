@@ -18,6 +18,7 @@ type loggerFileFatal struct {
 	chLogRequest chan *logRequest // 等待写入到 out 的请求
 
 	file *os.File // 文件对象
+	day  int      // 用于隔天切换日志
 
 	filePath    string // 日志文件存储的绝对目录
 	filePrefix  string // 日志文件名的前缀
@@ -44,7 +45,8 @@ func (l *loggerFileFatal) switchOut(forceSwitch bool) (err error) {
 	l.closeFile()
 
 	// 实际应该使用的名称, 以及写入长度限制
-	latestName, outLenLimit := latestName(l.filePath, l.filePrefix, l.fileLenLimit, forceSwitch)
+	latestName, outLenLimit, day := latestName(l.filePath, l.filePrefix, l.fileLenLimit, forceSwitch)
+	l.day = day
 	l.outLenLimit = outLenLimit
 
 	// 创建文件
@@ -90,7 +92,7 @@ func (l *loggerFileFatal) write(one *logRequest) (err error) {
 		}
 
 		l.outLen += nWriteLen
-		if l.outLenLimit > 0 && l.outLen >= l.outLenLimit {
+		if l.outLenLimit > 0 && l.outLen >= l.outLenLimit || l.day != one.day {
 			l.switchOut(true)
 		}
 		return err

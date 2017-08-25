@@ -34,7 +34,7 @@ func (info *latestLogFileInfo) update(data []string, size int64) {
 
 // latestName 最新名称
 //	返回值: 最新日志文件应使用的名称, 此日志文件剩余可写入大小
-func (info *latestLogFileInfo) latestName(filePrefix string, fileLenLimit int, forceSwitch bool) (string, int) {
+func (info *latestLogFileInfo) latestName(filePrefix string, fileLenLimit int, forceSwitch bool) (string, int, int) {
 	// 时间
 	now := time.Now()
 	year, month, day := now.Date()
@@ -84,10 +84,10 @@ func (info *latestLogFileInfo) latestName(filePrefix string, fileLenLimit int, f
 
 	// 后缀
 	*buf = append(*buf, ".log"...)
-	return string(*buf), int(outLenLimit)
+	return string(*buf), int(outLenLimit), day
 }
 
-func latestName(filePath string, filePrefix string, fileLenLimit int, forceSwitch bool) (string, int) {
+func latestName(filePath string, filePrefix string, fileLenLimit int, forceSwitch bool) (string, int, int) {
 	// 遍历之前的日志文件
 	r := regexp.MustCompile(fmt.Sprintf("%v ([\\d]+)-([\\d]+)-([\\d]+) ([\\d]+)\\.log", filePrefix))
 	latestLogFileInfo := &latestLogFileInfo{}
