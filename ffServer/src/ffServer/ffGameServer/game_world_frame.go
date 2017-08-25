@@ -130,7 +130,7 @@ func (gwf *gameWorldFrame) dispatchProto(p *ffProto.Proto) {
 	defer p.BackAfterDispatch()
 
 	// 由具体逻辑处理协议
-	world.DispatchProto(uuid.UUID(p.ExtraData()), p)
+	world.DispatchProto(uuid.NewUUID(p.ExtraData()), p)
 }
 
 // onAgentServerDisConnect 与AgentServer断开连接
