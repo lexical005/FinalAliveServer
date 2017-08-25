@@ -9,6 +9,12 @@ import (
 //	返回值表明接收到的Proto是否进入了发送逻辑(如果未正确设置返回值, 将导致泄露或者异常)
 var mapProtoCallback = map[ffProto.MessageType]func(agent *agentGameServer, proto *ffProto.Proto) bool{
 	ffProto.MessageType_ServerRegister: onProtoServerRegister,
+
+	ffProto.MessageType_EnterMatchServer: onProtoPlayerEnterMatchServer,
+	ffProto.MessageType_LeaveMatchServer: onProtoPlayerLeaveMatchServer,
+
+	ffProto.MessageType_StartMatch: onProtoStartMatch,
+	ffProto.MessageType_StopMatch:  onProtoStopMatch,
 }
 
 // 服务器注册

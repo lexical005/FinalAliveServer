@@ -25,7 +25,7 @@ func onProtoEnterGameWorld(agent *agentUser, proto *ffProto.Proto) (result bool)
 	m := p.Message().(*ffProto.MsgEnterMatchServer)
 	m.UUIDAccount = agent.uuidAccount
 	m.UUIDTeam = 0
-	ffProto.SendProtoExtraDataUUID(instMatchServerClient, agent.UUID(), proto, false)
+	ffProto.SendProtoExtraDataUUID(instMatchServerClient, agent.UUID(), p, false)
 
 	return
 }
