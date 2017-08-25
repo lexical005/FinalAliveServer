@@ -1,15 +1,47 @@
 package main
 
+type matchMode int32
+
 const (
-	listenTargetUser       = "User"
-	listenTargetGameServer = "GameServer"
+	// matchModeSingle 单人模式
+	matchModeSingle matchMode = iota
+
+	// matchModeDouble 双人模式
+	matchModeDouble
+
+	// matchModeFour 四人模式
+	matchModeFour
+
+	// matchModeCount 匹配模式数量
+	matchModeCount = 3
+
+	// matchModeSingleUnitCount 单人模式-单元人数
+	matchModeSingleUnitCount = 1
+
+	// matchModeDoubleUnitCount 双人模式-单元人数
+	matchModeDoubleUnitCount = 2
+
+	// maxTeamMemberCount 队伍最大成员数
+	maxTeamMemberCount = 4
+
+	// uuidTeamNone 无队伍
+	uuidTeamNone = 0
 )
 
 // appConfig 应用程序配置
 var appConfig = &applicationConfig{}
 
-// agentUserSvr
-var agentUserSvr = &agentGameServerServer{}
+// instAgentGameServerMgr AgentGameServer管理器
+var instAgentGameServerMgr = &agentGameServerManager{}
+
+// instMatchPalyerMgr 匹配玩家管理器
+var instMatchPalyerMgr = &matchPlayerManager{}
+
+// instMatchMgr 匹配管理器
+var instMatchMgr = &matchManager{}
+
+// instReadyGroupPool 准备组管理器
+var instReadyGroupPool *readyGroupPool
 
 // waitApplicationQuit 等待所有系统退出
 var waitApplicationQuit int32

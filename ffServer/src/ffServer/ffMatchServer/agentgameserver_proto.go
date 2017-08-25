@@ -11,13 +11,53 @@ var mapProtoCallback = map[ffProto.MessageType]func(agent *agentGameServer, prot
 	ffProto.MessageType_ServerRegister: onProtoServerRegister,
 }
 
-func onProtoServerRegister(agent *agentGameServer, proto *ffProto.Proto) bool {
+// 服务器注册
+func onProtoServerRegister(server *agentGameServer, proto *ffProto.Proto) bool {
 	message, _ := proto.Message().(*ffProto.MsgServerRegister)
 	if message.ServerType != "AgentGameServer" {
 		log.FatalLogger.Printf("agentGameServer recv not support server register[%v]", message)
-		agent.Close()
+		server.Close()
 		return false
 	}
 
 	return false
+}
+
+// 开始匹配
+func onProtoStartMatch(server *agentGameServer, proto *ffProto.Proto) bool {
+	proto.ChangeLimitStateRecvToSend()
+	instMatchMgr.OnPlayerMatchProto(proto)
+	return true
+}
+
+// 停止匹配
+func onProtoStopMatch(server *agentGameServer, proto *ffProto.Proto) bool {
+	proto.ChangeLimitStateRecvToSend()
+	instMatchMgr.OnPlayerMatchProto(proto)
+	return true
+}
+
+// 用户加入匹配服务器
+func onProtoPlayerEnterMatchServer(server *agentGameServer, proto *ffProto.Proto) bool {
+	proto.ChangeLimitStateRecvToSend()
+	uuidPlayerKey := proto.ExtraData()
+
+	message, _ := proto.Message().(*ffProto.MsgEnterMatchServer)
+	instMatchPalyerMgr.AddPlayer(server, uuidPlayerKey, message.UUIDAccount, message.UUIDTeam)
+
+	server.SendProto(uuidPlayerKey, proto)
+
+	return true
+}
+
+// 用户离开匹配服务器
+func onProtoPlayerLeaveMatchServer(server *agentGameServer, proto *ffProto.Proto) bool {
+	proto.ChangeLimitStateRecvToSend()
+	uuidPlayerKey := proto.ExtraData()
+
+	instMatchPalyerMgr.RemovePlayer(uuidPlayerKey)
+
+	server.SendProto(uuidPlayerKey, proto)
+
+	return true
 }

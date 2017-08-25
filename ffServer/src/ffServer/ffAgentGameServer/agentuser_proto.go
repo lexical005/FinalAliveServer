@@ -8,22 +8,29 @@ import (
 
 // 协议回调函数
 //	返回值表明接收到的Proto是否进入了发送逻辑(如果未正确设置返回值, 将导致泄露或者异常)
-var mapProtoCallback = map[ffProto.MessageType]func(agent *agentUser, proto *ffProto.Proto) bool{
+var mapAgentUserProtoCallback = map[ffProto.MessageType]func(agent *agentUser, proto *ffProto.Proto) bool{
 	ffProto.MessageType_EnterGameWorld:               onProtoEnterGameWorld,
 	ffProto.MessageType_PrepareLoginPlatformUniqueId: onProtoPrepareLoginPlatformUniqueID,
 	ffProto.MessageType_LoginPlatformUniqueId:        onProtoLoginPlatformUniqueID,
 }
 
-func onProtoEnterGameWorld(agent *agentUser, proto *ffProto.Proto) bool {
+func onProtoEnterGameWorld(agent *agentUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
 	message.Result = ffError.ErrNone.Code()
 
-	proto.ChangeLimitStateRecvToSend()
-	agent.SendProto(proto)
-	return true
+	result = ffProto.SendProtoExtraDataNormal(agent, proto, true)
+
+	// 进入MatchServer
+	p := ffProto.ApplyProtoForSend(ffProto.MessageType_EnterMatchServer)
+	m := p.Message().(*ffProto.MsgEnterMatchServer)
+	m.UUIDAccount = agent.uuidAccount
+	m.UUIDTeam = 0
+	ffProto.SendProtoExtraDataUUID(instMatchServerClient, agent.UUID(), proto, false)
+
+	return
 }
 
-func onProtoPrepareLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) bool {
+func onProtoPrepareLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) (result bool) {
 	fixSalt := rand.Int31()
 	for fixSalt == 0 {
 		fixSalt = rand.Int31()
@@ -34,19 +41,10 @@ func onProtoPrepareLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto)
 
 	agent.uuidPlatformLogin = message.UUIDPlatformLogin
 
-	proto.ChangeLimitStateRecvToSend()
-	agent.SendProto(proto)
-	return true
+	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
 }
 
-func onProtoLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) bool {
-	// message, _ := proto.Message().(*ffProto.MsgLoginPlatformUniqueId)
-	// message.UUIDLogin = agent.UUID().Value()
-
-	// proto.ChangeLimitStateRecvToSend()
-	// agent.SendProto(proto)
-	// return true
-
+func onProtoLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) (result bool) {
 	loginData := &httpClientCustomLoginData{
 		// 请求者
 		uuidRequester: agent.UUID(),
@@ -60,7 +58,15 @@ func onProtoLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) bool {
 		agent.Close()
 	}
 
-	return false
+	return
+}
+
+func onProtoStartMatch(agent *agentUser, proto *ffProto.Proto) (result bool) {
+	return ffProto.SendProtoExtraDataUUID(instMatchServerClient, agent.UUID(), proto, true)
+}
+
+func onProtoStopMatch(agent *agentUser, proto *ffProto.Proto) (result bool) {
+	return ffProto.SendProtoExtraDataUUID(instMatchServerClient, agent.UUID(), proto, true)
 }
 
 func onCustomLoginResult(agent *agentUser, result *httpClientCustomLoginData) {
@@ -71,8 +77,8 @@ func onCustomLoginResult(agent *agentUser, result *httpClientCustomLoginData) {
 		message.Result = ffError.ErrUnknown.Code()
 	} else {
 		agent.uuidAccount = result.UUIDAccount
-		message.UUIDLogin = result.UUIDAccount
+		message.UUIDLogin = agent.UUID().Value()
 	}
 
-	agent.SendProto(proto)
+	ffProto.SendProtoExtraDataNormal(agent, proto, false)
 }

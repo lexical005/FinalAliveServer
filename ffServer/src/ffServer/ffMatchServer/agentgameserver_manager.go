@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 )
 
-type agentGameServerServer struct {
+type agentGameServerManager struct {
 	netManager *netmanager.Manager
 
 	mapAgent  map[uuid.UUID]*agentGameServer // mapAgent 所有连接
@@ -16,50 +16,50 @@ type agentGameServerServer struct {
 }
 
 // Create 创建
-func (server *agentGameServerServer) Create(netsession netmanager.INetSession) netmanager.INetSessionHandler {
+func (mgr *agentGameServerManager) Create(netsession netmanager.INetSession) netmanager.INetSessionHandler {
 	log.RunLogger.Printf("agentUserServer.Create netsession[%v]", netsession)
 
 	// 申请
-	agent := server.agentPool.apply()
+	agent := mgr.agentPool.apply()
 
 	// 初始化
 	agent.Init(netsession)
 
 	// 记录
-	server.mapAgent[agent.UUID()] = agent
+	mgr.mapAgent[agent.UUID()] = agent
 
 	return agent
 }
 
 // Back 回收
-func (server *agentGameServerServer) Back(handler netmanager.INetSessionHandler) {
+func (mgr *agentGameServerManager) Back(handler netmanager.INetSessionHandler) {
 	log.RunLogger.Printf("agentUserServer.Back handler[%v]", handler)
 
 	agent, _ := handler.(*agentGameServer)
 
 	// 清除记录
-	delete(server.mapAgent, agent.UUID())
+	delete(mgr.mapAgent, agent.UUID())
 
 	// 回收清理
 	agent.Back()
 
 	// 缓存
-	server.agentPool.back(agent)
+	mgr.agentPool.back(agent)
 }
 
 // Start 开始建立服务
-func (server *agentGameServerServer) Start() error {
+func (mgr *agentGameServerManager) Start() error {
 	log.RunLogger.Printf("agentUserServer.Start")
 
-	manager, err := netmanager.NewServer(server, appConfig.ServeAgentGameServer, &waitApplicationQuit, chApplicationQuit)
+	manager, err := netmanager.NewServer(mgr, appConfig.ServeAgentGameServer, &waitApplicationQuit, chApplicationQuit)
 	if err != nil {
 		log.FatalLogger.Println(err)
 		return err
 	}
 
-	server.netManager = manager
-	server.mapAgent = make(map[uuid.UUID]*agentGameServer, appConfig.ServeAgentGameServer.InitOnlineCount)
-	server.agentPool = newAgentGameServerPool("agentUserServer", appConfig.ServeAgentGameServer.InitOnlineCount)
+	mgr.netManager = manager
+	mgr.mapAgent = make(map[uuid.UUID]*agentGameServer, appConfig.ServeAgentGameServer.InitOnlineCount)
+	mgr.agentPool = newAgentGameServerPool("agentUserServer", appConfig.ServeAgentGameServer.InitOnlineCount)
 
 	atomic.AddInt32(&waitApplicationQuit, 1)
 
@@ -67,14 +67,14 @@ func (server *agentGameServerServer) Start() error {
 }
 
 // End 退出完成
-func (server *agentGameServerServer) End() {
+func (mgr *agentGameServerManager) End() {
 	log.RunLogger.Printf("agentUserServer.End")
 
 	atomic.AddInt32(&waitApplicationQuit, -1)
 }
 
 // Status 当前服务状态描述
-func (server *agentGameServerServer) Status() string {
+func (mgr *agentGameServerManager) Status() string {
 	return fmt.Sprintf("mapAgent[%v] agentPool[%v] netManager[%v]",
-		len(server.mapAgent), server.agentPool, server.netManager.Status())
+		len(mgr.mapAgent), mgr.agentPool, mgr.netManager.Status())
 }

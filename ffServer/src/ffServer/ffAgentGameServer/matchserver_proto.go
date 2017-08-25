@@ -1,47 +1,35 @@
 package main
 
-// import (
-// 	"ffAutoGen/ffError"
-// 	"ffProto"
-// 	"math/rand"
-// )
+import (
+	"ffCommon/log/log"
+	"ffCommon/uuid"
+	"ffProto"
+)
 
-// // 协议回调函数
-// //	返回值表明接收到的Proto是否进入了发送逻辑(如果未正确设置返回值, 将导致泄露或者异常)
-// var mapProtoCallback = map[ffProto.MessageType]func(agent *agentUser, proto *ffProto.Proto) bool{
-// 	ffProto.MessageType_EnterGameWorld:               onProtoEnterGameWorld,
-// 	ffProto.MessageType_PrepareLoginPlatformUniqueId: onProtoPrepareLoginPlatformUniqueID,
-// 	ffProto.MessageType_LoginPlatformUniqueId:        onProtoLoginPlatformUniqueID,
-// }
+// 协议回调函数
+//	返回值表明接收到的Proto是否进入了发送逻辑(如果未正确设置返回值, 将导致泄露或者异常)
+var mapMatchServerProtoCallback = map[ffProto.MessageType]func(server *matchServer, proto *ffProto.Proto) bool{
+	ffProto.MessageType_EnterMatchServer: onProtoEnterMatchServer,
+	ffProto.MessageType_LeaveMatchServer: onProtoLeaveMatchServer,
 
-// func onProtoEnterGameWorld(agent *agentUser, proto *ffProto.Proto) bool {
-// 	message, _ := proto.Message().(*ffProto.MsgEnterGameWorld)
-// 	message.Result = ffError.ErrNone.Code()
+	ffProto.MessageType_StartMatch: onProtoStartMatchResult,
+	ffProto.MessageType_StopMatch:  onProtoStopMatchResult,
+}
 
-// 	proto.ChangeLimitStateRecvToSend()
-// 	agent.SendProto(proto)
-// 	return true
-// }
+func onProtoEnterMatchServer(server *matchServer, proto *ffProto.Proto) (result bool) {
+	log.RunLogger.Printf("onProtoEnterMatchServer agent[%v] proto[%v]", uuid.NewUUID(proto.ExtraData()), proto)
+	return false
+}
 
-// func onProtoPrepareLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) bool {
-// 	fixSalt := rand.Int31()
-// 	for fixSalt == 0 {
-// 		fixSalt = rand.Int31()
-// 	}
+func onProtoLeaveMatchServer(server *matchServer, proto *ffProto.Proto) (result bool) {
+	log.RunLogger.Printf("onProtoLeaveMatchServer agent[%v] proto[%v]", uuid.NewUUID(proto.ExtraData()), proto)
+	return false
+}
 
-// 	message, _ := proto.Message().(*ffProto.MsgPrepareLoginPlatformUniqueId)
-// 	message.FixSalt = fixSalt
+func onProtoStartMatchResult(server *matchServer, proto *ffProto.Proto) (result bool) {
+	return instAgentUserServer.OnMatchServerProto(proto)
+}
 
-// 	proto.ChangeLimitStateRecvToSend()
-// 	agent.SendProto(proto)
-// 	return true
-// }
-
-// func onProtoLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) bool {
-// 	message, _ := proto.Message().(*ffProto.MsgLoginPlatformUniqueId)
-// 	message.UUIDLogin = agent.UUID().Value()
-
-// 	proto.ChangeLimitStateRecvToSend()
-// 	agent.SendProto(proto)
-// 	return true
-// }
+func onProtoStopMatchResult(server *matchServer, proto *ffProto.Proto) (result bool) {
+	return instAgentUserServer.OnMatchServerProto(proto)
+}

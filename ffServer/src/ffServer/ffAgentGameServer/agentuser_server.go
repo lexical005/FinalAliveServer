@@ -4,6 +4,7 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/net/netmanager"
 	"ffCommon/uuid"
+	"ffProto"
 	"fmt"
 	"sync"
 	"sync/atomic"
@@ -35,7 +36,7 @@ func (server *agentUserServer) Create(netsession netmanager.INetSession) netmana
 
 	return agent
 }
- 
+
 // Back 回收
 func (server *agentUserServer) Back(handler netmanager.INetSessionHandler) {
 	log.RunLogger.Printf("agentUserServer.Back handler[%v]", handler)
@@ -100,4 +101,20 @@ func (server *agentUserServer) OnCustomLoginResult(result *httpClientCustomLogin
 	if ok {
 		onCustomLoginResult(agent, result)
 	}
+}
+
+// OnMatchServerProto 接收到来自MatchServer的User相关协议
+func (server *agentUserServer) OnMatchServerProto(proto *ffProto.Proto) bool {
+	uuid := uuid.NewUUID(proto.ExtraData())
+	log.RunLogger.Printf("agentUserServer.OnMatchServerProto agent[%v] proto[%v]", uuid, proto)
+
+	server.mutexAgent.Lock()
+	defer server.mutexAgent.Unlock()
+
+	agent, ok := server.mapAgent[uuid]
+	if ok {
+		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+	}
+	log.RunLogger.Printf("agentUserServer.OnMatchServerProto agent[%v] offline", uuid)
+	return false
 }

@@ -48,7 +48,7 @@ quitLoop:
 		case <-time.After(time.Second):
 			closeTime++
 			log.RunLogger.Printf("closing %v", closeTime)
-			log.RunLogger.Printf("useragent_server[%s]", agentUserSvr.Status())
+			log.RunLogger.Printf("useragent_server[%s]", instAgentGameServerMgr.Status())
 			tcpsession.PrintModule()
 			tcpserver.PrintModule()
 			ffProto.PrintModule()

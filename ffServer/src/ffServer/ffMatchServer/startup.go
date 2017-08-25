@@ -53,10 +53,19 @@ func startup() (err error) {
 	}
 
 	// 启动
-	err = agentUserSvr.Start()
+	err = instAgentGameServerMgr.Start()
 	if err != nil {
 		return
 	}
+
+	// 启动
+	err = instMatchPalyerMgr.Start()
+	if err != nil {
+		return
+	}
+
+	// 准备组
+	instReadyGroupPool = newReadyGroupPool(matchModeCount * 4)
 
 	return err
 }

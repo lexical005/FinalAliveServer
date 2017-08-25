@@ -4,6 +4,7 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/net/netmanager"
 	"ffCommon/util"
+	"ffCommon/uuid"
 	"ffProto"
 	"fmt"
 	"sync/atomic"
@@ -68,9 +69,9 @@ func (client *matchServerClient) End() {
 	atomic.AddInt32(&waitApplicationQuit, -1)
 }
 
-// SendProto
-func (client *matchServerClient) SendProto(agent *agentUser, proto *ffProto.Proto) bool {
-	log.RunLogger.Printf("matchServerClient.SendProto")
+// SendProtoExtraDataUUID
+func (client *matchServerClient) SendProtoExtraDataUUID(uuid uuid.UUID, proto *ffProto.Proto) bool {
+	log.RunLogger.Printf("matchServerClient.SendProtoExtraDataUUID uuid[%v] proto[%v]", uuid, proto)
 
 	work := client.status.EnterWork()
 
@@ -84,7 +85,7 @@ func (client *matchServerClient) SendProto(agent *agentUser, proto *ffProto.Prot
 	}()
 
 	if work {
-		return client.matchServer.SendProto(agent, proto)
+		return client.matchServer.SendProtoExtraDataUUID(uuid, proto)
 	}
 
 	return work

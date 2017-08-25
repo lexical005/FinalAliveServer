@@ -30,6 +30,12 @@ func (agent *agentUser) OnConnect() {
 // OnDisConnect 连接断开, 此事件处理完毕后, session将不可用
 func (agent *agentUser) OnDisConnect() {
 	log.RunLogger.Printf("%v.OnDisConnect", agent.name)
+
+	// 离开MatchServer
+	if agent.uuidAccount != uuid.InvalidUUID.Value() {
+		proto := ffProto.ApplyProtoForSend(ffProto.MessageType_LeaveMatchServer)
+		ffProto.SendProtoExtraDataUUID(instMatchServerClient, agent.UUID(), proto, false)
+	}
 }
 
 // OnProto 收到Proto
@@ -38,7 +44,7 @@ func (agent *agentUser) OnProto(proto *ffProto.Proto) bool {
 
 	protoID := proto.ProtoID()
 
-	if callback, ok := mapProtoCallback[protoID]; ok {
+	if callback, ok := mapAgentUserProtoCallback[protoID]; ok {
 		return callback(agent, proto)
 	}
 
@@ -47,9 +53,9 @@ func (agent *agentUser) OnProto(proto *ffProto.Proto) bool {
 	return false
 }
 
-// SendProto 发送Proto
+// SendProtoExtraDataNormal 发送Proto
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
-func (agent *agentUser) SendProto(proto *ffProto.Proto) bool {
+func (agent *agentUser) SendProtoExtraDataNormal(proto *ffProto.Proto) bool {
 	return agent.netsession.SendProtoExtraDataNormal(proto)
 }
 
@@ -62,6 +68,10 @@ func (agent *agentUser) UUID() uuid.UUID {
 func (agent *agentUser) Init(netsession netmanager.INetSession) {
 	agent.name = fmt.Sprintf("agentUser[%v]", netsession.UUID())
 	agent.netsession = netsession
+
+	// 用户数据
+	agent.uuidPlatformLogin = ""
+	agent.uuidAccount = uuid.InvalidUUID.Value()
 }
 
 // Back 回收

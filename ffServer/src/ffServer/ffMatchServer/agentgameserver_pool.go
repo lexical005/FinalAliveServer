@@ -21,7 +21,7 @@ func (p *agentGameServerPool) String() string {
 
 func newAgentGameServerPool(nameOwner string, initOnlineCount int) *agentGameServerPool {
 	funcCreator := func() interface{} {
-		return newAgentUser()
+		return newAgentGameServer()
 	}
 	return &agentGameServerPool{
 		pool: pool.New(nameOwner+".agentGameServer.pool", false, funcCreator, initOnlineCount, 50),
