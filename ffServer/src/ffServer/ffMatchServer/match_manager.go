@@ -4,6 +4,7 @@ import (
 	"ffAutoGen/ffError"
 	"ffCommon/log/log"
 	"ffCommon/util"
+	"ffCommon/uuid"
 	"ffProto"
 	"sync/atomic"
 	"time"
@@ -25,6 +26,8 @@ func (mgr *matchManager) Start() error {
 		newMatchGroup(matchModeFour),
 	}
 
+	mgr.matchProto = make(chan *ffProto.Proto, appConfig.Match.InitMatchCount)
+
 	go util.SafeGo(mgr.mainLoop, mgr.mainLoopEnd)
 
 	return nil
@@ -32,12 +35,13 @@ func (mgr *matchManager) Start() error {
 
 // GetMatchGroup 获取匹配模式
 func (mgr *matchManager) GetMatchGroup(mode matchMode) *matchGroup {
-	return mgr.groups[mode]
+	return mgr.groups[mode-1]
 }
 
 // OnPlayerMatchProto 用户匹配相关协议
-func (mgr *matchManager) OnPlayerMatchProto(proto *ffProto.Proto) {
+func (mgr *matchManager) OnPlayerMatchProto(proto *ffProto.Proto) bool {
 	mgr.matchProto <- proto
+	return true
 }
 
 // mainLoop
@@ -54,7 +58,9 @@ func (mgr *matchManager) mainLoop(params ...interface{}) {
 			case <-time.After(time.Second):
 				// 匹配
 				for _, group := range mgr.groups {
-					group.Match()
+					if group != nil {
+						group.Match()
+					}
 				}
 
 			case <-chApplicationQuit: // 进程退出
@@ -79,25 +85,24 @@ func (mgr *matchManager) mainLoop(params ...interface{}) {
 }
 
 func (mgr *matchManager) onProto(proto *ffProto.Proto) {
+	log.RunLogger.Printf("matchManager.onProto proto[%v]", proto)
+	player := instMatchPlayerMgr.GetPlayer(uuid.NewUUID(proto.ExtraData()))
+
 	switch proto.ProtoID() {
-	case ffProto.MessageType_EnterMatchServer:
-		mgr.doStartMatch(proto)
-	case ffProto.MessageType_LeaveMatchServer:
-		mgr.doStartMatch(proto)
 	case ffProto.MessageType_StartMatch:
-		mgr.doStartMatch(proto)
+		mgr.doStartMatch(player, proto)
 	case ffProto.MessageType_StopMatch:
-		mgr.doStopMatch(proto)
+		mgr.doStopMatch(player, proto)
 	}
+
+	ffProto.SendProtoExtraDataUUID(player.sourceServer, player.uuidPlayerKey, proto, true)
 }
 
 // doStartMatch 开始匹配
-func (mgr *matchManager) doStartMatch(proto *ffProto.Proto) {
-	uuidPlayerKey := proto.ExtraData()
+func (mgr *matchManager) doStartMatch(player *matchPlayer, proto *ffProto.Proto) {
 	message, _ := proto.Message().(*ffProto.MsgStartMatch)
 
 	result := false
-	player := instMatchPalyerMgr.GetPlayer(uuidPlayerKey)
 	if player != nil {
 		mode := matchMode(message.MatchMode)
 
@@ -109,17 +114,13 @@ func (mgr *matchManager) doStartMatch(proto *ffProto.Proto) {
 	if !result {
 		message.Result = ffError.ErrUnknown.Code()
 	}
-
-	player.sourceServer.SendProto(player.uuidPlayerKey, proto)
 }
 
 // doStopMatch 停止匹配
-func (mgr *matchManager) doStopMatch(proto *ffProto.Proto) {
-	uuidPlayerKey := proto.ExtraData()
+func (mgr *matchManager) doStopMatch(player *matchPlayer, proto *ffProto.Proto) {
 	message, _ := proto.Message().(*ffProto.MsgStopMatch)
 
 	result := false
-	player := instMatchPalyerMgr.GetPlayer(uuidPlayerKey)
 	if player != nil {
 		result = player.StopMatch()
 	}
@@ -127,8 +128,6 @@ func (mgr *matchManager) doStopMatch(proto *ffProto.Proto) {
 	if !result {
 		message.Result = ffError.ErrUnknown.Code()
 	}
-
-	player.sourceServer.SendProto(player.uuidPlayerKey, proto)
 }
 
 // mainLoopEnd

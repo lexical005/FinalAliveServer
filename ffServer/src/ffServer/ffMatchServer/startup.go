@@ -59,13 +59,19 @@ func startup() (err error) {
 	}
 
 	// 启动
-	err = instMatchPalyerMgr.Start()
+	err = instMatchPlayerMgr.Start()
 	if err != nil {
 		return
 	}
 
 	// 准备组
 	instReadyGroupPool = newReadyGroupPool(matchModeCount * 4)
+
+	// 启动
+	err = instMatchMgr.Start()
+	if err != nil {
+		return
+	}
 
 	return err
 }

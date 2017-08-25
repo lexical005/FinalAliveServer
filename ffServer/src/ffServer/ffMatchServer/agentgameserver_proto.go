@@ -2,6 +2,7 @@ package main
 
 import (
 	"ffCommon/log/log"
+	"ffCommon/uuid"
 	"ffProto"
 )
 
@@ -23,7 +24,6 @@ func onProtoServerRegister(server *agentGameServer, proto *ffProto.Proto) bool {
 	if message.ServerType != "AgentGameServer" {
 		log.FatalLogger.Printf("agentGameServer recv not support server register[%v]", message)
 		server.Close()
-		return false
 	}
 
 	return false
@@ -31,39 +31,30 @@ func onProtoServerRegister(server *agentGameServer, proto *ffProto.Proto) bool {
 
 // 开始匹配
 func onProtoStartMatch(server *agentGameServer, proto *ffProto.Proto) bool {
-	proto.ChangeLimitStateRecvToSend()
-	instMatchMgr.OnPlayerMatchProto(proto)
-	return true
+	return instMatchMgr.OnPlayerMatchProto(proto)
 }
 
 // 停止匹配
 func onProtoStopMatch(server *agentGameServer, proto *ffProto.Proto) bool {
-	proto.ChangeLimitStateRecvToSend()
-	instMatchMgr.OnPlayerMatchProto(proto)
-	return true
+	return instMatchMgr.OnPlayerMatchProto(proto)
 }
 
 // 用户加入匹配服务器
 func onProtoPlayerEnterMatchServer(server *agentGameServer, proto *ffProto.Proto) bool {
-	proto.ChangeLimitStateRecvToSend()
-	uuidPlayerKey := proto.ExtraData()
-
+	uuidPlayerKey := uuid.NewUUID(proto.ExtraData())
 	message, _ := proto.Message().(*ffProto.MsgEnterMatchServer)
-	instMatchPalyerMgr.AddPlayer(server, uuidPlayerKey, message.UUIDAccount, message.UUIDTeam)
+	instMatchPlayerMgr.AddPlayer(server, uuidPlayerKey, uuid.NewUUID(message.UUIDAccount), uuid.NewUUID(message.UUIDTeam))
+	message.UUIDAccount = uuid.InvalidUUID.Value()
+	message.UUIDTeam = uuid.InvalidUUID.Value()
 
-	server.SendProto(uuidPlayerKey, proto)
-
-	return true
+	return ffProto.SendProtoExtraDataUUID(server, uuidPlayerKey, proto, true)
 }
 
 // 用户离开匹配服务器
 func onProtoPlayerLeaveMatchServer(server *agentGameServer, proto *ffProto.Proto) bool {
-	proto.ChangeLimitStateRecvToSend()
-	uuidPlayerKey := proto.ExtraData()
+	uuidPlayerKey := uuid.NewUUID(proto.ExtraData())
 
-	instMatchPalyerMgr.RemovePlayer(uuidPlayerKey)
+	instMatchPlayerMgr.RemovePlayer(uuidPlayerKey)
 
-	server.SendProto(uuidPlayerKey, proto)
-
-	return true
+	return ffProto.SendProtoExtraDataUUID(server, uuidPlayerKey, proto, true)
 }

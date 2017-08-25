@@ -12,8 +12,9 @@ var mapMatchServerProtoCallback = map[ffProto.MessageType]func(server *matchServ
 	ffProto.MessageType_EnterMatchServer: onProtoEnterMatchServer,
 	ffProto.MessageType_LeaveMatchServer: onProtoLeaveMatchServer,
 
-	ffProto.MessageType_StartMatch: onProtoStartMatchResult,
-	ffProto.MessageType_StopMatch:  onProtoStopMatchResult,
+	ffProto.MessageType_StartMatch:  onProtoStartMatchResult,
+	ffProto.MessageType_StopMatch:   onProtoStopMatchResult,
+	ffProto.MessageType_MatchResult: onProtoMatchResult,
 }
 
 func onProtoEnterMatchServer(server *matchServer, proto *ffProto.Proto) (result bool) {
@@ -31,5 +32,9 @@ func onProtoStartMatchResult(server *matchServer, proto *ffProto.Proto) (result 
 }
 
 func onProtoStopMatchResult(server *matchServer, proto *ffProto.Proto) (result bool) {
+	return instAgentUserServer.OnMatchServerProto(proto)
+}
+
+func onProtoMatchResult(server *matchServer, proto *ffProto.Proto) (result bool) {
 	return instAgentUserServer.OnMatchServerProto(proto)
 }

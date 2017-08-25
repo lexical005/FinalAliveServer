@@ -20,7 +20,7 @@ func (group *readyGroup) Enter(unit iMatchUnit) bool {
 	group.units = append(group.units, unit)
 	group.lackCount -= unit.Count()
 
-	// todo: 通知匹配单元, 进入战场准备
+	unit.MatchSuccess()
 
 	return group.lackCount == 0
 }
@@ -31,7 +31,13 @@ func (group *readyGroup) EnterMulti(units []iMatchUnit, count int) bool {
 	group.units = append(group.units, units...)
 	group.lackCount -= count
 
-	// todo: 通知匹配单元, 进入战场准备
+	for _, unit := range units {
+		unit.MatchSuccess()
+	}
 
 	return group.lackCount == 0
+}
+
+func newReadyGroup() *readyGroup {
+	return &readyGroup{}
 }

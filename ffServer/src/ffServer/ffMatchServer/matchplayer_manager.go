@@ -2,14 +2,15 @@ package main
 
 import (
 	"ffCommon/log/log"
+	"ffCommon/uuid"
 	"ffProto"
 	"sync"
 )
 
 type matchPlayerManager struct {
-	mutexPlayer sync.RWMutex            // 用户操作锁
-	players     map[uint64]*matchPlayer // 当前有效用户. key: uuidPlayerKey
-	playerPool  *matchPlayerPool        // matchPlayer 缓存
+	mutexPlayer sync.RWMutex               // 用户操作锁
+	players     map[uuid.UUID]*matchPlayer // 当前有效用户. key: uuidPlayerKey
+	playerPool  *matchPlayerPool           // matchPlayer 缓存
 }
 
 // 记录player
@@ -32,7 +33,7 @@ func (mgr *matchPlayerManager) delPlayer(player *matchPlayer) {
 }
 
 // 获取player
-func (mgr *matchPlayerManager) GetPlayer(uuidPlayerKey uint64) *matchPlayer {
+func (mgr *matchPlayerManager) GetPlayer(uuidPlayerKey uuid.UUID) *matchPlayer {
 	mgr.mutexPlayer.RLock()
 	defer mgr.mutexPlayer.RUnlock()
 
@@ -43,7 +44,7 @@ func (mgr *matchPlayerManager) GetPlayer(uuidPlayerKey uint64) *matchPlayer {
 }
 
 // AddPlayer 添加匹配用户
-func (mgr *matchPlayerManager) AddPlayer(agent *agentGameServer, uuidPlayerKey, uuidAccount, uuidTeam uint64) {
+func (mgr *matchPlayerManager) AddPlayer(agent *agentGameServer, uuidPlayerKey, uuidAccount, uuidTeam uuid.UUID) {
 	log.RunLogger.Printf("matchPlayerManager.AddPlayer agentGameServer[%v] uuidPlayerKey[%v]", agent.UUID(), uuidPlayerKey)
 
 	player := mgr.GetPlayer(uuidPlayerKey)
@@ -55,7 +56,7 @@ func (mgr *matchPlayerManager) AddPlayer(agent *agentGameServer, uuidPlayerKey, 
 }
 
 // RemovePlayer 移除匹配用户
-func (mgr *matchPlayerManager) RemovePlayer(uuidPlayerKey uint64) {
+func (mgr *matchPlayerManager) RemovePlayer(uuidPlayerKey uuid.UUID) {
 	log.RunLogger.Printf("matchPlayerManager.RemovePlayer uuidPlayerKey[%v]", uuidPlayerKey)
 
 	if player, ok := mgr.players[uuidPlayerKey]; ok {
@@ -64,7 +65,7 @@ func (mgr *matchPlayerManager) RemovePlayer(uuidPlayerKey uint64) {
 }
 
 // StartMatch 开始匹配
-func (mgr *matchPlayerManager) StartMatch(agent *agentGameServer, uuidPlayerKey uint64, message *ffProto.MsgStartMatch) (result bool) {
+func (mgr *matchPlayerManager) StartMatch(agent *agentGameServer, uuidPlayerKey uuid.UUID, message *ffProto.MsgStartMatch) (result bool) {
 	// log.RunLogger.Printf("matchPlayerManager.StartMatch agentGameServer[%v] uuidPlayerKey[%v]", agent.UUID(), uuidPlayerKey)
 
 	// player := mgr.GetPlayer(uuidPlayerKey)
@@ -92,13 +93,13 @@ func (mgr *matchPlayerManager) StartMatch(agent *agentGameServer, uuidPlayerKey 
 }
 
 // 停止匹配
-func (mgr *matchPlayerManager) StopMatch(uuidPlayerKey uint64) {
+func (mgr *matchPlayerManager) StopMatch(uuidPlayerKey uuid.UUID) {
 	player := mgr.GetPlayer(uuidPlayerKey)
 	player.StopMatch()
 }
 
 func (mgr *matchPlayerManager) Start() error {
-	mgr.players = make(map[uint64]*matchPlayer, appConfig.Match.InitMatchCount/2)
+	mgr.players = make(map[uuid.UUID]*matchPlayer, appConfig.Match.InitMatchCount/2)
 	mgr.playerPool = newMatchPlayerPool("matchPlayerManager", appConfig.Match.InitMatchCount)
 
 	return nil

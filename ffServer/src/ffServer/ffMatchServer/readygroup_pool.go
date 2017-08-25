@@ -21,7 +21,7 @@ func (p *readyGroupPool) String() string {
 
 func newReadyGroupPool(initCount int) *readyGroupPool {
 	funcCreator := func() interface{} {
-		return newMatchPlayer()
+		return newReadyGroup()
 	}
 	return &readyGroupPool{
 		pool: pool.New("readyGroupPool", false, funcCreator, initCount, 50),

@@ -186,6 +186,8 @@ func (agent *agentSession) Close() {
 // SendProtoExtraDataNormal 发送Proto, 附加数据类型ExtraDataTypeNormal
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端. 当协议未被添加到待发送管道内时, 将被执行回收
 func (agent *agentSession) SendProtoExtraDataNormal(proto *ffProto.Proto) bool {
+	log.RunLogger.Printf("%v.SendProtoExtraDataNormal proto[%v]", agent.name, proto)
+
 	if agent.sendExtraDataType != ffProto.ExtraDataTypeNormal {
 		log.FatalLogger.Printf("%v.SendProtoExtraDataNormal not match agent sendExtraDataType[%v] vs [%v]",
 			agent.name, agent.sendExtraDataType, ffProto.ExtraDataTypeNormal)
@@ -217,6 +219,8 @@ func (agent *agentSession) SendProtoExtraDataNormal(proto *ffProto.Proto) bool {
 // SendProtoExtraDataUUID 发送Proto, 附加数据类型ExtraDataTypeUUID
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端. 当协议未被添加到待发送管道内时, 将被执行回收
 func (agent *agentSession) SendProtoExtraDataUUID(uuidSender uint64, proto *ffProto.Proto) bool {
+	log.RunLogger.Printf("%v.SendProtoExtraDataUUID proto[%v]", agent.name, proto)
+
 	if agent.sendExtraDataType != ffProto.ExtraDataTypeUUID {
 		log.FatalLogger.Printf("%v.SendProtoExtraDataUUID not match agent sendExtraDataType[%v] vs [%v]",
 			agent.name, agent.sendExtraDataType, ffProto.ExtraDataTypeUUID)

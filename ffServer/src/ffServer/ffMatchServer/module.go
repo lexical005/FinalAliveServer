@@ -4,13 +4,13 @@ type matchMode int32
 
 const (
 	// matchModeSingle 单人模式
-	matchModeSingle matchMode = iota
+	matchModeSingle matchMode = 1
 
 	// matchModeDouble 双人模式
-	matchModeDouble
+	matchModeDouble matchMode = 2
 
 	// matchModeFour 四人模式
-	matchModeFour
+	matchModeFour matchMode = 4
 
 	// matchModeCount 匹配模式数量
 	matchModeCount = 3
@@ -34,8 +34,8 @@ var appConfig = &applicationConfig{}
 // instAgentGameServerMgr AgentGameServer管理器
 var instAgentGameServerMgr = &agentGameServerManager{}
 
-// instMatchPalyerMgr 匹配玩家管理器
-var instMatchPalyerMgr = &matchPlayerManager{}
+// instMatchPlayerMgr 匹配玩家管理器
+var instMatchPlayerMgr = &matchPlayerManager{}
 
 // instMatchMgr 匹配管理器
 var instMatchMgr = &matchManager{}

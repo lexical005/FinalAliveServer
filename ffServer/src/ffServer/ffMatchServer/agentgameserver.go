@@ -44,10 +44,10 @@ func (agent *agentGameServer) OnProto(proto *ffProto.Proto) bool {
 	return false
 }
 
-// SendProto 发送Proto
+// SendProtoExtraDataUUID 发送Proto
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
-func (agent *agentGameServer) SendProto(uuidExtraData uint64, proto *ffProto.Proto) bool {
-	return agent.netsession.SendProtoExtraDataUUID(uuidExtraData, proto)
+func (agent *agentGameServer) SendProtoExtraDataUUID(uuidExtraData uuid.UUID, proto *ffProto.Proto) bool {
+	return agent.netsession.SendProtoExtraDataUUID(uuidExtraData.Value(), proto)
 }
 
 // UUID
@@ -57,7 +57,7 @@ func (agent *agentGameServer) UUID() uuid.UUID {
 
 // Init 初始化
 func (agent *agentGameServer) Init(netsession netmanager.INetSession) {
-	agent.name = fmt.Sprintf("agentUser[%v]", netsession.UUID())
+	agent.name = fmt.Sprintf("agentGameServer[%v]", netsession.UUID())
 	agent.netsession = netsession
 }
 

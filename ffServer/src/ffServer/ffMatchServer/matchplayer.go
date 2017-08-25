@@ -1,10 +1,15 @@
 package main
 
+import (
+	"ffCommon/uuid"
+	"ffProto"
+)
+
 type matchPlayer struct {
 	sourceServer  *agentGameServer // 来源服务器
-	uuidPlayerKey uint64           // 与来源服务器确认同一用户(来源服务器发来的每条用户相关的协议的附加数据字段)
-	uuidAccount   uint64           // 用户的真实唯一id
-	uuidTeam      uint64           // 队伍id
+	uuidPlayerKey uuid.UUID        // 与来源服务器确认同一用户(来源服务器发来的每条用户相关的协议的附加数据字段)
+	uuidAccount   uuid.UUID        // 用户的真实唯一id
+	uuidTeam      uuid.UUID        // 队伍id
 
 	mode    matchMode // 匹配模式
 	inMatch bool      // 是否在匹配中
@@ -46,15 +51,19 @@ func (player *matchPlayer) AllReady() bool {
 
 // Count 匹配单元内有多少matchPlayer
 func (player *matchPlayer) Count() int {
-	return 1
+	return matchModeSingleUnitCount
 }
 
 // MatchSuccess 进入了准备组, 匹配完成
 func (player *matchPlayer) MatchSuccess() {
-
+	proto := ffProto.ApplyProtoForSend(ffProto.MessageType_MatchResult)
+	message := proto.Message().(*ffProto.MsgMatchResult)
+	message.Addr = "127.0.0.1:15201"
+	message.Token = player.uuidAccount.Value()
+	ffProto.SendProtoExtraDataUUID(player.sourceServer, player.uuidPlayerKey, proto, false)
 }
 
-func (player *matchPlayer) Init(sourceServer *agentGameServer, uuidPlayerKey, uuidAccount, uuidTeam uint64) {
+func (player *matchPlayer) Init(sourceServer *agentGameServer, uuidPlayerKey, uuidAccount, uuidTeam uuid.UUID) {
 	player.sourceServer, player.uuidPlayerKey, player.uuidAccount, player.uuidTeam = sourceServer, uuidPlayerKey, uuidAccount, uuidTeam
 }
 
