@@ -66,7 +66,7 @@ func (gw *gameWorld) DispatchProto(uuidAgent uuid.UUID, p *ffProto.Proto) {
 		}
 
 		message := p.Message().(*ffProto.MsgEnterGameWorld)
-		uuidAcount := uuid.UUID(message.UUIDLogin)
+		uuidAcount := uuid.NewUUID(message.UUIDLogin)
 
 		// 帐号异地登录
 		if uuidAgentOld, ok := managerOfAccount.mapAccountAgent[uuidAcount]; ok {

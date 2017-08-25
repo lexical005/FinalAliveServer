@@ -6,7 +6,7 @@ import (
 
 const (
 	// InvalidUUID 无效UUID
-	InvalidUUID = 0
+	InvalidUUID UUID = 0
 
 	// uuidTimestampOffset uuid内的时间戳部分, 是相对北京时间2017年1月1日0时0分0秒对应的时间戳的偏移, 单位秒
 	uuidTimestampOffset = 1483200000
@@ -68,4 +68,9 @@ type Generator interface {
 	Gen() UUID
 
 	String() string
+}
+
+// NewUUID 根据value返回一个UUID
+func NewUUID(value uint64) UUID {
+	return UUID(value)
 }
