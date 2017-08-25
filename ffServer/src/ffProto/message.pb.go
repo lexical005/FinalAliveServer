@@ -14,6 +14,8 @@ var listMessageID = []MessageType{
 	MessageType_InviteJoinTeam,
 	MessageType_AnswerJoinTeam,
 	MessageType_LeaveTeam,
+	MessageType_EnterMatchServer,
+	MessageType_LeaveMatchServer,
 	MessageType_StartMatch,
 	MessageType_StopMatch,
 	MessageType_MatchResult,
@@ -58,6 +60,12 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	},
 	MessageType_LeaveTeam: func() interface{} {
 		return &MsgLeaveTeam{}
+	},
+	MessageType_EnterMatchServer: func() interface{} {
+		return &MsgEnterMatchServer{}
+	},
+	MessageType_LeaveMatchServer: func() interface{} {
+		return &MsgLeaveMatchServer{}
 	},
 	MessageType_StartMatch: func() interface{} {
 		return &MsgStartMatch{}
