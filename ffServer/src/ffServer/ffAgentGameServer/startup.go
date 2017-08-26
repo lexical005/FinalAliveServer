@@ -4,6 +4,7 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/log/logfile"
 	"ffCommon/net/tcpsession"
+	"ffCommon/uuid"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -24,7 +25,6 @@ func startup() (err error) {
 	if err != nil {
 		return err
 	}
-	log.RunLogger.Printf("application Config:\n%v", spew.Sdump(appConfig))
 
 	// 初始化log
 	if appConfig.Logger.LoggerType == "file" {
@@ -45,10 +45,14 @@ func startup() (err error) {
 			return err
 		}
 	}
+	log.RunLogger.Printf("application Config:\n%v", spew.Sdump(appConfig))
 
 	// 初始化Session
-
-	err = tcpsession.Init(appConfig.Session)
+	uuidSessionGenerator, err := uuid.NewGeneratorSafe(uint64(appConfig.Server.ServerID))
+	if err != nil {
+		return err
+	}
+	err = tcpsession.Init(appConfig.Session, uuidSessionGenerator)
 	if err != nil {
 		return err
 	}

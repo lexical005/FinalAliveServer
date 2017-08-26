@@ -22,7 +22,6 @@ func startup() (err error) {
 	if err != nil {
 		return err
 	}
-	log.RunLogger.Printf("application Config:\n%v", spew.Sdump(appConfig))
 
 	// 初始化log
 	if appConfig.Logger.LoggerType == "file" {
@@ -43,6 +42,7 @@ func startup() (err error) {
 			return err
 		}
 	}
+	log.RunLogger.Printf("application Config:\n%v", spew.Sdump(appConfig))
 
 	// 启动服务
 	err = serveLoginInst.start()

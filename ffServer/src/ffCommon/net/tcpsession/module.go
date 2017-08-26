@@ -16,15 +16,10 @@ var sessPool *sessionPool
 var eventDataPool *sessionNetEventDataPool
 
 // Init 初始session模块
-func Init(config *base.SessionConfig) (err error) {
+func Init(config *base.SessionConfig, uuidSessionGenerator uuid.Generator) (err error) {
 	log.RunLogger.Printf("tcpsession.Init config[%v]", config)
 
 	sessionConfig = *config
-
-	uuidGenerator, err := uuid.NewGeneratorSafe(0)
-	if err != nil {
-		return err
-	}
 
 	funcCreateSession := func() interface{} {
 		return newSession()
@@ -33,7 +28,7 @@ func Init(config *base.SessionConfig) (err error) {
 	sessPool = &sessionPool{
 		pool: pool.New("tcpsession.sessPool", false, funcCreateSession, sessionConfig.InitOnlineCount, 50),
 
-		uuidGenerator: uuidGenerator,
+		uuidGenerator: uuidSessionGenerator,
 	}
 
 	funcCreateSessionNetEventData := func() interface{} {
