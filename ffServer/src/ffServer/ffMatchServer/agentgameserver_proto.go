@@ -24,6 +24,8 @@ func onProtoServerRegister(server *agentGameServer, proto *ffProto.Proto) bool {
 	if message.ServerType != "AgentGameServer" {
 		log.FatalLogger.Printf("agentGameServer recv not support server register[%v]", message)
 		server.Close()
+	} else {
+		server.serverID = message.ServerID
 	}
 
 	return false

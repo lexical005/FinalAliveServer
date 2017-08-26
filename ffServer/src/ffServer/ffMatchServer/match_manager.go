@@ -95,7 +95,7 @@ func (mgr *matchManager) onProto(proto *ffProto.Proto) {
 		mgr.doStopMatch(player, proto)
 	}
 
-	ffProto.SendProtoExtraDataUUID(player.sourceServer, player.uuidPlayerKey, proto, true)
+	instAgentGameServerMgr.SendProtoExtraDataUUID(player, proto, true)
 }
 
 // doStartMatch 开始匹配

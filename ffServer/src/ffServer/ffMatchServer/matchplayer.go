@@ -6,10 +6,11 @@ import (
 )
 
 type matchPlayer struct {
-	sourceServer  *agentGameServer // 来源服务器
-	uuidPlayerKey uuid.UUID        // 与来源服务器确认同一用户(来源服务器发来的每条用户相关的协议的附加数据字段)
-	uuidAccount   uuid.UUID        // 用户的真实唯一id
-	uuidTeam      uuid.UUID        // 队伍id
+	sourceServerUUID uuid.UUID // 来源服务器在本服务器上的唯一标识
+	sourceServerID   int32     // 来源服务器id
+	uuidPlayerKey    uuid.UUID // 与来源服务器确认同一用户(来源服务器发来的每条用户相关的协议的附加数据字段)
+	uuidAccount      uuid.UUID // 用户的真实唯一id
+	uuidTeam         uuid.UUID // 队伍id
 
 	mode    matchMode // 匹配模式
 	inMatch bool      // 是否在匹配中
@@ -60,15 +61,15 @@ func (player *matchPlayer) MatchSuccess() {
 	message := proto.Message().(*ffProto.MsgMatchResult)
 	message.Addr = "127.0.0.1:15201"
 	message.Token = player.uuidAccount.Value()
-	ffProto.SendProtoExtraDataUUID(player.sourceServer, player.uuidPlayerKey, proto, false)
+	instAgentGameServerMgr.SendProtoExtraDataUUID(player, proto, false)
 }
 
 func (player *matchPlayer) Init(sourceServer *agentGameServer, uuidPlayerKey, uuidAccount, uuidTeam uuid.UUID) {
-	player.sourceServer, player.uuidPlayerKey, player.uuidAccount, player.uuidTeam = sourceServer, uuidPlayerKey, uuidAccount, uuidTeam
+	player.sourceServerID, player.sourceServerUUID = sourceServer.serverID, sourceServer.UUID()
+	player.uuidPlayerKey, player.uuidAccount, player.uuidTeam = uuidPlayerKey, uuidAccount, uuidTeam
 }
 
 func (player *matchPlayer) back() {
-	player.sourceServer = nil
 }
 
 func newMatchPlayer() *matchPlayer {

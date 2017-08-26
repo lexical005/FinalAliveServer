@@ -4,15 +4,18 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/net/netmanager"
 	"ffCommon/uuid"
+	"ffProto"
 	"fmt"
+	"sync"
 	"sync/atomic"
 )
 
 type agentGameServerManager struct {
 	netManager *netmanager.Manager
 
-	mapAgent  map[uuid.UUID]*agentGameServer // mapAgent 所有连接
-	agentPool *agentGameServerPool           // agentPool 所有连接缓存
+	mutexAgent sync.Mutex                     // 同步锁
+	mapAgent   map[uuid.UUID]*agentGameServer // mapAgent 所有连接
+	agentPool  *agentGameServerPool           // agentPool 所有连接缓存
 }
 
 // Create 创建
@@ -71,6 +74,31 @@ func (mgr *agentGameServerManager) End() {
 	log.RunLogger.Printf("agentUserServer.End")
 
 	atomic.AddInt32(&waitApplicationQuit, -1)
+}
+
+// SendProtoExtraDataUUID 发送Proto
+//	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
+func (mgr *agentGameServerManager) SendProtoExtraDataUUID(player *matchPlayer, proto *ffProto.Proto, isProtoRecved bool) {
+	mgr.mutexAgent.Lock()
+	defer mgr.mutexAgent.Unlock()
+
+	// 服务器唯一标识
+	server, ok := mgr.mapAgent[player.sourceServerUUID]
+	if ok {
+		ffProto.SendProtoExtraDataUUID(server, player.uuidPlayerKey, proto, isProtoRecved)
+		return
+	}
+
+	// 服务器编号
+	for _, server := range mgr.mapAgent {
+		if server.serverID == player.sourceServerID {
+			ffProto.SendProtoExtraDataUUID(server, player.uuidPlayerKey, proto, isProtoRecved)
+			return
+		}
+	}
+
+	log.FatalLogger.Printf("agentGameServerManager.SendProtoExtraDataUUID server[%v:%v] not online",
+		player.sourceServerUUID, player.sourceServerID)
 }
 
 // Status 当前服务状态描述

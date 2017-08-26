@@ -12,6 +12,8 @@ import (
 type agentGameServer struct {
 	name string
 
+	serverID int32 // 服务器编号
+
 	netsession netmanager.INetSession
 }
 
