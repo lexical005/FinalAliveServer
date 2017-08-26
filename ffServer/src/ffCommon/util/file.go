@@ -382,6 +382,17 @@ func CreateFile(filePath string) (*os.File, error) {
 	return os.Create(filePath)
 }
 
+// AppedFile 追加到文件末尾(不存在时创建), 调用者负责Close
+func AppedFile(filePath string) (*os.File, error) {
+	err := CreatePath(filepath.Dir(filePath))
+	if err != nil {
+		return nil, err
+	}
+
+	// FileMode: rwxrwxrwx, 此处是 rw-rw-rw-, 即0666, 代表所有用户可读写, 但不能执行
+	return os.OpenFile(filePath, os.O_CREATE|os.O_APPEND, 0666)
+}
+
 // WriteFile writes data to a file named by filename.
 // If the file does not exist, WriteFile creates it with permissions perm;
 // otherwise WriteFile truncates it before writing.

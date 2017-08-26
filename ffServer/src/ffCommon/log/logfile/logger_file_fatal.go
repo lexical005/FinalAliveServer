@@ -50,7 +50,7 @@ func (l *loggerFileFatal) switchOut(forceSwitch bool) (err error) {
 	l.outLenLimit = outLenLimit
 
 	// 创建文件
-	if l.file, err = util.CreateFile(path.Join(l.filePath, latestName)); err != nil {
+	if l.file, err = util.AppedFile(path.Join(l.filePath, latestName)); err != nil {
 		return err
 	}
 
