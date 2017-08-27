@@ -15,7 +15,7 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/util"
 	"path/filepath"
-	"sort"
+	{ImportSort}
 
     proto "github.com/golang/protobuf/proto"
 )
@@ -188,6 +188,7 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 	tomlMainStructDef := getStructDef(tomlFileDef, strings.ToLower(tomlFileDef.name))
 
 	result := ""
+	ImportSort := ""
 
 	mainContent := strings.Replace(fmtTransFuncMain, "{FileName}", tomlFileDef.name, -1)
 
@@ -280,6 +281,7 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 
 		var structs string
 		if mainStructVarType == "map" {
+			ImportSort = `"sort"`
 			structs = strings.Replace(fmtTransStructMap, "{FileName}", tomlFileDef.name, -1)
 			structs = strings.Replace(structs, "{KeyType}", mainStructVarTypeMapKey, -1)
 
@@ -315,7 +317,7 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 	}
 	mainContent = fmt.Sprintf(mainContent, allStructs)
 
-	result += fmtTransPackage
+	result += strings.Replace(fmtTransPackage, "{ImportSort}", ImportSort, -1)
 	result += mainContent
 	result += strings.Replace(fmtTransInit, "{FileName}", tomlFileDef.name, -1)
 
