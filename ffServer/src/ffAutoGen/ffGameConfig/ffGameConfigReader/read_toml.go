@@ -5,12 +5,18 @@ import (
 	"ffCommon/log/log"
 )
 
+var tomlAsset *ffGameConfig.Asset
 var tomlExcelExportTest *ffGameConfig.ExcelExportTest
 var tomlItem *ffGameConfig.Item
 var tomlLanguage *ffGameConfig.Language
 
 func readToml() {
 	var err error
+
+	tomlAsset, err = ffGameConfig.ReadAsset()
+	if err != nil {
+		log.RunLogger.Printf("ReadAsset get error[%v]", err)
+	}
 
 	tomlExcelExportTest, err = ffGameConfig.ReadExcelExportTest()
 	if err != nil {

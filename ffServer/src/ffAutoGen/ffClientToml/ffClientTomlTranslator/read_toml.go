@@ -5,12 +5,18 @@ import (
 	"ffCommon/log/log"
 )
 
+var tomlAsset *ffClientToml.Asset
 var tomlExcelExportTest *ffClientToml.ExcelExportTest
 var tomlItem *ffClientToml.Item
 var tomlLanguage *ffClientToml.Language
 
 func readToml() {
 	var err error
+
+	tomlAsset, err = ffClientToml.ReadAsset()
+	if err != nil {
+		log.RunLogger.Printf("ReadAsset get error[%v]", err)
+	}
 
 	tomlExcelExportTest, err = ffClientToml.ReadExcelExportTest()
 	if err != nil {

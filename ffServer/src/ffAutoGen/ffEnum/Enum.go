@@ -4,6 +4,114 @@ import (
 	"fmt"
 )
 
+// EActorAttr EActorAttr
+type EActorAttr int32
+
+const (
+	internalEActorAttrActor  EActorAttr = EActorAttr(0) // 角色外观属性-角色
+	internalEActorAttrMask   EActorAttr = EActorAttr(1) // 面具
+	internalEActorAttrPants  EActorAttr = EActorAttr(2) // 裤子
+	internalEActorAttrShoes  EActorAttr = EActorAttr(3) // 鞋子
+	internalEActorAttrShirt  EActorAttr = EActorAttr(4) // 衬衫
+	internalEActorAttrBelt   EActorAttr = EActorAttr(5) // 腰带
+	internalEActorAttrGloves EActorAttr = EActorAttr(6) // 手套
+	internalEActorAttrJacket EActorAttr = EActorAttr(7) // 外衣
+	internalEActorAttrHead   EActorAttr = EActorAttr(8) // 帽子/头盔
+	internalEActorAttrVest   EActorAttr = EActorAttr(9) // 防弹衣
+)
+
+type internalEActorAttrInfo struct {
+	value EActorAttr
+	toml  string
+	desc  string
+}
+
+var allEActorAttrInfo = []*internalEActorAttrInfo{
+	&internalEActorAttrInfo{
+		value: internalEActorAttrActor,
+		toml:  "EActorAttr.Actor",
+		desc:  "角色外观属性-角色",
+	},
+	&internalEActorAttrInfo{
+		value: internalEActorAttrMask,
+		toml:  "EActorAttr.Mask",
+		desc:  "面具",
+	},
+	&internalEActorAttrInfo{
+		value: internalEActorAttrPants,
+		toml:  "EActorAttr.Pants",
+		desc:  "裤子",
+	},
+	&internalEActorAttrInfo{
+		value: internalEActorAttrShoes,
+		toml:  "EActorAttr.Shoes",
+		desc:  "鞋子",
+	},
+	&internalEActorAttrInfo{
+		value: internalEActorAttrShirt,
+		toml:  "EActorAttr.Shirt",
+		desc:  "衬衫",
+	},
+	&internalEActorAttrInfo{
+		value: internalEActorAttrBelt,
+		toml:  "EActorAttr.Belt",
+		desc:  "腰带",
+	},
+	&internalEActorAttrInfo{
+		value: internalEActorAttrGloves,
+		toml:  "EActorAttr.Gloves",
+		desc:  "手套",
+	},
+	&internalEActorAttrInfo{
+		value: internalEActorAttrJacket,
+		toml:  "EActorAttr.Jacket",
+		desc:  "外衣",
+	},
+	&internalEActorAttrInfo{
+		value: internalEActorAttrHead,
+		toml:  "EActorAttr.Head",
+		desc:  "帽子/头盔",
+	},
+	&internalEActorAttrInfo{
+		value: internalEActorAttrVest,
+		toml:  "EActorAttr.Vest",
+		desc:  "防弹衣",
+	},
+}
+
+var mapCodeToEActorAttrInfo = map[string]*internalEActorAttrInfo{
+	allEActorAttrInfo[int(internalEActorAttrActor)].toml:  allEActorAttrInfo[int(internalEActorAttrActor)],
+	allEActorAttrInfo[int(internalEActorAttrMask)].toml:   allEActorAttrInfo[int(internalEActorAttrMask)],
+	allEActorAttrInfo[int(internalEActorAttrPants)].toml:  allEActorAttrInfo[int(internalEActorAttrPants)],
+	allEActorAttrInfo[int(internalEActorAttrShoes)].toml:  allEActorAttrInfo[int(internalEActorAttrShoes)],
+	allEActorAttrInfo[int(internalEActorAttrShirt)].toml:  allEActorAttrInfo[int(internalEActorAttrShirt)],
+	allEActorAttrInfo[int(internalEActorAttrBelt)].toml:   allEActorAttrInfo[int(internalEActorAttrBelt)],
+	allEActorAttrInfo[int(internalEActorAttrGloves)].toml: allEActorAttrInfo[int(internalEActorAttrGloves)],
+	allEActorAttrInfo[int(internalEActorAttrJacket)].toml: allEActorAttrInfo[int(internalEActorAttrJacket)],
+	allEActorAttrInfo[int(internalEActorAttrHead)].toml:   allEActorAttrInfo[int(internalEActorAttrHead)],
+	allEActorAttrInfo[int(internalEActorAttrVest)].toml:   allEActorAttrInfo[int(internalEActorAttrVest)],
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler
+func (e *EActorAttr) UnmarshalText(data []byte) error {
+	key := string(data)
+	v, ok := mapCodeToEActorAttrInfo[key]
+	if !ok {
+		return fmt.Errorf("EActorAttr.UnmarshalText failed: invalid EActorAttr[%v]", key)
+	}
+	*e = v.value
+	return nil
+}
+
+// MarshalText implements encoding.TextMarshaler
+func (e EActorAttr) MarshalText() ([]byte, error) {
+	return []byte(allEActorAttrInfo[e].toml), nil
+}
+
+func (e EActorAttr) String() string {
+	return allEActorAttrInfo[e].toml
+}
+
 // EAmmunitionType EAmmunitionType
 type EAmmunitionType int32
 
