@@ -8,16 +8,26 @@ import (
 type EActorAttr int32
 
 const (
-	internalEActorAttrActor  EActorAttr = EActorAttr(0) // 角色外观属性-角色
-	internalEActorAttrMask   EActorAttr = EActorAttr(1) // 面具
-	internalEActorAttrPants  EActorAttr = EActorAttr(2) // 裤子
-	internalEActorAttrShoes  EActorAttr = EActorAttr(3) // 鞋子
-	internalEActorAttrShirt  EActorAttr = EActorAttr(4) // 衬衫
-	internalEActorAttrBelt   EActorAttr = EActorAttr(5) // 腰带
-	internalEActorAttrGloves EActorAttr = EActorAttr(6) // 手套
-	internalEActorAttrJacket EActorAttr = EActorAttr(7) // 外衣
-	internalEActorAttrHead   EActorAttr = EActorAttr(8) // 帽子/头盔
-	internalEActorAttrVest   EActorAttr = EActorAttr(9) // 防弹衣
+	// EActorAttrActor 角色外观属性-角色
+	EActorAttrActor EActorAttr = EActorAttr(0)
+	// EActorAttrMask 面具
+	EActorAttrMask EActorAttr = EActorAttr(1)
+	// EActorAttrPants 裤子
+	EActorAttrPants EActorAttr = EActorAttr(2)
+	// EActorAttrShoes 鞋子
+	EActorAttrShoes EActorAttr = EActorAttr(3)
+	// EActorAttrShirt 衬衫
+	EActorAttrShirt EActorAttr = EActorAttr(4)
+	// EActorAttrBelt 腰带
+	EActorAttrBelt EActorAttr = EActorAttr(5)
+	// EActorAttrGloves 手套
+	EActorAttrGloves EActorAttr = EActorAttr(6)
+	// EActorAttrJacket 外衣
+	EActorAttrJacket EActorAttr = EActorAttr(7)
+	// EActorAttrHead 帽子/头盔
+	EActorAttrHead EActorAttr = EActorAttr(8)
+	// EActorAttrVest 防弹衣
+	EActorAttrVest EActorAttr = EActorAttr(9)
 )
 
 type internalEActorAttrInfo struct {
@@ -28,68 +38,68 @@ type internalEActorAttrInfo struct {
 
 var allEActorAttrInfo = []*internalEActorAttrInfo{
 	&internalEActorAttrInfo{
-		value: internalEActorAttrActor,
+		value: EActorAttrActor,
 		toml:  "EActorAttr.Actor",
 		desc:  "角色外观属性-角色",
 	},
 	&internalEActorAttrInfo{
-		value: internalEActorAttrMask,
+		value: EActorAttrMask,
 		toml:  "EActorAttr.Mask",
 		desc:  "面具",
 	},
 	&internalEActorAttrInfo{
-		value: internalEActorAttrPants,
+		value: EActorAttrPants,
 		toml:  "EActorAttr.Pants",
 		desc:  "裤子",
 	},
 	&internalEActorAttrInfo{
-		value: internalEActorAttrShoes,
+		value: EActorAttrShoes,
 		toml:  "EActorAttr.Shoes",
 		desc:  "鞋子",
 	},
 	&internalEActorAttrInfo{
-		value: internalEActorAttrShirt,
+		value: EActorAttrShirt,
 		toml:  "EActorAttr.Shirt",
 		desc:  "衬衫",
 	},
 	&internalEActorAttrInfo{
-		value: internalEActorAttrBelt,
+		value: EActorAttrBelt,
 		toml:  "EActorAttr.Belt",
 		desc:  "腰带",
 	},
 	&internalEActorAttrInfo{
-		value: internalEActorAttrGloves,
+		value: EActorAttrGloves,
 		toml:  "EActorAttr.Gloves",
 		desc:  "手套",
 	},
 	&internalEActorAttrInfo{
-		value: internalEActorAttrJacket,
+		value: EActorAttrJacket,
 		toml:  "EActorAttr.Jacket",
 		desc:  "外衣",
 	},
 	&internalEActorAttrInfo{
-		value: internalEActorAttrHead,
+		value: EActorAttrHead,
 		toml:  "EActorAttr.Head",
 		desc:  "帽子/头盔",
 	},
 	&internalEActorAttrInfo{
-		value: internalEActorAttrVest,
+		value: EActorAttrVest,
 		toml:  "EActorAttr.Vest",
 		desc:  "防弹衣",
 	},
 }
 
 var mapCodeToEActorAttrInfo = map[string]*internalEActorAttrInfo{
-	allEActorAttrInfo[int(internalEActorAttrActor)].toml:  allEActorAttrInfo[int(internalEActorAttrActor)],
-	allEActorAttrInfo[int(internalEActorAttrMask)].toml:   allEActorAttrInfo[int(internalEActorAttrMask)],
-	allEActorAttrInfo[int(internalEActorAttrPants)].toml:  allEActorAttrInfo[int(internalEActorAttrPants)],
-	allEActorAttrInfo[int(internalEActorAttrShoes)].toml:  allEActorAttrInfo[int(internalEActorAttrShoes)],
-	allEActorAttrInfo[int(internalEActorAttrShirt)].toml:  allEActorAttrInfo[int(internalEActorAttrShirt)],
-	allEActorAttrInfo[int(internalEActorAttrBelt)].toml:   allEActorAttrInfo[int(internalEActorAttrBelt)],
-	allEActorAttrInfo[int(internalEActorAttrGloves)].toml: allEActorAttrInfo[int(internalEActorAttrGloves)],
-	allEActorAttrInfo[int(internalEActorAttrJacket)].toml: allEActorAttrInfo[int(internalEActorAttrJacket)],
-	allEActorAttrInfo[int(internalEActorAttrHead)].toml:   allEActorAttrInfo[int(internalEActorAttrHead)],
-	allEActorAttrInfo[int(internalEActorAttrVest)].toml:   allEActorAttrInfo[int(internalEActorAttrVest)],
+	allEActorAttrInfo[int32(EActorAttrActor)].toml:  allEActorAttrInfo[int(EActorAttrActor)],
+	allEActorAttrInfo[int32(EActorAttrMask)].toml:   allEActorAttrInfo[int(EActorAttrMask)],
+	allEActorAttrInfo[int32(EActorAttrPants)].toml:  allEActorAttrInfo[int(EActorAttrPants)],
+	allEActorAttrInfo[int32(EActorAttrShoes)].toml:  allEActorAttrInfo[int(EActorAttrShoes)],
+	allEActorAttrInfo[int32(EActorAttrShirt)].toml:  allEActorAttrInfo[int(EActorAttrShirt)],
+	allEActorAttrInfo[int32(EActorAttrBelt)].toml:   allEActorAttrInfo[int(EActorAttrBelt)],
+	allEActorAttrInfo[int32(EActorAttrGloves)].toml: allEActorAttrInfo[int(EActorAttrGloves)],
+	allEActorAttrInfo[int32(EActorAttrJacket)].toml: allEActorAttrInfo[int(EActorAttrJacket)],
+	allEActorAttrInfo[int32(EActorAttrHead)].toml:   allEActorAttrInfo[int(EActorAttrHead)],
+	allEActorAttrInfo[int32(EActorAttrVest)].toml:   allEActorAttrInfo[int(EActorAttrVest)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler
@@ -116,12 +126,18 @@ func (e EActorAttr) String() string {
 type EAmmunitionType int32
 
 const (
-	internalEAmmunitionTypeAmmoMagnum300 EAmmunitionType = EAmmunitionType(0) // 弹夹-.300马格兰
-	internalEAmmunitionTypeAmmoACP45     EAmmunitionType = EAmmunitionType(1) // .45
-	internalEAmmunitionTypeAmmoGauge12   EAmmunitionType = EAmmunitionType(2) // 12号口径
-	internalEAmmunitionTypeAmmo5d56mm    EAmmunitionType = EAmmunitionType(3) // 5.56mm
-	internalEAmmunitionTypeAmmo7d62mm    EAmmunitionType = EAmmunitionType(4) // 7.62mm
-	internalEAmmunitionTypeAmmo9mm       EAmmunitionType = EAmmunitionType(5) // 9mm
+	// EAmmunitionTypeAmmoMagnum300 弹夹-.300马格兰
+	EAmmunitionTypeAmmoMagnum300 EAmmunitionType = EAmmunitionType(0)
+	// EAmmunitionTypeAmmoACP45 .45
+	EAmmunitionTypeAmmoACP45 EAmmunitionType = EAmmunitionType(1)
+	// EAmmunitionTypeAmmoGauge12 12号口径
+	EAmmunitionTypeAmmoGauge12 EAmmunitionType = EAmmunitionType(2)
+	// EAmmunitionTypeAmmo5d56mm 5.56mm
+	EAmmunitionTypeAmmo5d56mm EAmmunitionType = EAmmunitionType(3)
+	// EAmmunitionTypeAmmo7d62mm 7.62mm
+	EAmmunitionTypeAmmo7d62mm EAmmunitionType = EAmmunitionType(4)
+	// EAmmunitionTypeAmmo9mm 9mm
+	EAmmunitionTypeAmmo9mm EAmmunitionType = EAmmunitionType(5)
 )
 
 type internalEAmmunitionTypeInfo struct {
@@ -132,44 +148,44 @@ type internalEAmmunitionTypeInfo struct {
 
 var allEAmmunitionTypeInfo = []*internalEAmmunitionTypeInfo{
 	&internalEAmmunitionTypeInfo{
-		value: internalEAmmunitionTypeAmmoMagnum300,
+		value: EAmmunitionTypeAmmoMagnum300,
 		toml:  "EAmmunitionType.AmmoMagnum300",
 		desc:  "弹夹-.300马格兰",
 	},
 	&internalEAmmunitionTypeInfo{
-		value: internalEAmmunitionTypeAmmoACP45,
+		value: EAmmunitionTypeAmmoACP45,
 		toml:  "EAmmunitionType.AmmoACP45",
 		desc:  ".45",
 	},
 	&internalEAmmunitionTypeInfo{
-		value: internalEAmmunitionTypeAmmoGauge12,
+		value: EAmmunitionTypeAmmoGauge12,
 		toml:  "EAmmunitionType.AmmoGauge12",
 		desc:  "12号口径",
 	},
 	&internalEAmmunitionTypeInfo{
-		value: internalEAmmunitionTypeAmmo5d56mm,
+		value: EAmmunitionTypeAmmo5d56mm,
 		toml:  "EAmmunitionType.Ammo5d56mm",
 		desc:  "5.56mm",
 	},
 	&internalEAmmunitionTypeInfo{
-		value: internalEAmmunitionTypeAmmo7d62mm,
+		value: EAmmunitionTypeAmmo7d62mm,
 		toml:  "EAmmunitionType.Ammo7d62mm",
 		desc:  "7.62mm",
 	},
 	&internalEAmmunitionTypeInfo{
-		value: internalEAmmunitionTypeAmmo9mm,
+		value: EAmmunitionTypeAmmo9mm,
 		toml:  "EAmmunitionType.Ammo9mm",
 		desc:  "9mm",
 	},
 }
 
 var mapCodeToEAmmunitionTypeInfo = map[string]*internalEAmmunitionTypeInfo{
-	allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmoMagnum300)].toml: allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmoMagnum300)],
-	allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmoACP45)].toml:     allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmoACP45)],
-	allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmoGauge12)].toml:   allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmoGauge12)],
-	allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmo5d56mm)].toml:    allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmo5d56mm)],
-	allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmo7d62mm)].toml:    allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmo7d62mm)],
-	allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmo9mm)].toml:       allEAmmunitionTypeInfo[int(internalEAmmunitionTypeAmmo9mm)],
+	allEAmmunitionTypeInfo[int32(EAmmunitionTypeAmmoMagnum300)].toml: allEAmmunitionTypeInfo[int(EAmmunitionTypeAmmoMagnum300)],
+	allEAmmunitionTypeInfo[int32(EAmmunitionTypeAmmoACP45)].toml:     allEAmmunitionTypeInfo[int(EAmmunitionTypeAmmoACP45)],
+	allEAmmunitionTypeInfo[int32(EAmmunitionTypeAmmoGauge12)].toml:   allEAmmunitionTypeInfo[int(EAmmunitionTypeAmmoGauge12)],
+	allEAmmunitionTypeInfo[int32(EAmmunitionTypeAmmo5d56mm)].toml:    allEAmmunitionTypeInfo[int(EAmmunitionTypeAmmo5d56mm)],
+	allEAmmunitionTypeInfo[int32(EAmmunitionTypeAmmo7d62mm)].toml:    allEAmmunitionTypeInfo[int(EAmmunitionTypeAmmo7d62mm)],
+	allEAmmunitionTypeInfo[int32(EAmmunitionTypeAmmo9mm)].toml:       allEAmmunitionTypeInfo[int(EAmmunitionTypeAmmo9mm)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler
@@ -196,11 +212,16 @@ func (e EAmmunitionType) String() string {
 type EAttachmentType int32
 
 const (
-	internalEAttachmentTypeMuzzleMod EAttachmentType = EAttachmentType(0) // 配件-枪口
-	internalEAttachmentTypeLowerRail EAttachmentType = EAttachmentType(1) // 握把
-	internalEAttachmentTypeUpperRail EAttachmentType = EAttachmentType(2) // 准镜
-	internalEAttachmentTypeMagazine  EAttachmentType = EAttachmentType(3) // 弹夹
-	internalEAttachmentTypeStock     EAttachmentType = EAttachmentType(4) // 枪托/子弹袋
+	// EAttachmentTypeMuzzleMod 配件-枪口
+	EAttachmentTypeMuzzleMod EAttachmentType = EAttachmentType(0)
+	// EAttachmentTypeLowerRail 握把
+	EAttachmentTypeLowerRail EAttachmentType = EAttachmentType(1)
+	// EAttachmentTypeUpperRail 准镜
+	EAttachmentTypeUpperRail EAttachmentType = EAttachmentType(2)
+	// EAttachmentTypeMagazine 弹夹
+	EAttachmentTypeMagazine EAttachmentType = EAttachmentType(3)
+	// EAttachmentTypeStock 枪托/子弹袋
+	EAttachmentTypeStock EAttachmentType = EAttachmentType(4)
 )
 
 type internalEAttachmentTypeInfo struct {
@@ -211,38 +232,38 @@ type internalEAttachmentTypeInfo struct {
 
 var allEAttachmentTypeInfo = []*internalEAttachmentTypeInfo{
 	&internalEAttachmentTypeInfo{
-		value: internalEAttachmentTypeMuzzleMod,
+		value: EAttachmentTypeMuzzleMod,
 		toml:  "EAttachmentType.MuzzleMod",
 		desc:  "配件-枪口",
 	},
 	&internalEAttachmentTypeInfo{
-		value: internalEAttachmentTypeLowerRail,
+		value: EAttachmentTypeLowerRail,
 		toml:  "EAttachmentType.LowerRail",
 		desc:  "握把",
 	},
 	&internalEAttachmentTypeInfo{
-		value: internalEAttachmentTypeUpperRail,
+		value: EAttachmentTypeUpperRail,
 		toml:  "EAttachmentType.UpperRail",
 		desc:  "准镜",
 	},
 	&internalEAttachmentTypeInfo{
-		value: internalEAttachmentTypeMagazine,
+		value: EAttachmentTypeMagazine,
 		toml:  "EAttachmentType.Magazine",
 		desc:  "弹夹",
 	},
 	&internalEAttachmentTypeInfo{
-		value: internalEAttachmentTypeStock,
+		value: EAttachmentTypeStock,
 		toml:  "EAttachmentType.Stock",
 		desc:  "枪托/子弹袋",
 	},
 }
 
 var mapCodeToEAttachmentTypeInfo = map[string]*internalEAttachmentTypeInfo{
-	allEAttachmentTypeInfo[int(internalEAttachmentTypeMuzzleMod)].toml: allEAttachmentTypeInfo[int(internalEAttachmentTypeMuzzleMod)],
-	allEAttachmentTypeInfo[int(internalEAttachmentTypeLowerRail)].toml: allEAttachmentTypeInfo[int(internalEAttachmentTypeLowerRail)],
-	allEAttachmentTypeInfo[int(internalEAttachmentTypeUpperRail)].toml: allEAttachmentTypeInfo[int(internalEAttachmentTypeUpperRail)],
-	allEAttachmentTypeInfo[int(internalEAttachmentTypeMagazine)].toml:  allEAttachmentTypeInfo[int(internalEAttachmentTypeMagazine)],
-	allEAttachmentTypeInfo[int(internalEAttachmentTypeStock)].toml:     allEAttachmentTypeInfo[int(internalEAttachmentTypeStock)],
+	allEAttachmentTypeInfo[int32(EAttachmentTypeMuzzleMod)].toml: allEAttachmentTypeInfo[int(EAttachmentTypeMuzzleMod)],
+	allEAttachmentTypeInfo[int32(EAttachmentTypeLowerRail)].toml: allEAttachmentTypeInfo[int(EAttachmentTypeLowerRail)],
+	allEAttachmentTypeInfo[int32(EAttachmentTypeUpperRail)].toml: allEAttachmentTypeInfo[int(EAttachmentTypeUpperRail)],
+	allEAttachmentTypeInfo[int32(EAttachmentTypeMagazine)].toml:  allEAttachmentTypeInfo[int(EAttachmentTypeMagazine)],
+	allEAttachmentTypeInfo[int32(EAttachmentTypeStock)].toml:     allEAttachmentTypeInfo[int(EAttachmentTypeStock)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler
@@ -269,37 +290,68 @@ func (e EAttachmentType) String() string {
 type EAttr int32
 
 const (
-	internalEAttrHealth               EAttr = EAttr(0)  // 属性-血量
-	internalEAttrBodyAttack           EAttr = EAttr(1)  // 身体攻击
-	internalEAttrHeadAttack           EAttr = EAttr(2)  // 头部攻击
-	internalEAttrBodyDefence          EAttr = EAttr(3)  // 身体防御
-	internalEAttrHeadDefence          EAttr = EAttr(4)  // 头部防御
-	internalEAttrDurable              EAttr = EAttr(5)  // 耐久
-	internalEAttrClip                 EAttr = EAttr(6)  // 弹夹容量
-	internalEAttrReload               EAttr = EAttr(7)  // 换弹时间-单位毫秒
-	internalEAttrReloadReduce         EAttr = EAttr(8)  // 换弹时间缩短比例-百分比
-	internalEAttrShootInterval        EAttr = EAttr(9)  // 射击间隔-单位毫秒
-	internalEAttrShootIntervalReduce  EAttr = EAttr(10) // 射击间隔缩短比例-百分比
-	internalEAttrHorPitch             EAttr = EAttr(11) // 水平准心跳动-单位0.001
-	internalEAttrHorPitchReduce       EAttr = EAttr(12) // 水平准心跳动降低-百分比
-	internalEAttrVerPitch             EAttr = EAttr(13) // 垂直准心跳动-单位0.001
-	internalEAttrVerPitchReduce       EAttr = EAttr(14) // 垂直准心跳动降低-百分比
-	internalEAttrPitchGoTime          EAttr = EAttr(15) // 准心跳动偏离时间-单位毫秒
-	internalEAttrPitchBackTime        EAttr = EAttr(16) // 准心跳动恢复时间-单位毫秒
-	internalEAttrCrossRangeMin        EAttr = EAttr(17) // 最小准心范围-单位0.001
-	internalEAttrCrossRangeMax        EAttr = EAttr(18) // 最大准心范围-单位0.001
-	internalEAttrCrossRange           EAttr = EAttr(19) // 准心扩散-单位0.001
-	internalEAttrCrossOutTime         EAttr = EAttr(20) // 准心扩散时间-单位毫秒
-	internalEAttrCrossInTime          EAttr = EAttr(21) // 准心收缩时间-单位毫秒
-	internalEAttrCrossReduce          EAttr = EAttr(22) // 准心扩散降低-百分比
-	internalEAttrCameraShakeRange     EAttr = EAttr(23) // 摄像机抖动位移-单位0.001
-	internalEAttrCameraShakeTime      EAttr = EAttr(24) // 摄像机抖动时间-单位毫秒
-	internalEAttrCameraShakeReduce    EAttr = EAttr(25) // 摄像机抖动降低-百分比
-	internalEAttrShotRadius           EAttr = EAttr(26) // 散弹半径-单位0.001
-	internalEAttrShotRadiusReduce     EAttr = EAttr(27) // 散弹半径降低-百分比
-	internalEAttrMirrorMultiple       EAttr = EAttr(28) // 准镜倍数-单位0.001
-	internalEAttrOpenMirrorTime       EAttr = EAttr(29) // 开镜时间-单位毫秒
-	internalEAttrOpenMirrorTimeReduce EAttr = EAttr(30) // 开镜时间降低-百分比
+	// EAttrHealth 属性-血量
+	EAttrHealth EAttr = EAttr(0)
+	// EAttrBodyAttack 身体攻击
+	EAttrBodyAttack EAttr = EAttr(1)
+	// EAttrHeadAttack 头部攻击
+	EAttrHeadAttack EAttr = EAttr(2)
+	// EAttrBodyDefence 身体防御
+	EAttrBodyDefence EAttr = EAttr(3)
+	// EAttrHeadDefence 头部防御
+	EAttrHeadDefence EAttr = EAttr(4)
+	// EAttrDurable 耐久
+	EAttrDurable EAttr = EAttr(5)
+	// EAttrClip 弹夹容量
+	EAttrClip EAttr = EAttr(6)
+	// EAttrReload 换弹时间-单位毫秒
+	EAttrReload EAttr = EAttr(7)
+	// EAttrReloadReduce 换弹时间缩短比例-百分比
+	EAttrReloadReduce EAttr = EAttr(8)
+	// EAttrShootInterval 射击间隔-单位毫秒
+	EAttrShootInterval EAttr = EAttr(9)
+	// EAttrShootIntervalReduce 射击间隔缩短比例-百分比
+	EAttrShootIntervalReduce EAttr = EAttr(10)
+	// EAttrHorPitch 水平准心跳动-单位0.001
+	EAttrHorPitch EAttr = EAttr(11)
+	// EAttrHorPitchReduce 水平准心跳动降低-百分比
+	EAttrHorPitchReduce EAttr = EAttr(12)
+	// EAttrVerPitch 垂直准心跳动-单位0.001
+	EAttrVerPitch EAttr = EAttr(13)
+	// EAttrVerPitchReduce 垂直准心跳动降低-百分比
+	EAttrVerPitchReduce EAttr = EAttr(14)
+	// EAttrPitchGoTime 准心跳动偏离时间-单位毫秒
+	EAttrPitchGoTime EAttr = EAttr(15)
+	// EAttrPitchBackTime 准心跳动恢复时间-单位毫秒
+	EAttrPitchBackTime EAttr = EAttr(16)
+	// EAttrCrossRangeMin 最小准心范围-单位0.001
+	EAttrCrossRangeMin EAttr = EAttr(17)
+	// EAttrCrossRangeMax 最大准心范围-单位0.001
+	EAttrCrossRangeMax EAttr = EAttr(18)
+	// EAttrCrossRange 准心扩散-单位0.001
+	EAttrCrossRange EAttr = EAttr(19)
+	// EAttrCrossOutTime 准心扩散时间-单位毫秒
+	EAttrCrossOutTime EAttr = EAttr(20)
+	// EAttrCrossInTime 准心收缩时间-单位毫秒
+	EAttrCrossInTime EAttr = EAttr(21)
+	// EAttrCrossReduce 准心扩散降低-百分比
+	EAttrCrossReduce EAttr = EAttr(22)
+	// EAttrCameraShakeRange 摄像机抖动位移-单位0.001
+	EAttrCameraShakeRange EAttr = EAttr(23)
+	// EAttrCameraShakeTime 摄像机抖动时间-单位毫秒
+	EAttrCameraShakeTime EAttr = EAttr(24)
+	// EAttrCameraShakeReduce 摄像机抖动降低-百分比
+	EAttrCameraShakeReduce EAttr = EAttr(25)
+	// EAttrShotRadius 散弹半径-单位0.001
+	EAttrShotRadius EAttr = EAttr(26)
+	// EAttrShotRadiusReduce 散弹半径降低-百分比
+	EAttrShotRadiusReduce EAttr = EAttr(27)
+	// EAttrMirrorMultiple 准镜倍数-单位0.001
+	EAttrMirrorMultiple EAttr = EAttr(28)
+	// EAttrOpenMirrorTime 开镜时间-单位毫秒
+	EAttrOpenMirrorTime EAttr = EAttr(29)
+	// EAttrOpenMirrorTimeReduce 开镜时间降低-百分比
+	EAttrOpenMirrorTimeReduce EAttr = EAttr(30)
 )
 
 type internalEAttrInfo struct {
@@ -310,194 +362,194 @@ type internalEAttrInfo struct {
 
 var allEAttrInfo = []*internalEAttrInfo{
 	&internalEAttrInfo{
-		value: internalEAttrHealth,
+		value: EAttrHealth,
 		toml:  "EAttr.Health",
 		desc:  "属性-血量",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrBodyAttack,
+		value: EAttrBodyAttack,
 		toml:  "EAttr.BodyAttack",
 		desc:  "身体攻击",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrHeadAttack,
+		value: EAttrHeadAttack,
 		toml:  "EAttr.HeadAttack",
 		desc:  "头部攻击",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrBodyDefence,
+		value: EAttrBodyDefence,
 		toml:  "EAttr.BodyDefence",
 		desc:  "身体防御",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrHeadDefence,
+		value: EAttrHeadDefence,
 		toml:  "EAttr.HeadDefence",
 		desc:  "头部防御",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrDurable,
+		value: EAttrDurable,
 		toml:  "EAttr.Durable",
 		desc:  "耐久",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrClip,
+		value: EAttrClip,
 		toml:  "EAttr.Clip",
 		desc:  "弹夹容量",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrReload,
+		value: EAttrReload,
 		toml:  "EAttr.Reload",
 		desc:  "换弹时间-单位毫秒",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrReloadReduce,
+		value: EAttrReloadReduce,
 		toml:  "EAttr.ReloadReduce",
 		desc:  "换弹时间缩短比例-百分比",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrShootInterval,
+		value: EAttrShootInterval,
 		toml:  "EAttr.ShootInterval",
 		desc:  "射击间隔-单位毫秒",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrShootIntervalReduce,
+		value: EAttrShootIntervalReduce,
 		toml:  "EAttr.ShootIntervalReduce",
 		desc:  "射击间隔缩短比例-百分比",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrHorPitch,
+		value: EAttrHorPitch,
 		toml:  "EAttr.HorPitch",
 		desc:  "水平准心跳动-单位0.001",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrHorPitchReduce,
+		value: EAttrHorPitchReduce,
 		toml:  "EAttr.HorPitchReduce",
 		desc:  "水平准心跳动降低-百分比",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrVerPitch,
+		value: EAttrVerPitch,
 		toml:  "EAttr.VerPitch",
 		desc:  "垂直准心跳动-单位0.001",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrVerPitchReduce,
+		value: EAttrVerPitchReduce,
 		toml:  "EAttr.VerPitchReduce",
 		desc:  "垂直准心跳动降低-百分比",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrPitchGoTime,
+		value: EAttrPitchGoTime,
 		toml:  "EAttr.PitchGoTime",
 		desc:  "准心跳动偏离时间-单位毫秒",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrPitchBackTime,
+		value: EAttrPitchBackTime,
 		toml:  "EAttr.PitchBackTime",
 		desc:  "准心跳动恢复时间-单位毫秒",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrCrossRangeMin,
+		value: EAttrCrossRangeMin,
 		toml:  "EAttr.CrossRangeMin",
 		desc:  "最小准心范围-单位0.001",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrCrossRangeMax,
+		value: EAttrCrossRangeMax,
 		toml:  "EAttr.CrossRangeMax",
 		desc:  "最大准心范围-单位0.001",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrCrossRange,
+		value: EAttrCrossRange,
 		toml:  "EAttr.CrossRange",
 		desc:  "准心扩散-单位0.001",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrCrossOutTime,
+		value: EAttrCrossOutTime,
 		toml:  "EAttr.CrossOutTime",
 		desc:  "准心扩散时间-单位毫秒",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrCrossInTime,
+		value: EAttrCrossInTime,
 		toml:  "EAttr.CrossInTime",
 		desc:  "准心收缩时间-单位毫秒",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrCrossReduce,
+		value: EAttrCrossReduce,
 		toml:  "EAttr.CrossReduce",
 		desc:  "准心扩散降低-百分比",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrCameraShakeRange,
+		value: EAttrCameraShakeRange,
 		toml:  "EAttr.CameraShakeRange",
 		desc:  "摄像机抖动位移-单位0.001",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrCameraShakeTime,
+		value: EAttrCameraShakeTime,
 		toml:  "EAttr.CameraShakeTime",
 		desc:  "摄像机抖动时间-单位毫秒",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrCameraShakeReduce,
+		value: EAttrCameraShakeReduce,
 		toml:  "EAttr.CameraShakeReduce",
 		desc:  "摄像机抖动降低-百分比",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrShotRadius,
+		value: EAttrShotRadius,
 		toml:  "EAttr.ShotRadius",
 		desc:  "散弹半径-单位0.001",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrShotRadiusReduce,
+		value: EAttrShotRadiusReduce,
 		toml:  "EAttr.ShotRadiusReduce",
 		desc:  "散弹半径降低-百分比",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrMirrorMultiple,
+		value: EAttrMirrorMultiple,
 		toml:  "EAttr.MirrorMultiple",
 		desc:  "准镜倍数-单位0.001",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrOpenMirrorTime,
+		value: EAttrOpenMirrorTime,
 		toml:  "EAttr.OpenMirrorTime",
 		desc:  "开镜时间-单位毫秒",
 	},
 	&internalEAttrInfo{
-		value: internalEAttrOpenMirrorTimeReduce,
+		value: EAttrOpenMirrorTimeReduce,
 		toml:  "EAttr.OpenMirrorTimeReduce",
 		desc:  "开镜时间降低-百分比",
 	},
 }
 
 var mapCodeToEAttrInfo = map[string]*internalEAttrInfo{
-	allEAttrInfo[int(internalEAttrHealth)].toml:               allEAttrInfo[int(internalEAttrHealth)],
-	allEAttrInfo[int(internalEAttrBodyAttack)].toml:           allEAttrInfo[int(internalEAttrBodyAttack)],
-	allEAttrInfo[int(internalEAttrHeadAttack)].toml:           allEAttrInfo[int(internalEAttrHeadAttack)],
-	allEAttrInfo[int(internalEAttrBodyDefence)].toml:          allEAttrInfo[int(internalEAttrBodyDefence)],
-	allEAttrInfo[int(internalEAttrHeadDefence)].toml:          allEAttrInfo[int(internalEAttrHeadDefence)],
-	allEAttrInfo[int(internalEAttrDurable)].toml:              allEAttrInfo[int(internalEAttrDurable)],
-	allEAttrInfo[int(internalEAttrClip)].toml:                 allEAttrInfo[int(internalEAttrClip)],
-	allEAttrInfo[int(internalEAttrReload)].toml:               allEAttrInfo[int(internalEAttrReload)],
-	allEAttrInfo[int(internalEAttrReloadReduce)].toml:         allEAttrInfo[int(internalEAttrReloadReduce)],
-	allEAttrInfo[int(internalEAttrShootInterval)].toml:        allEAttrInfo[int(internalEAttrShootInterval)],
-	allEAttrInfo[int(internalEAttrShootIntervalReduce)].toml:  allEAttrInfo[int(internalEAttrShootIntervalReduce)],
-	allEAttrInfo[int(internalEAttrHorPitch)].toml:             allEAttrInfo[int(internalEAttrHorPitch)],
-	allEAttrInfo[int(internalEAttrHorPitchReduce)].toml:       allEAttrInfo[int(internalEAttrHorPitchReduce)],
-	allEAttrInfo[int(internalEAttrVerPitch)].toml:             allEAttrInfo[int(internalEAttrVerPitch)],
-	allEAttrInfo[int(internalEAttrVerPitchReduce)].toml:       allEAttrInfo[int(internalEAttrVerPitchReduce)],
-	allEAttrInfo[int(internalEAttrPitchGoTime)].toml:          allEAttrInfo[int(internalEAttrPitchGoTime)],
-	allEAttrInfo[int(internalEAttrPitchBackTime)].toml:        allEAttrInfo[int(internalEAttrPitchBackTime)],
-	allEAttrInfo[int(internalEAttrCrossRangeMin)].toml:        allEAttrInfo[int(internalEAttrCrossRangeMin)],
-	allEAttrInfo[int(internalEAttrCrossRangeMax)].toml:        allEAttrInfo[int(internalEAttrCrossRangeMax)],
-	allEAttrInfo[int(internalEAttrCrossRange)].toml:           allEAttrInfo[int(internalEAttrCrossRange)],
-	allEAttrInfo[int(internalEAttrCrossOutTime)].toml:         allEAttrInfo[int(internalEAttrCrossOutTime)],
-	allEAttrInfo[int(internalEAttrCrossInTime)].toml:          allEAttrInfo[int(internalEAttrCrossInTime)],
-	allEAttrInfo[int(internalEAttrCrossReduce)].toml:          allEAttrInfo[int(internalEAttrCrossReduce)],
-	allEAttrInfo[int(internalEAttrCameraShakeRange)].toml:     allEAttrInfo[int(internalEAttrCameraShakeRange)],
-	allEAttrInfo[int(internalEAttrCameraShakeTime)].toml:      allEAttrInfo[int(internalEAttrCameraShakeTime)],
-	allEAttrInfo[int(internalEAttrCameraShakeReduce)].toml:    allEAttrInfo[int(internalEAttrCameraShakeReduce)],
-	allEAttrInfo[int(internalEAttrShotRadius)].toml:           allEAttrInfo[int(internalEAttrShotRadius)],
-	allEAttrInfo[int(internalEAttrShotRadiusReduce)].toml:     allEAttrInfo[int(internalEAttrShotRadiusReduce)],
-	allEAttrInfo[int(internalEAttrMirrorMultiple)].toml:       allEAttrInfo[int(internalEAttrMirrorMultiple)],
-	allEAttrInfo[int(internalEAttrOpenMirrorTime)].toml:       allEAttrInfo[int(internalEAttrOpenMirrorTime)],
-	allEAttrInfo[int(internalEAttrOpenMirrorTimeReduce)].toml: allEAttrInfo[int(internalEAttrOpenMirrorTimeReduce)],
+	allEAttrInfo[int32(EAttrHealth)].toml:               allEAttrInfo[int(EAttrHealth)],
+	allEAttrInfo[int32(EAttrBodyAttack)].toml:           allEAttrInfo[int(EAttrBodyAttack)],
+	allEAttrInfo[int32(EAttrHeadAttack)].toml:           allEAttrInfo[int(EAttrHeadAttack)],
+	allEAttrInfo[int32(EAttrBodyDefence)].toml:          allEAttrInfo[int(EAttrBodyDefence)],
+	allEAttrInfo[int32(EAttrHeadDefence)].toml:          allEAttrInfo[int(EAttrHeadDefence)],
+	allEAttrInfo[int32(EAttrDurable)].toml:              allEAttrInfo[int(EAttrDurable)],
+	allEAttrInfo[int32(EAttrClip)].toml:                 allEAttrInfo[int(EAttrClip)],
+	allEAttrInfo[int32(EAttrReload)].toml:               allEAttrInfo[int(EAttrReload)],
+	allEAttrInfo[int32(EAttrReloadReduce)].toml:         allEAttrInfo[int(EAttrReloadReduce)],
+	allEAttrInfo[int32(EAttrShootInterval)].toml:        allEAttrInfo[int(EAttrShootInterval)],
+	allEAttrInfo[int32(EAttrShootIntervalReduce)].toml:  allEAttrInfo[int(EAttrShootIntervalReduce)],
+	allEAttrInfo[int32(EAttrHorPitch)].toml:             allEAttrInfo[int(EAttrHorPitch)],
+	allEAttrInfo[int32(EAttrHorPitchReduce)].toml:       allEAttrInfo[int(EAttrHorPitchReduce)],
+	allEAttrInfo[int32(EAttrVerPitch)].toml:             allEAttrInfo[int(EAttrVerPitch)],
+	allEAttrInfo[int32(EAttrVerPitchReduce)].toml:       allEAttrInfo[int(EAttrVerPitchReduce)],
+	allEAttrInfo[int32(EAttrPitchGoTime)].toml:          allEAttrInfo[int(EAttrPitchGoTime)],
+	allEAttrInfo[int32(EAttrPitchBackTime)].toml:        allEAttrInfo[int(EAttrPitchBackTime)],
+	allEAttrInfo[int32(EAttrCrossRangeMin)].toml:        allEAttrInfo[int(EAttrCrossRangeMin)],
+	allEAttrInfo[int32(EAttrCrossRangeMax)].toml:        allEAttrInfo[int(EAttrCrossRangeMax)],
+	allEAttrInfo[int32(EAttrCrossRange)].toml:           allEAttrInfo[int(EAttrCrossRange)],
+	allEAttrInfo[int32(EAttrCrossOutTime)].toml:         allEAttrInfo[int(EAttrCrossOutTime)],
+	allEAttrInfo[int32(EAttrCrossInTime)].toml:          allEAttrInfo[int(EAttrCrossInTime)],
+	allEAttrInfo[int32(EAttrCrossReduce)].toml:          allEAttrInfo[int(EAttrCrossReduce)],
+	allEAttrInfo[int32(EAttrCameraShakeRange)].toml:     allEAttrInfo[int(EAttrCameraShakeRange)],
+	allEAttrInfo[int32(EAttrCameraShakeTime)].toml:      allEAttrInfo[int(EAttrCameraShakeTime)],
+	allEAttrInfo[int32(EAttrCameraShakeReduce)].toml:    allEAttrInfo[int(EAttrCameraShakeReduce)],
+	allEAttrInfo[int32(EAttrShotRadius)].toml:           allEAttrInfo[int(EAttrShotRadius)],
+	allEAttrInfo[int32(EAttrShotRadiusReduce)].toml:     allEAttrInfo[int(EAttrShotRadiusReduce)],
+	allEAttrInfo[int32(EAttrMirrorMultiple)].toml:       allEAttrInfo[int(EAttrMirrorMultiple)],
+	allEAttrInfo[int32(EAttrOpenMirrorTime)].toml:       allEAttrInfo[int(EAttrOpenMirrorTime)],
+	allEAttrInfo[int32(EAttrOpenMirrorTimeReduce)].toml: allEAttrInfo[int(EAttrOpenMirrorTimeReduce)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler
@@ -524,11 +576,16 @@ func (e EAttr) String() string {
 type EConsumableType int32
 
 const (
-	internalEConsumableTypeAdrenalineSyringe EConsumableType = EConsumableType(0) // 战场消耗品-肾上腺素
-	internalEConsumableTypeBandage           EConsumableType = EConsumableType(1) // 绷带
-	internalEConsumableTypeEnergyDrink       EConsumableType = EConsumableType(2) // 能量饮料
-	internalEConsumableTypeFirstAidKit       EConsumableType = EConsumableType(3) // 急救包
-	internalEConsumableTypeMedKit            EConsumableType = EConsumableType(4) // 医疗箱
+	// EConsumableTypeAdrenalineSyringe 战场消耗品-肾上腺素
+	EConsumableTypeAdrenalineSyringe EConsumableType = EConsumableType(0)
+	// EConsumableTypeBandage 绷带
+	EConsumableTypeBandage EConsumableType = EConsumableType(1)
+	// EConsumableTypeEnergyDrink 能量饮料
+	EConsumableTypeEnergyDrink EConsumableType = EConsumableType(2)
+	// EConsumableTypeFirstAidKit 急救包
+	EConsumableTypeFirstAidKit EConsumableType = EConsumableType(3)
+	// EConsumableTypeMedKit 医疗箱
+	EConsumableTypeMedKit EConsumableType = EConsumableType(4)
 )
 
 type internalEConsumableTypeInfo struct {
@@ -539,38 +596,38 @@ type internalEConsumableTypeInfo struct {
 
 var allEConsumableTypeInfo = []*internalEConsumableTypeInfo{
 	&internalEConsumableTypeInfo{
-		value: internalEConsumableTypeAdrenalineSyringe,
+		value: EConsumableTypeAdrenalineSyringe,
 		toml:  "EConsumableType.AdrenalineSyringe",
 		desc:  "战场消耗品-肾上腺素",
 	},
 	&internalEConsumableTypeInfo{
-		value: internalEConsumableTypeBandage,
+		value: EConsumableTypeBandage,
 		toml:  "EConsumableType.Bandage",
 		desc:  "绷带",
 	},
 	&internalEConsumableTypeInfo{
-		value: internalEConsumableTypeEnergyDrink,
+		value: EConsumableTypeEnergyDrink,
 		toml:  "EConsumableType.EnergyDrink",
 		desc:  "能量饮料",
 	},
 	&internalEConsumableTypeInfo{
-		value: internalEConsumableTypeFirstAidKit,
+		value: EConsumableTypeFirstAidKit,
 		toml:  "EConsumableType.FirstAidKit",
 		desc:  "急救包",
 	},
 	&internalEConsumableTypeInfo{
-		value: internalEConsumableTypeMedKit,
+		value: EConsumableTypeMedKit,
 		toml:  "EConsumableType.MedKit",
 		desc:  "医疗箱",
 	},
 }
 
 var mapCodeToEConsumableTypeInfo = map[string]*internalEConsumableTypeInfo{
-	allEConsumableTypeInfo[int(internalEConsumableTypeAdrenalineSyringe)].toml: allEConsumableTypeInfo[int(internalEConsumableTypeAdrenalineSyringe)],
-	allEConsumableTypeInfo[int(internalEConsumableTypeBandage)].toml:           allEConsumableTypeInfo[int(internalEConsumableTypeBandage)],
-	allEConsumableTypeInfo[int(internalEConsumableTypeEnergyDrink)].toml:       allEConsumableTypeInfo[int(internalEConsumableTypeEnergyDrink)],
-	allEConsumableTypeInfo[int(internalEConsumableTypeFirstAidKit)].toml:       allEConsumableTypeInfo[int(internalEConsumableTypeFirstAidKit)],
-	allEConsumableTypeInfo[int(internalEConsumableTypeMedKit)].toml:            allEConsumableTypeInfo[int(internalEConsumableTypeMedKit)],
+	allEConsumableTypeInfo[int32(EConsumableTypeAdrenalineSyringe)].toml: allEConsumableTypeInfo[int(EConsumableTypeAdrenalineSyringe)],
+	allEConsumableTypeInfo[int32(EConsumableTypeBandage)].toml:           allEConsumableTypeInfo[int(EConsumableTypeBandage)],
+	allEConsumableTypeInfo[int32(EConsumableTypeEnergyDrink)].toml:       allEConsumableTypeInfo[int(EConsumableTypeEnergyDrink)],
+	allEConsumableTypeInfo[int32(EConsumableTypeFirstAidKit)].toml:       allEConsumableTypeInfo[int(EConsumableTypeFirstAidKit)],
+	allEConsumableTypeInfo[int32(EConsumableTypeMedKit)].toml:            allEConsumableTypeInfo[int(EConsumableTypeMedKit)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler
@@ -597,8 +654,10 @@ func (e EConsumableType) String() string {
 type EEquipmentType int32
 
 const (
-	internalEEquipmentTypeHelmet EEquipmentType = EEquipmentType(0) // 战场防具-头盔
-	internalEEquipmentTypeVest   EEquipmentType = EEquipmentType(1) // 防弹衣
+	// EEquipmentTypeHelmet 战场防具-头盔
+	EEquipmentTypeHelmet EEquipmentType = EEquipmentType(0)
+	// EEquipmentTypeVest 防弹衣
+	EEquipmentTypeVest EEquipmentType = EEquipmentType(1)
 )
 
 type internalEEquipmentTypeInfo struct {
@@ -609,20 +668,20 @@ type internalEEquipmentTypeInfo struct {
 
 var allEEquipmentTypeInfo = []*internalEEquipmentTypeInfo{
 	&internalEEquipmentTypeInfo{
-		value: internalEEquipmentTypeHelmet,
+		value: EEquipmentTypeHelmet,
 		toml:  "EEquipmentType.Helmet",
 		desc:  "战场防具-头盔",
 	},
 	&internalEEquipmentTypeInfo{
-		value: internalEEquipmentTypeVest,
+		value: EEquipmentTypeVest,
 		toml:  "EEquipmentType.Vest",
 		desc:  "防弹衣",
 	},
 }
 
 var mapCodeToEEquipmentTypeInfo = map[string]*internalEEquipmentTypeInfo{
-	allEEquipmentTypeInfo[int(internalEEquipmentTypeHelmet)].toml: allEEquipmentTypeInfo[int(internalEEquipmentTypeHelmet)],
-	allEEquipmentTypeInfo[int(internalEEquipmentTypeVest)].toml:   allEEquipmentTypeInfo[int(internalEEquipmentTypeVest)],
+	allEEquipmentTypeInfo[int32(EEquipmentTypeHelmet)].toml: allEEquipmentTypeInfo[int(EEquipmentTypeHelmet)],
+	allEEquipmentTypeInfo[int32(EEquipmentTypeVest)].toml:   allEEquipmentTypeInfo[int(EEquipmentTypeVest)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler
@@ -649,13 +708,20 @@ func (e EEquipmentType) String() string {
 type EGunWeaponType int32
 
 const (
-	internalEGunWeaponTypeSniperRifle             EGunWeaponType = EGunWeaponType(0) // 枪械-狙击枪-awm
-	internalEGunWeaponTypePistol                  EGunWeaponType = EGunWeaponType(1) // 手枪-p1911
-	internalEGunWeaponTypeSubmachineGun           EGunWeaponType = EGunWeaponType(2) // 冲锋枪-ump9
-	internalEGunWeaponTypeLightMachineGun         EGunWeaponType = EGunWeaponType(3) // 轻机枪-m249
-	internalEGunWeaponTypeAssaultRifle            EGunWeaponType = EGunWeaponType(4) // 自动步枪-akm
-	internalEGunWeaponTypeShotgun                 EGunWeaponType = EGunWeaponType(5) // 霰弹枪-s1897
-	internalEGunWeaponTypeDesignatedMarksmanRifle EGunWeaponType = EGunWeaponType(6) // 精确射击步枪-sks
+	// EGunWeaponTypeSniperRifle 枪械-狙击枪-awm
+	EGunWeaponTypeSniperRifle EGunWeaponType = EGunWeaponType(0)
+	// EGunWeaponTypePistol 手枪-p1911
+	EGunWeaponTypePistol EGunWeaponType = EGunWeaponType(1)
+	// EGunWeaponTypeSubmachineGun 冲锋枪-ump9
+	EGunWeaponTypeSubmachineGun EGunWeaponType = EGunWeaponType(2)
+	// EGunWeaponTypeLightMachineGun 轻机枪-m249
+	EGunWeaponTypeLightMachineGun EGunWeaponType = EGunWeaponType(3)
+	// EGunWeaponTypeAssaultRifle 自动步枪-akm
+	EGunWeaponTypeAssaultRifle EGunWeaponType = EGunWeaponType(4)
+	// EGunWeaponTypeShotgun 霰弹枪-s1897
+	EGunWeaponTypeShotgun EGunWeaponType = EGunWeaponType(5)
+	// EGunWeaponTypeDesignatedMarksmanRifle 精确射击步枪-sks
+	EGunWeaponTypeDesignatedMarksmanRifle EGunWeaponType = EGunWeaponType(6)
 )
 
 type internalEGunWeaponTypeInfo struct {
@@ -666,50 +732,50 @@ type internalEGunWeaponTypeInfo struct {
 
 var allEGunWeaponTypeInfo = []*internalEGunWeaponTypeInfo{
 	&internalEGunWeaponTypeInfo{
-		value: internalEGunWeaponTypeSniperRifle,
+		value: EGunWeaponTypeSniperRifle,
 		toml:  "EGunWeaponType.SniperRifle",
 		desc:  "枪械-狙击枪-awm",
 	},
 	&internalEGunWeaponTypeInfo{
-		value: internalEGunWeaponTypePistol,
+		value: EGunWeaponTypePistol,
 		toml:  "EGunWeaponType.Pistol",
 		desc:  "手枪-p1911",
 	},
 	&internalEGunWeaponTypeInfo{
-		value: internalEGunWeaponTypeSubmachineGun,
+		value: EGunWeaponTypeSubmachineGun,
 		toml:  "EGunWeaponType.SubmachineGun",
 		desc:  "冲锋枪-ump9",
 	},
 	&internalEGunWeaponTypeInfo{
-		value: internalEGunWeaponTypeLightMachineGun,
+		value: EGunWeaponTypeLightMachineGun,
 		toml:  "EGunWeaponType.LightMachineGun",
 		desc:  "轻机枪-m249",
 	},
 	&internalEGunWeaponTypeInfo{
-		value: internalEGunWeaponTypeAssaultRifle,
+		value: EGunWeaponTypeAssaultRifle,
 		toml:  "EGunWeaponType.AssaultRifle",
 		desc:  "自动步枪-akm",
 	},
 	&internalEGunWeaponTypeInfo{
-		value: internalEGunWeaponTypeShotgun,
+		value: EGunWeaponTypeShotgun,
 		toml:  "EGunWeaponType.Shotgun",
 		desc:  "霰弹枪-s1897",
 	},
 	&internalEGunWeaponTypeInfo{
-		value: internalEGunWeaponTypeDesignatedMarksmanRifle,
+		value: EGunWeaponTypeDesignatedMarksmanRifle,
 		toml:  "EGunWeaponType.DesignatedMarksmanRifle",
 		desc:  "精确射击步枪-sks",
 	},
 }
 
 var mapCodeToEGunWeaponTypeInfo = map[string]*internalEGunWeaponTypeInfo{
-	allEGunWeaponTypeInfo[int(internalEGunWeaponTypeSniperRifle)].toml:             allEGunWeaponTypeInfo[int(internalEGunWeaponTypeSniperRifle)],
-	allEGunWeaponTypeInfo[int(internalEGunWeaponTypePistol)].toml:                  allEGunWeaponTypeInfo[int(internalEGunWeaponTypePistol)],
-	allEGunWeaponTypeInfo[int(internalEGunWeaponTypeSubmachineGun)].toml:           allEGunWeaponTypeInfo[int(internalEGunWeaponTypeSubmachineGun)],
-	allEGunWeaponTypeInfo[int(internalEGunWeaponTypeLightMachineGun)].toml:         allEGunWeaponTypeInfo[int(internalEGunWeaponTypeLightMachineGun)],
-	allEGunWeaponTypeInfo[int(internalEGunWeaponTypeAssaultRifle)].toml:            allEGunWeaponTypeInfo[int(internalEGunWeaponTypeAssaultRifle)],
-	allEGunWeaponTypeInfo[int(internalEGunWeaponTypeShotgun)].toml:                 allEGunWeaponTypeInfo[int(internalEGunWeaponTypeShotgun)],
-	allEGunWeaponTypeInfo[int(internalEGunWeaponTypeDesignatedMarksmanRifle)].toml: allEGunWeaponTypeInfo[int(internalEGunWeaponTypeDesignatedMarksmanRifle)],
+	allEGunWeaponTypeInfo[int32(EGunWeaponTypeSniperRifle)].toml:             allEGunWeaponTypeInfo[int(EGunWeaponTypeSniperRifle)],
+	allEGunWeaponTypeInfo[int32(EGunWeaponTypePistol)].toml:                  allEGunWeaponTypeInfo[int(EGunWeaponTypePistol)],
+	allEGunWeaponTypeInfo[int32(EGunWeaponTypeSubmachineGun)].toml:           allEGunWeaponTypeInfo[int(EGunWeaponTypeSubmachineGun)],
+	allEGunWeaponTypeInfo[int32(EGunWeaponTypeLightMachineGun)].toml:         allEGunWeaponTypeInfo[int(EGunWeaponTypeLightMachineGun)],
+	allEGunWeaponTypeInfo[int32(EGunWeaponTypeAssaultRifle)].toml:            allEGunWeaponTypeInfo[int(EGunWeaponTypeAssaultRifle)],
+	allEGunWeaponTypeInfo[int32(EGunWeaponTypeShotgun)].toml:                 allEGunWeaponTypeInfo[int(EGunWeaponTypeShotgun)],
+	allEGunWeaponTypeInfo[int32(EGunWeaponTypeDesignatedMarksmanRifle)].toml: allEGunWeaponTypeInfo[int(EGunWeaponTypeDesignatedMarksmanRifle)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler
@@ -736,15 +802,24 @@ func (e EGunWeaponType) String() string {
 type EItemType int32
 
 const (
-	internalEItemTypeGunWeapon    EItemType = EItemType(0) // 物品-战场枪械
-	internalEItemTypeAmmunition   EItemType = EItemType(1) // 战场枪械弹药
-	internalEItemTypeAttachment   EItemType = EItemType(2) // 战场枪械配件
-	internalEItemTypeMelleeWeapon EItemType = EItemType(3) // 战场近战物理武器
-	internalEItemTypeEquipment    EItemType = EItemType(4) // 战场防具
-	internalEItemTypeConsumable   EItemType = EItemType(5) // 战场补给品
-	internalEItemTypeThrowable    EItemType = EItemType(6) // 战场投掷物
-	internalEItemTypeRole         EItemType = EItemType(7) // 主角
-	internalEItemTypeBox          EItemType = EItemType(8) // 箱子
+	// EItemTypeGunWeapon 物品-战场枪械
+	EItemTypeGunWeapon EItemType = EItemType(0)
+	// EItemTypeAmmunition 战场枪械弹药
+	EItemTypeAmmunition EItemType = EItemType(1)
+	// EItemTypeAttachment 战场枪械配件
+	EItemTypeAttachment EItemType = EItemType(2)
+	// EItemTypeMelleeWeapon 战场近战物理武器
+	EItemTypeMelleeWeapon EItemType = EItemType(3)
+	// EItemTypeEquipment 战场防具
+	EItemTypeEquipment EItemType = EItemType(4)
+	// EItemTypeConsumable 战场补给品
+	EItemTypeConsumable EItemType = EItemType(5)
+	// EItemTypeThrowable 战场投掷物
+	EItemTypeThrowable EItemType = EItemType(6)
+	// EItemTypeRole 主角
+	EItemTypeRole EItemType = EItemType(7)
+	// EItemTypeBox 箱子
+	EItemTypeBox EItemType = EItemType(8)
 )
 
 type internalEItemTypeInfo struct {
@@ -755,62 +830,62 @@ type internalEItemTypeInfo struct {
 
 var allEItemTypeInfo = []*internalEItemTypeInfo{
 	&internalEItemTypeInfo{
-		value: internalEItemTypeGunWeapon,
+		value: EItemTypeGunWeapon,
 		toml:  "EItemType.GunWeapon",
 		desc:  "物品-战场枪械",
 	},
 	&internalEItemTypeInfo{
-		value: internalEItemTypeAmmunition,
+		value: EItemTypeAmmunition,
 		toml:  "EItemType.Ammunition",
 		desc:  "战场枪械弹药",
 	},
 	&internalEItemTypeInfo{
-		value: internalEItemTypeAttachment,
+		value: EItemTypeAttachment,
 		toml:  "EItemType.Attachment",
 		desc:  "战场枪械配件",
 	},
 	&internalEItemTypeInfo{
-		value: internalEItemTypeMelleeWeapon,
+		value: EItemTypeMelleeWeapon,
 		toml:  "EItemType.MelleeWeapon",
 		desc:  "战场近战物理武器",
 	},
 	&internalEItemTypeInfo{
-		value: internalEItemTypeEquipment,
+		value: EItemTypeEquipment,
 		toml:  "EItemType.Equipment",
 		desc:  "战场防具",
 	},
 	&internalEItemTypeInfo{
-		value: internalEItemTypeConsumable,
+		value: EItemTypeConsumable,
 		toml:  "EItemType.Consumable",
 		desc:  "战场补给品",
 	},
 	&internalEItemTypeInfo{
-		value: internalEItemTypeThrowable,
+		value: EItemTypeThrowable,
 		toml:  "EItemType.Throwable",
 		desc:  "战场投掷物",
 	},
 	&internalEItemTypeInfo{
-		value: internalEItemTypeRole,
+		value: EItemTypeRole,
 		toml:  "EItemType.Role",
 		desc:  "主角",
 	},
 	&internalEItemTypeInfo{
-		value: internalEItemTypeBox,
+		value: EItemTypeBox,
 		toml:  "EItemType.Box",
 		desc:  "箱子",
 	},
 }
 
 var mapCodeToEItemTypeInfo = map[string]*internalEItemTypeInfo{
-	allEItemTypeInfo[int(internalEItemTypeGunWeapon)].toml:    allEItemTypeInfo[int(internalEItemTypeGunWeapon)],
-	allEItemTypeInfo[int(internalEItemTypeAmmunition)].toml:   allEItemTypeInfo[int(internalEItemTypeAmmunition)],
-	allEItemTypeInfo[int(internalEItemTypeAttachment)].toml:   allEItemTypeInfo[int(internalEItemTypeAttachment)],
-	allEItemTypeInfo[int(internalEItemTypeMelleeWeapon)].toml: allEItemTypeInfo[int(internalEItemTypeMelleeWeapon)],
-	allEItemTypeInfo[int(internalEItemTypeEquipment)].toml:    allEItemTypeInfo[int(internalEItemTypeEquipment)],
-	allEItemTypeInfo[int(internalEItemTypeConsumable)].toml:   allEItemTypeInfo[int(internalEItemTypeConsumable)],
-	allEItemTypeInfo[int(internalEItemTypeThrowable)].toml:    allEItemTypeInfo[int(internalEItemTypeThrowable)],
-	allEItemTypeInfo[int(internalEItemTypeRole)].toml:         allEItemTypeInfo[int(internalEItemTypeRole)],
-	allEItemTypeInfo[int(internalEItemTypeBox)].toml:          allEItemTypeInfo[int(internalEItemTypeBox)],
+	allEItemTypeInfo[int32(EItemTypeGunWeapon)].toml:    allEItemTypeInfo[int(EItemTypeGunWeapon)],
+	allEItemTypeInfo[int32(EItemTypeAmmunition)].toml:   allEItemTypeInfo[int(EItemTypeAmmunition)],
+	allEItemTypeInfo[int32(EItemTypeAttachment)].toml:   allEItemTypeInfo[int(EItemTypeAttachment)],
+	allEItemTypeInfo[int32(EItemTypeMelleeWeapon)].toml: allEItemTypeInfo[int(EItemTypeMelleeWeapon)],
+	allEItemTypeInfo[int32(EItemTypeEquipment)].toml:    allEItemTypeInfo[int(EItemTypeEquipment)],
+	allEItemTypeInfo[int32(EItemTypeConsumable)].toml:   allEItemTypeInfo[int(EItemTypeConsumable)],
+	allEItemTypeInfo[int32(EItemTypeThrowable)].toml:    allEItemTypeInfo[int(EItemTypeThrowable)],
+	allEItemTypeInfo[int32(EItemTypeRole)].toml:         allEItemTypeInfo[int(EItemTypeRole)],
+	allEItemTypeInfo[int32(EItemTypeBox)].toml:          allEItemTypeInfo[int(EItemTypeBox)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler
@@ -837,10 +912,14 @@ func (e EItemType) String() string {
 type EMelleeWeaponType int32
 
 const (
-	internalEMelleeWeaponTypeCrowbar EMelleeWeaponType = EMelleeWeaponType(0) // 战场近战物理武器-撬棒
-	internalEMelleeWeaponTypePan     EMelleeWeaponType = EMelleeWeaponType(1) // 平底锅
-	internalEMelleeWeaponTypeSickle  EMelleeWeaponType = EMelleeWeaponType(2) // 镰刀
-	internalEMelleeWeaponTypeMachete EMelleeWeaponType = EMelleeWeaponType(3) // 砍刀
+	// EMelleeWeaponTypeCrowbar 战场近战物理武器-撬棒
+	EMelleeWeaponTypeCrowbar EMelleeWeaponType = EMelleeWeaponType(0)
+	// EMelleeWeaponTypePan 平底锅
+	EMelleeWeaponTypePan EMelleeWeaponType = EMelleeWeaponType(1)
+	// EMelleeWeaponTypeSickle 镰刀
+	EMelleeWeaponTypeSickle EMelleeWeaponType = EMelleeWeaponType(2)
+	// EMelleeWeaponTypeMachete 砍刀
+	EMelleeWeaponTypeMachete EMelleeWeaponType = EMelleeWeaponType(3)
 )
 
 type internalEMelleeWeaponTypeInfo struct {
@@ -851,32 +930,32 @@ type internalEMelleeWeaponTypeInfo struct {
 
 var allEMelleeWeaponTypeInfo = []*internalEMelleeWeaponTypeInfo{
 	&internalEMelleeWeaponTypeInfo{
-		value: internalEMelleeWeaponTypeCrowbar,
+		value: EMelleeWeaponTypeCrowbar,
 		toml:  "EMelleeWeaponType.Crowbar",
 		desc:  "战场近战物理武器-撬棒",
 	},
 	&internalEMelleeWeaponTypeInfo{
-		value: internalEMelleeWeaponTypePan,
+		value: EMelleeWeaponTypePan,
 		toml:  "EMelleeWeaponType.Pan",
 		desc:  "平底锅",
 	},
 	&internalEMelleeWeaponTypeInfo{
-		value: internalEMelleeWeaponTypeSickle,
+		value: EMelleeWeaponTypeSickle,
 		toml:  "EMelleeWeaponType.Sickle",
 		desc:  "镰刀",
 	},
 	&internalEMelleeWeaponTypeInfo{
-		value: internalEMelleeWeaponTypeMachete,
+		value: EMelleeWeaponTypeMachete,
 		toml:  "EMelleeWeaponType.Machete",
 		desc:  "砍刀",
 	},
 }
 
 var mapCodeToEMelleeWeaponTypeInfo = map[string]*internalEMelleeWeaponTypeInfo{
-	allEMelleeWeaponTypeInfo[int(internalEMelleeWeaponTypeCrowbar)].toml: allEMelleeWeaponTypeInfo[int(internalEMelleeWeaponTypeCrowbar)],
-	allEMelleeWeaponTypeInfo[int(internalEMelleeWeaponTypePan)].toml:     allEMelleeWeaponTypeInfo[int(internalEMelleeWeaponTypePan)],
-	allEMelleeWeaponTypeInfo[int(internalEMelleeWeaponTypeSickle)].toml:  allEMelleeWeaponTypeInfo[int(internalEMelleeWeaponTypeSickle)],
-	allEMelleeWeaponTypeInfo[int(internalEMelleeWeaponTypeMachete)].toml: allEMelleeWeaponTypeInfo[int(internalEMelleeWeaponTypeMachete)],
+	allEMelleeWeaponTypeInfo[int32(EMelleeWeaponTypeCrowbar)].toml: allEMelleeWeaponTypeInfo[int(EMelleeWeaponTypeCrowbar)],
+	allEMelleeWeaponTypeInfo[int32(EMelleeWeaponTypePan)].toml:     allEMelleeWeaponTypeInfo[int(EMelleeWeaponTypePan)],
+	allEMelleeWeaponTypeInfo[int32(EMelleeWeaponTypeSickle)].toml:  allEMelleeWeaponTypeInfo[int(EMelleeWeaponTypeSickle)],
+	allEMelleeWeaponTypeInfo[int32(EMelleeWeaponTypeMachete)].toml: allEMelleeWeaponTypeInfo[int(EMelleeWeaponTypeMachete)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler
@@ -903,9 +982,12 @@ func (e EMelleeWeaponType) String() string {
 type EShootMode int32
 
 const (
-	internalEShootModeAutoInterval EShootMode = EShootMode(0) // 射击模式-连续射击-时间间隔
-	internalEShootModeAutoAction   EShootMode = EShootMode(1) // 连续射击-拉栓动作
-	internalEShootModeAutoThree    EShootMode = EShootMode(2) // 三连射
+	// EShootModeAutoInterval 射击模式-连续射击-时间间隔
+	EShootModeAutoInterval EShootMode = EShootMode(0)
+	// EShootModeAutoAction 连续射击-拉栓动作
+	EShootModeAutoAction EShootMode = EShootMode(1)
+	// EShootModeAutoThree 三连射
+	EShootModeAutoThree EShootMode = EShootMode(2)
 )
 
 type internalEShootModeInfo struct {
@@ -916,26 +998,26 @@ type internalEShootModeInfo struct {
 
 var allEShootModeInfo = []*internalEShootModeInfo{
 	&internalEShootModeInfo{
-		value: internalEShootModeAutoInterval,
+		value: EShootModeAutoInterval,
 		toml:  "EShootMode.AutoInterval",
 		desc:  "射击模式-连续射击-时间间隔",
 	},
 	&internalEShootModeInfo{
-		value: internalEShootModeAutoAction,
+		value: EShootModeAutoAction,
 		toml:  "EShootMode.AutoAction",
 		desc:  "连续射击-拉栓动作",
 	},
 	&internalEShootModeInfo{
-		value: internalEShootModeAutoThree,
+		value: EShootModeAutoThree,
 		toml:  "EShootMode.AutoThree",
 		desc:  "三连射",
 	},
 }
 
 var mapCodeToEShootModeInfo = map[string]*internalEShootModeInfo{
-	allEShootModeInfo[int(internalEShootModeAutoInterval)].toml: allEShootModeInfo[int(internalEShootModeAutoInterval)],
-	allEShootModeInfo[int(internalEShootModeAutoAction)].toml:   allEShootModeInfo[int(internalEShootModeAutoAction)],
-	allEShootModeInfo[int(internalEShootModeAutoThree)].toml:    allEShootModeInfo[int(internalEShootModeAutoThree)],
+	allEShootModeInfo[int32(EShootModeAutoInterval)].toml: allEShootModeInfo[int(EShootModeAutoInterval)],
+	allEShootModeInfo[int32(EShootModeAutoAction)].toml:   allEShootModeInfo[int(EShootModeAutoAction)],
+	allEShootModeInfo[int32(EShootModeAutoThree)].toml:    allEShootModeInfo[int(EShootModeAutoThree)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler
@@ -962,10 +1044,14 @@ func (e EShootMode) String() string {
 type EThrowableType int32
 
 const (
-	internalEThrowableTypeFragGrenade     EThrowableType = EThrowableType(0) // 投掷物-破片手雷
-	internalEThrowableTypeMolotovCocktail EThrowableType = EThrowableType(1) // 燃烧弹
-	internalEThrowableTypeSmokeGrenade    EThrowableType = EThrowableType(2) // 烟雾弹
-	internalEThrowableTypeStunGrenade     EThrowableType = EThrowableType(3) // 闪光弹
+	// EThrowableTypeFragGrenade 投掷物-破片手雷
+	EThrowableTypeFragGrenade EThrowableType = EThrowableType(0)
+	// EThrowableTypeMolotovCocktail 燃烧弹
+	EThrowableTypeMolotovCocktail EThrowableType = EThrowableType(1)
+	// EThrowableTypeSmokeGrenade 烟雾弹
+	EThrowableTypeSmokeGrenade EThrowableType = EThrowableType(2)
+	// EThrowableTypeStunGrenade 闪光弹
+	EThrowableTypeStunGrenade EThrowableType = EThrowableType(3)
 )
 
 type internalEThrowableTypeInfo struct {
@@ -976,32 +1062,32 @@ type internalEThrowableTypeInfo struct {
 
 var allEThrowableTypeInfo = []*internalEThrowableTypeInfo{
 	&internalEThrowableTypeInfo{
-		value: internalEThrowableTypeFragGrenade,
+		value: EThrowableTypeFragGrenade,
 		toml:  "EThrowableType.FragGrenade",
 		desc:  "投掷物-破片手雷",
 	},
 	&internalEThrowableTypeInfo{
-		value: internalEThrowableTypeMolotovCocktail,
+		value: EThrowableTypeMolotovCocktail,
 		toml:  "EThrowableType.MolotovCocktail",
 		desc:  "燃烧弹",
 	},
 	&internalEThrowableTypeInfo{
-		value: internalEThrowableTypeSmokeGrenade,
+		value: EThrowableTypeSmokeGrenade,
 		toml:  "EThrowableType.SmokeGrenade",
 		desc:  "烟雾弹",
 	},
 	&internalEThrowableTypeInfo{
-		value: internalEThrowableTypeStunGrenade,
+		value: EThrowableTypeStunGrenade,
 		toml:  "EThrowableType.StunGrenade",
 		desc:  "闪光弹",
 	},
 }
 
 var mapCodeToEThrowableTypeInfo = map[string]*internalEThrowableTypeInfo{
-	allEThrowableTypeInfo[int(internalEThrowableTypeFragGrenade)].toml:     allEThrowableTypeInfo[int(internalEThrowableTypeFragGrenade)],
-	allEThrowableTypeInfo[int(internalEThrowableTypeMolotovCocktail)].toml: allEThrowableTypeInfo[int(internalEThrowableTypeMolotovCocktail)],
-	allEThrowableTypeInfo[int(internalEThrowableTypeSmokeGrenade)].toml:    allEThrowableTypeInfo[int(internalEThrowableTypeSmokeGrenade)],
-	allEThrowableTypeInfo[int(internalEThrowableTypeStunGrenade)].toml:     allEThrowableTypeInfo[int(internalEThrowableTypeStunGrenade)],
+	allEThrowableTypeInfo[int32(EThrowableTypeFragGrenade)].toml:     allEThrowableTypeInfo[int(EThrowableTypeFragGrenade)],
+	allEThrowableTypeInfo[int32(EThrowableTypeMolotovCocktail)].toml: allEThrowableTypeInfo[int(EThrowableTypeMolotovCocktail)],
+	allEThrowableTypeInfo[int32(EThrowableTypeSmokeGrenade)].toml:    allEThrowableTypeInfo[int(EThrowableTypeSmokeGrenade)],
+	allEThrowableTypeInfo[int32(EThrowableTypeStunGrenade)].toml:     allEThrowableTypeInfo[int(EThrowableTypeStunGrenade)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler

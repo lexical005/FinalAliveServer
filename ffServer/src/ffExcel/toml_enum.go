@@ -20,18 +20,19 @@ import (
 {AllEnumType}
 `
 
-var fmtGoInternalEnum = `
-	internal{EnumType}{EnumKey}    {EnumType} = {EnumType}({EnumValue}) // {EnumDesc}`
+var fmtGoEnum = `
+	// {EnumType}{EnumKey} {EnumDesc}
+	{EnumType}{EnumKey}    {EnumType} = {EnumType}({EnumValue})`
 
 var fmtGoInternalEnumInfo = `
 	&internal{EnumType}Info{
-		value: internal{EnumType}{EnumKey},
+		value: {EnumType}{EnumKey},
 		toml:  "{EnumType}.{EnumKey}",
 		desc:  "{EnumDesc}",
 	},`
 
 var fmtGoMapInternalEnumInfo = `
-	all{EnumType}Info[int(internal{EnumType}{EnumKey})].toml: all{EnumType}Info[int(internal{EnumType}{EnumKey})],`
+	all{EnumType}Info[int32({EnumType}{EnumKey})].toml: all{EnumType}Info[int({EnumType}{EnumKey})],`
 
 var fmtGoOneEnum = `
 // {EnumType} {EnumType}
@@ -106,7 +107,7 @@ func genGoEnum(dataFilePath string, fileEnum *fileEnum) {
 
 		AllInternalEnum := ""
 		for i, one := range listEnums {
-			s := strings.Replace(fmtGoInternalEnum, "{EnumType}", enumType, -1)
+			s := strings.Replace(fmtGoEnum, "{EnumType}", enumType, -1)
 			s = strings.Replace(s, "{EnumKey}", one.Name, -1)
 			s = strings.Replace(s, "{EnumValue}", strconv.Itoa(i), -1)
 			s = strings.Replace(s, "{EnumDesc}", one.Desc, -1)
