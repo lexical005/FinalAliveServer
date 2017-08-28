@@ -743,6 +743,7 @@ const (
 	internalEItemTypeEquipment    EItemType = EItemType(4) // 战场防具
 	internalEItemTypeConsumable   EItemType = EItemType(5) // 战场补给品
 	internalEItemTypeThrowable    EItemType = EItemType(6) // 战场投掷物
+	internalEItemTypeRole         EItemType = EItemType(7) // 主角
 )
 
 type internalEItemTypeInfo struct {
@@ -787,6 +788,11 @@ var allEItemTypeInfo = []*internalEItemTypeInfo{
 		toml:  "EItemType.Throwable",
 		desc:  "战场投掷物",
 	},
+	&internalEItemTypeInfo{
+		value: internalEItemTypeRole,
+		toml:  "EItemType.Role",
+		desc:  "主角",
+	},
 }
 
 var mapCodeToEItemTypeInfo = map[string]*internalEItemTypeInfo{
@@ -797,6 +803,7 @@ var mapCodeToEItemTypeInfo = map[string]*internalEItemTypeInfo{
 	allEItemTypeInfo[int(internalEItemTypeEquipment)].toml:    allEItemTypeInfo[int(internalEItemTypeEquipment)],
 	allEItemTypeInfo[int(internalEItemTypeConsumable)].toml:   allEItemTypeInfo[int(internalEItemTypeConsumable)],
 	allEItemTypeInfo[int(internalEItemTypeThrowable)].toml:    allEItemTypeInfo[int(internalEItemTypeThrowable)],
+	allEItemTypeInfo[int(internalEItemTypeRole)].toml:         allEItemTypeInfo[int(internalEItemTypeRole)],
 }
 
 // UnmarshalText implements encoding.TextUnmarshaler

@@ -76,7 +76,7 @@ func (i *Item) Name() string {
 type ItemTemplate struct {
 	Name     string
 	Desc     string
-	SceneKey int32
+	AssetID  int32
 	Icon     string
 	ItemType ffEnum.EItemType
 }
@@ -85,7 +85,7 @@ func (i *ItemTemplate) String() string {
 	result := "["
 	result += fmt.Sprintf("Name:%v,", i.Name)
 	result += fmt.Sprintf("Desc:%v,", i.Desc)
-	result += fmt.Sprintf("SceneKey:%v,", i.SceneKey)
+	result += fmt.Sprintf("AssetID:%v,", i.AssetID)
 	result += fmt.Sprintf("Icon:%v,", i.Icon)
 	result += fmt.Sprintf("ItemType:%v,", i.ItemType)
 	result += "]"
