@@ -19,6 +19,14 @@ var listMessageID = []MessageType{
 	MessageType_StartMatch,
 	MessageType_StopMatch,
 	MessageType_MatchResult,
+	MessageType_BattleStartSync,
+	MessageType_BattleMember,
+	MessageType_BattleMemberLeave,
+	MessageType_BattleProp,
+	MessageType_BattlePickProp,
+	MessageType_BattleDropProp,
+	MessageType_BattleRunAway,
+	MessageType_BattleSettle,
 }
 
 var mapMessageCreator = map[MessageType]func() interface{}{
@@ -75,5 +83,29 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	},
 	MessageType_MatchResult: func() interface{} {
 		return &MsgMatchResult{}
+	},
+	MessageType_BattleStartSync: func() interface{} {
+		return &MsgBattleStartSync{}
+	},
+	MessageType_BattleMember: func() interface{} {
+		return &MsgBattleMember{}
+	},
+	MessageType_BattleMemberLeave: func() interface{} {
+		return &MsgBattleMemberLeave{}
+	},
+	MessageType_BattleProp: func() interface{} {
+		return &MsgBattleProp{}
+	},
+	MessageType_BattlePickProp: func() interface{} {
+		return &MsgBattlePickProp{}
+	},
+	MessageType_BattleDropProp: func() interface{} {
+		return &MsgBattleDropProp{}
+	},
+	MessageType_BattleRunAway: func() interface{} {
+		return &MsgBattleRunAway{}
+	},
+	MessageType_BattleSettle: func() interface{} {
+		return &MsgBattleSettle{}
 	},
 }
