@@ -10,13 +10,13 @@ import (
 
 // Asset excel Asset
 type Asset struct {
-	Actor []*Actor
+	Assets []*Assets
 }
 
 func (a *Asset) String() string {
 	result := ""
-	result += "Actor"
-	for _, row := range a.Actor {
+	result += "Assets"
+	for _, row := range a.Assets {
 		result += fmt.Sprintf("%v\n", row)
 	}
 
@@ -28,12 +28,12 @@ func (a *Asset) Name() string {
 	return "Asset"
 }
 
-// Actor sheet Actor of excel Asset
-type Actor struct {
+// Assets sheet Assets of excel Asset
+type Assets struct {
 	TemplateID int32
 }
 
-func (a *Actor) String() string {
+func (a *Assets) String() string {
 	result := "["
 	result += fmt.Sprintf("TemplateID:%v,", a.TemplateID)
 	result += "]"

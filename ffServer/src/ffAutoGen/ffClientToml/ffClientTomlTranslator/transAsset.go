@@ -11,10 +11,10 @@ import (
 func transAsset() {
 	message := &Asset{}
 
-	// Actor
-	message.Actor = make([]*Asset_StActor, len(tomlAsset.Actor))
-	for k, v := range tomlAsset.Actor {
-		message.Actor[k] = &Asset_StActor{
+	// Assets
+	message.Assets = make([]*Asset_StAssets, len(tomlAsset.Assets))
+	for k, v := range tomlAsset.Assets {
+		message.Assets[k] = &Asset_StAssets{
 			TemplateID:    v.TemplateID,
 			BattleDefault: v.BattleDefault,
 			HomeDefault:   v.HomeDefault,

@@ -76,7 +76,7 @@ func (i *Item) Name() string {
 type ItemTemplate struct {
 	Name     string
 	Desc     string
-	SceneKey string
+	SceneKey int32
 	Icon     string
 	ItemType ffEnum.EItemType
 }
