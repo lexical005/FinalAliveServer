@@ -10,14 +10,14 @@ import (
 
 // Asset excel Asset
 type Asset struct {
-	Assets []*Assets
+	Assets map[int32]*Assets
 }
 
 func (a *Asset) String() string {
 	result := ""
 	result += "Assets"
-	for _, row := range a.Assets {
-		result += fmt.Sprintf("%v\n", row)
+	for k, v := range a.Assets {
+		result += fmt.Sprintf("%v:%v\n", k, v)
 	}
 
 	return result
@@ -30,14 +30,12 @@ func (a *Asset) Name() string {
 
 // Assets sheet Assets of excel Asset
 type Assets struct {
-	TemplateID    int32
 	BattleDefault string
 	HomeDefault   string
 }
 
 func (a *Assets) String() string {
 	result := "["
-	result += fmt.Sprintf("TemplateID:%v,", a.TemplateID)
 	result += fmt.Sprintf("BattleDefault:%v,", a.BattleDefault)
 	result += fmt.Sprintf("HomeDefault:%v,", a.HomeDefault)
 	result += "]"
