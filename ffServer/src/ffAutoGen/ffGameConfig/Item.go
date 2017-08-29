@@ -74,11 +74,13 @@ func (i *Item) Name() string {
 
 // ItemTemplate sheet ItemTemplate of excel Item
 type ItemTemplate struct {
+	AssetID  int32
 	ItemType ffEnum.EItemType
 }
 
 func (i *ItemTemplate) String() string {
 	result := "["
+	result += fmt.Sprintf("AssetID:%v,", i.AssetID)
 	result += fmt.Sprintf("ItemType:%v,", i.ItemType)
 	result += "]"
 	return result

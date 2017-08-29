@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"sort"
 
-    proto "github.com/golang/protobuf/proto"
+	proto "github.com/golang/protobuf/proto"
 )
 
 func transItem() {
-    message := &Item{}
+	message := &Item{}
 
-    // ItemTemplate
+	// ItemTemplate
 	ItemTemplateKeys := make([]int, 0, len(tomlItem.ItemTemplate)) // 必须使用64位机器
 	//ItemTemplateKeys := make([]int, 0, len(tomlItem.ItemTemplate)) // 必须使用64位机器
 	//ItemTemplateKeys := make([]string, 0, len(tomlItem.ItemTemplate)) // 必须使用64位机器
@@ -35,16 +35,16 @@ func transItem() {
 
 		message.ItemTemplateKey[k] = i
 		message.ItemTemplateValue[k] = &Item_StItemTemplate{
-			Name: v.Name,
-			Desc: v.Desc,
+			Name:    v.Name,
+			Desc:    v.Desc,
 			AssetID: v.AssetID,
-			Icon: v.Icon,
+			Icon:    v.Icon,
 		}
-		
+
 		message.ItemTemplateValue[k].ItemType = int32(v.ItemType)
 	}
 
-    // GunWeapon
+	// GunWeapon
 	GunWeaponKeys := make([]int, 0, len(tomlItem.GunWeapon)) // 必须使用64位机器
 	//GunWeaponKeys := make([]int, 0, len(tomlItem.GunWeapon)) // 必须使用64位机器
 	//GunWeaponKeys := make([]string, 0, len(tomlItem.GunWeapon)) // 必须使用64位机器
@@ -69,7 +69,7 @@ func transItem() {
 		message.GunWeaponValue[k] = &Item_StGunWeapon{
 			AttrsValue: v.AttrsValue,
 		}
-		
+
 		message.GunWeaponValue[k].GunWeaponType = int32(v.GunWeaponType)
 		message.GunWeaponValue[k].ShootMode = make([]int32, len(v.ShootMode), len(v.ShootMode))
 		for xx, yy := range v.ShootMode {
@@ -86,7 +86,7 @@ func transItem() {
 		}
 	}
 
-    // Ammunition
+	// Ammunition
 	AmmunitionKeys := make([]int, 0, len(tomlItem.Ammunition)) // 必须使用64位机器
 	//AmmunitionKeys := make([]int, 0, len(tomlItem.Ammunition)) // 必须使用64位机器
 	//AmmunitionKeys := make([]string, 0, len(tomlItem.Ammunition)) // 必须使用64位机器
@@ -111,11 +111,11 @@ func transItem() {
 		message.AmmunitionValue[k] = &Item_StAmmunition{
 			AmmunitionStack: v.AmmunitionStack,
 		}
-		
+
 		message.AmmunitionValue[k].AmmunitionType = int32(v.AmmunitionType)
 	}
 
-    // Attachment
+	// Attachment
 	AttachmentKeys := make([]int, 0, len(tomlItem.Attachment)) // 必须使用64位机器
 	//AttachmentKeys := make([]int, 0, len(tomlItem.Attachment)) // 必须使用64位机器
 	//AttachmentKeys := make([]string, 0, len(tomlItem.Attachment)) // 必须使用64位机器
@@ -139,13 +139,13 @@ func transItem() {
 		message.AttachmentKey[k] = i
 		message.AttachmentValue[k] = &Item_StAttachment{
 			GunWeapons: v.GunWeapons,
-			ShutSound: v.ShutSound,
-			ShutFire: v.ShutFire,
+			ShutSound:  v.ShutSound,
+			ShutFire:   v.ShutFire,
 			AttrsValue: v.AttrsValue,
-			ClipKey: v.ClipKey,
-			ClipValue: v.ClipValue,
+			ClipKey:    v.ClipKey,
+			ClipValue:  v.ClipValue,
 		}
-		
+
 		message.AttachmentValue[k].AttachmentType = int32(v.AttachmentType)
 		message.AttachmentValue[k].AttrsKey = make([]int32, len(v.AttrsKey), len(v.AttrsKey))
 		for xx, yy := range v.AttrsKey {
@@ -153,7 +153,7 @@ func transItem() {
 		}
 	}
 
-    // MelleeWeapon
+	// MelleeWeapon
 	MelleeWeaponKeys := make([]int, 0, len(tomlItem.MelleeWeapon)) // 必须使用64位机器
 	//MelleeWeaponKeys := make([]int, 0, len(tomlItem.MelleeWeapon)) // 必须使用64位机器
 	//MelleeWeaponKeys := make([]string, 0, len(tomlItem.MelleeWeapon)) // 必须使用64位机器
@@ -178,7 +178,7 @@ func transItem() {
 		message.MelleeWeaponValue[k] = &Item_StMelleeWeapon{
 			AttrsValue: v.AttrsValue,
 		}
-		
+
 		message.MelleeWeaponValue[k].MelleeWeaponType = int32(v.MelleeWeaponType)
 		message.MelleeWeaponValue[k].AttrsKey = make([]int32, len(v.AttrsKey), len(v.AttrsKey))
 		for xx, yy := range v.AttrsKey {
@@ -186,7 +186,7 @@ func transItem() {
 		}
 	}
 
-    // Equipment
+	// Equipment
 	EquipmentKeys := make([]int, 0, len(tomlItem.Equipment)) // 必须使用64位机器
 	//EquipmentKeys := make([]int, 0, len(tomlItem.Equipment)) // 必须使用64位机器
 	//EquipmentKeys := make([]string, 0, len(tomlItem.Equipment)) // 必须使用64位机器
@@ -211,7 +211,7 @@ func transItem() {
 		message.EquipmentValue[k] = &Item_StEquipment{
 			AttrsValue: v.AttrsValue,
 		}
-		
+
 		message.EquipmentValue[k].EquipmentType = int32(v.EquipmentType)
 		message.EquipmentValue[k].AttrsKey = make([]int32, len(v.AttrsKey), len(v.AttrsKey))
 		for xx, yy := range v.AttrsKey {
@@ -219,7 +219,7 @@ func transItem() {
 		}
 	}
 
-    // Consumable
+	// Consumable
 	ConsumableKeys := make([]int, 0, len(tomlItem.Consumable)) // 必须使用64位机器
 	//ConsumableKeys := make([]int, 0, len(tomlItem.Consumable)) // 必须使用64位机器
 	//ConsumableKeys := make([]string, 0, len(tomlItem.Consumable)) // 必须使用64位机器
@@ -242,19 +242,19 @@ func transItem() {
 
 		message.ConsumableKey[k] = i
 		message.ConsumableValue[k] = &Item_StConsumable{
-			UseTime: v.UseTime,
-			UseHpLimit: v.UseHpLimit,
-			UseRecover: v.UseRecover,
-			UseRecoverUpLimit: v.UseRecoverUpLimit,
-			KeepTime: v.KeepTime,
+			UseTime:             v.UseTime,
+			UseHpLimit:          v.UseHpLimit,
+			UseRecover:          v.UseRecover,
+			UseRecoverUpLimit:   v.UseRecoverUpLimit,
+			KeepTime:            v.KeepTime,
 			KeepRecoverInterval: v.KeepRecoverInterval,
-			KeepRecover: v.KeepRecover,
+			KeepRecover:         v.KeepRecover,
 		}
-		
+
 		message.ConsumableValue[k].ConsumableType = int32(v.ConsumableType)
 	}
 
-    // Throwable
+	// Throwable
 	ThrowableKeys := make([]int, 0, len(tomlItem.Throwable)) // 必须使用64位机器
 	//ThrowableKeys := make([]int, 0, len(tomlItem.Throwable)) // 必须使用64位机器
 	//ThrowableKeys := make([]string, 0, len(tomlItem.Throwable)) // 必须使用64位机器
@@ -279,19 +279,19 @@ func transItem() {
 		message.ThrowableValue[k] = &Item_StThrowable{
 			RadiusClose: v.RadiusClose,
 		}
-		
+
 		message.ThrowableValue[k].ThrowableType = int32(v.ThrowableType)
 	}
 
-    pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
-    if err := pbBuf.Marshal(message); err != nil {
-        log.RunLogger.Printf("transItem err[%v]", err)
-        return
-    }
+	pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
+	if err := pbBuf.Marshal(message); err != nil {
+		log.RunLogger.Printf("transItem err[%v]", err)
+		return
+	}
 
-    util.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", tomlItem.Name()+".bytes"), pbBuf.Bytes())
+	util.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", tomlItem.Name()+".bytes"), pbBuf.Bytes())
 }
 
 func init() {
-    allTrans = append(allTrans, transItem)
+	allTrans = append(allTrans, transItem)
 }

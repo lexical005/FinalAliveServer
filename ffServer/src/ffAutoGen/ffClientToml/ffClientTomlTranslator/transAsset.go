@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"sort"
 
-    proto "github.com/golang/protobuf/proto"
+	proto "github.com/golang/protobuf/proto"
 )
 
 func transAsset() {
-    message := &Asset{}
+	message := &Asset{}
 
-    // Assets
+	// Assets
 	AssetsKeys := make([]int, 0, len(tomlAsset.Assets)) // 必须使用64位机器
 	//AssetsKeys := make([]int, 0, len(tomlAsset.Assets)) // 必须使用64位机器
 	//AssetsKeys := make([]string, 0, len(tomlAsset.Assets)) // 必须使用64位机器
@@ -36,20 +36,20 @@ func transAsset() {
 		message.AssetsKey[k] = i
 		message.AssetsValue[k] = &Asset_StAssets{
 			BattleDefault: v.BattleDefault,
-			HomeDefault: v.HomeDefault,
+			HomeDefault:   v.HomeDefault,
 		}
-		
+
 	}
 
-    pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
-    if err := pbBuf.Marshal(message); err != nil {
-        log.RunLogger.Printf("transAsset err[%v]", err)
-        return
-    }
+	pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
+	if err := pbBuf.Marshal(message); err != nil {
+		log.RunLogger.Printf("transAsset err[%v]", err)
+		return
+	}
 
-    util.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", tomlAsset.Name()+".bytes"), pbBuf.Bytes())
+	util.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", tomlAsset.Name()+".bytes"), pbBuf.Bytes())
 }
 
 func init() {
-    allTrans = append(allTrans, transAsset)
+	allTrans = append(allTrans, transAsset)
 }
