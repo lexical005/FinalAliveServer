@@ -12,37 +12,37 @@ import (
 var fmtTransPackage = `package main
 
 import (
-	"ffCommon/log/log"
-	"ffCommon/util"
-	"path/filepath"
-	{ImportSort}
+\t"ffCommon/log/log"
+\t"ffCommon/util"
+\t"path/filepath"
+\t{ImportSort}
 
-    proto "github.com/golang/protobuf/proto"
+\tproto "github.com/golang/protobuf/proto"
 )
 `
 
 var fmtTransInit = `
 func init() {
-    allTrans = append(allTrans, trans{FileName})
+\tallTrans = append(allTrans, trans{FileName})
 }
 `
 
 var fmtTransFuncMain = `
 func trans{FileName}() {
-    message := &{FileName}{}
+\tmessage := &{FileName}{}
 %v
-    pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
-    if err := pbBuf.Marshal(message); err != nil {
-        log.RunLogger.Printf("trans{FileName} err[%%v]", err)
-        return
-    }
+\tpbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
+\tif err := pbBuf.Marshal(message); err != nil {
+\t\tlog.RunLogger.Printf("trans{FileName} err[%%v]", err)
+\t\treturn
+\t}
 
-    util.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", toml{FileName}.Name()+".bytes"), pbBuf.Bytes())
+\tutil.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", toml{FileName}.Name()+".bytes"), pbBuf.Bytes())
 }
 `
 
 var fmtTransStructMap = `
-    // {StructName}
+\t// {StructName}
 	{MapKeyInt32Commet}{StructName}Keys := make([]{MapKeyInt32}, 0, len(toml{FileName}.{StructName})) // 必须使用64位机器
 	{MapKeyInt64Commet}{StructName}Keys := make([]{MapKeyInt64}, 0, len(toml{FileName}.{StructName})) // 必须使用64位机器
 	{MapKeyStringCommet}{StructName}Keys := make([]{MapKeyString}, 0, len(toml{FileName}.{StructName})) // 必须使用64位机器
@@ -71,7 +71,7 @@ var fmtTransStructMap = `
 `
 
 var fmtTransStructStruct = `
-    // {StructName}
+\t// {StructName}
 	message.{StructName} = &{FileName}_St{StructName}{%v
 	}
 	%v
