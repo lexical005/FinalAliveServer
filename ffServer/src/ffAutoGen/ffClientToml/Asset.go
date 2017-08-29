@@ -32,12 +32,14 @@ func (a *Asset) Name() string {
 type Assets struct {
 	BattleDefault string
 	HomeDefault   string
+	SceneDefault  string
 }
 
 func (a *Assets) String() string {
 	result := "["
 	result += fmt.Sprintf("BattleDefault:%v,", a.BattleDefault)
 	result += fmt.Sprintf("HomeDefault:%v,", a.HomeDefault)
+	result += fmt.Sprintf("SceneDefault:%v,", a.SceneDefault)
 	result += "]"
 	return result
 }
