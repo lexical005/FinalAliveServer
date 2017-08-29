@@ -35,10 +35,11 @@ func transItem() {
 
 		message.ItemTemplateKey[k] = i
 		message.ItemTemplateValue[k] = &Item_StItemTemplate{
-			Name:    v.Name,
-			Desc:    v.Desc,
-			AssetID: v.AssetID,
-			Icon:    v.Icon,
+			Name:       v.Name,
+			Desc:       v.Desc,
+			AssetID:    v.AssetID,
+			IconNormal: v.IconNormal,
+			IconLarge:  v.IconLarge,
 		}
 
 		message.ItemTemplateValue[k].ItemType = int32(v.ItemType)

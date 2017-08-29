@@ -74,11 +74,12 @@ func (i *Item) Name() string {
 
 // ItemTemplate sheet ItemTemplate of excel Item
 type ItemTemplate struct {
-	Name     string
-	Desc     string
-	AssetID  int32
-	Icon     string
-	ItemType ffEnum.EItemType
+	Name       string
+	Desc       string
+	AssetID    int32
+	IconNormal string
+	IconLarge  string
+	ItemType   ffEnum.EItemType
 }
 
 func (i *ItemTemplate) String() string {
@@ -86,7 +87,8 @@ func (i *ItemTemplate) String() string {
 	result += fmt.Sprintf("Name:%v,", i.Name)
 	result += fmt.Sprintf("Desc:%v,", i.Desc)
 	result += fmt.Sprintf("AssetID:%v,", i.AssetID)
-	result += fmt.Sprintf("Icon:%v,", i.Icon)
+	result += fmt.Sprintf("IconNormal:%v,", i.IconNormal)
+	result += fmt.Sprintf("IconLarge:%v,", i.IconLarge)
 	result += fmt.Sprintf("ItemType:%v,", i.ItemType)
 	result += "]"
 	return result
