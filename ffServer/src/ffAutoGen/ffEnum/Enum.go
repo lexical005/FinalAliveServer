@@ -978,6 +978,124 @@ func (e EMelleeWeaponType) String() string {
 	return allEMelleeWeaponTypeInfo[e].toml
 }
 
+// ERoleAction ERoleAction
+type ERoleAction int32
+
+const (
+	// ERoleActionSquat 战场角色动作行为-下蹲
+	ERoleActionSquat ERoleAction = ERoleAction(0)
+	// ERoleActionStand 站起
+	ERoleActionStand ERoleAction = ERoleAction(1)
+	// ERoleActionLying 匍匐
+	ERoleActionLying ERoleAction = ERoleAction(2)
+	// ERoleActionJump 跳跃
+	ERoleActionJump ERoleAction = ERoleAction(3)
+	// ERoleActionWeaponAim 瞄准
+	ERoleActionWeaponAim ERoleAction = ERoleAction(4)
+	// ERoleActionWeaponFire 开火
+	ERoleActionWeaponFire ERoleAction = ERoleAction(5)
+	// ERoleActionWeaponActive 武器激活
+	ERoleActionWeaponActive ERoleAction = ERoleAction(6)
+	// ERoleActionWeaponReload 武器换弹
+	ERoleActionWeaponReload ERoleAction = ERoleAction(7)
+	// ERoleActionThrow 投掷
+	ERoleActionThrow ERoleAction = ERoleAction(8)
+	// ERoleActionHeal 治疗
+	ERoleActionHeal ERoleAction = ERoleAction(9)
+)
+
+type internalERoleActionInfo struct {
+	value ERoleAction
+	toml  string
+	desc  string
+}
+
+var allERoleActionInfo = []*internalERoleActionInfo{
+	&internalERoleActionInfo{
+		value: ERoleActionSquat,
+		toml:  "ERoleAction.Squat",
+		desc:  "战场角色动作行为-下蹲",
+	},
+	&internalERoleActionInfo{
+		value: ERoleActionStand,
+		toml:  "ERoleAction.Stand",
+		desc:  "站起",
+	},
+	&internalERoleActionInfo{
+		value: ERoleActionLying,
+		toml:  "ERoleAction.Lying",
+		desc:  "匍匐",
+	},
+	&internalERoleActionInfo{
+		value: ERoleActionJump,
+		toml:  "ERoleAction.Jump",
+		desc:  "跳跃",
+	},
+	&internalERoleActionInfo{
+		value: ERoleActionWeaponAim,
+		toml:  "ERoleAction.WeaponAim",
+		desc:  "瞄准",
+	},
+	&internalERoleActionInfo{
+		value: ERoleActionWeaponFire,
+		toml:  "ERoleAction.WeaponFire",
+		desc:  "开火",
+	},
+	&internalERoleActionInfo{
+		value: ERoleActionWeaponActive,
+		toml:  "ERoleAction.WeaponActive",
+		desc:  "武器激活",
+	},
+	&internalERoleActionInfo{
+		value: ERoleActionWeaponReload,
+		toml:  "ERoleAction.WeaponReload",
+		desc:  "武器换弹",
+	},
+	&internalERoleActionInfo{
+		value: ERoleActionThrow,
+		toml:  "ERoleAction.Throw",
+		desc:  "投掷",
+	},
+	&internalERoleActionInfo{
+		value: ERoleActionHeal,
+		toml:  "ERoleAction.Heal",
+		desc:  "治疗",
+	},
+}
+
+var mapCodeToERoleActionInfo = map[string]*internalERoleActionInfo{
+	allERoleActionInfo[int32(ERoleActionSquat)].toml:        allERoleActionInfo[int(ERoleActionSquat)],
+	allERoleActionInfo[int32(ERoleActionStand)].toml:        allERoleActionInfo[int(ERoleActionStand)],
+	allERoleActionInfo[int32(ERoleActionLying)].toml:        allERoleActionInfo[int(ERoleActionLying)],
+	allERoleActionInfo[int32(ERoleActionJump)].toml:         allERoleActionInfo[int(ERoleActionJump)],
+	allERoleActionInfo[int32(ERoleActionWeaponAim)].toml:    allERoleActionInfo[int(ERoleActionWeaponAim)],
+	allERoleActionInfo[int32(ERoleActionWeaponFire)].toml:   allERoleActionInfo[int(ERoleActionWeaponFire)],
+	allERoleActionInfo[int32(ERoleActionWeaponActive)].toml: allERoleActionInfo[int(ERoleActionWeaponActive)],
+	allERoleActionInfo[int32(ERoleActionWeaponReload)].toml: allERoleActionInfo[int(ERoleActionWeaponReload)],
+	allERoleActionInfo[int32(ERoleActionThrow)].toml:        allERoleActionInfo[int(ERoleActionThrow)],
+	allERoleActionInfo[int32(ERoleActionHeal)].toml:         allERoleActionInfo[int(ERoleActionHeal)],
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler
+func (e *ERoleAction) UnmarshalText(data []byte) error {
+	key := string(data)
+	v, ok := mapCodeToERoleActionInfo[key]
+	if !ok {
+		return fmt.Errorf("ERoleAction.UnmarshalText failed: invalid ERoleAction[%v]", key)
+	}
+	*e = v.value
+	return nil
+}
+
+// MarshalText implements encoding.TextMarshaler
+func (e ERoleAction) MarshalText() ([]byte, error) {
+	return []byte(allERoleActionInfo[e].toml), nil
+}
+
+func (e ERoleAction) String() string {
+	return allERoleActionInfo[e].toml
+}
+
 // EShootMode EShootMode
 type EShootMode int32
 
