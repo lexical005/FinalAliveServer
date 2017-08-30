@@ -3,6 +3,9 @@ package ffProto
 var listMessageID = []MessageType{
 	MessageType_KeepAlive,
 	MessageType_ServerRegister,
+	MessageType_ServerNewBattle,
+	MessageType_ServerBattleUserEnter,
+	MessageType_ServerBattleUserLeave,
 	MessageType_PrepareLoginPlatformUniqueId,
 	MessageType_LoginPlatformUniqueId,
 	MessageType_LoginPlatformSidToken,
@@ -26,6 +29,7 @@ var listMessageID = []MessageType{
 	MessageType_BattlePickProp,
 	MessageType_BattleDropProp,
 	MessageType_BattleAddProp,
+	MessageType_BattleChangeProp,
 	MessageType_BattleRemoveProp,
 	MessageType_BattleRunAway,
 	MessageType_BattleSettle,
@@ -37,6 +41,15 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	},
 	MessageType_ServerRegister: func() interface{} {
 		return &MsgServerRegister{}
+	},
+	MessageType_ServerNewBattle: func() interface{} {
+		return &MsgServerNewBattle{}
+	},
+	MessageType_ServerBattleUserEnter: func() interface{} {
+		return &MsgServerBattleUserEnter{}
+	},
+	MessageType_ServerBattleUserLeave: func() interface{} {
+		return &MsgServerBattleUserLeave{}
 	},
 	MessageType_PrepareLoginPlatformUniqueId: func() interface{} {
 		return &MsgPrepareLoginPlatformUniqueId{}
@@ -106,6 +119,9 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	},
 	MessageType_BattleAddProp: func() interface{} {
 		return &MsgBattleAddProp{}
+	},
+	MessageType_BattleChangeProp: func() interface{} {
+		return &MsgBattleChangeProp{}
 	},
 	MessageType_BattleRemoveProp: func() interface{} {
 		return &MsgBattleRemoveProp{}
