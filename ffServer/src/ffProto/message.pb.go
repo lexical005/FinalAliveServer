@@ -31,6 +31,9 @@ var listMessageID = []MessageType{
 	MessageType_BattleAddProp,
 	MessageType_BattleChangeProp,
 	MessageType_BattleRemoveProp,
+	MessageType_BattleRoleAction,
+	MessageType_BattleRoleSight,
+	MessageType_BattleRoleMove,
 	MessageType_BattleRunAway,
 	MessageType_BattleSettle,
 }
@@ -125,6 +128,15 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	},
 	MessageType_BattleRemoveProp: func() interface{} {
 		return &MsgBattleRemoveProp{}
+	},
+	MessageType_BattleRoleAction: func() interface{} {
+		return &MsgBattleRoleAction{}
+	},
+	MessageType_BattleRoleSight: func() interface{} {
+		return &MsgBattleRoleSight{}
+	},
+	MessageType_BattleRoleMove: func() interface{} {
+		return &MsgBattleRoleMove{}
 	},
 	MessageType_BattleRunAway: func() interface{} {
 		return &MsgBattleRunAway{}
