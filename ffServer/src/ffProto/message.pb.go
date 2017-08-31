@@ -32,8 +32,12 @@ var listMessageID = []MessageType{
 	MessageType_BattleChangeProp,
 	MessageType_BattleRemoveProp,
 	MessageType_BattleRoleAction,
-	MessageType_BattleRoleSight,
+	MessageType_BattleRoleEyeField,
 	MessageType_BattleRoleMove,
+	MessageType_BattleRoleShoot,
+	MessageType_BattleRoleShootHit,
+	MessageType_BattleRoleHealth,
+	MessageType_BattleRoleDead,
 	MessageType_BattleRunAway,
 	MessageType_BattleSettle,
 }
@@ -132,11 +136,23 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	MessageType_BattleRoleAction: func() interface{} {
 		return &MsgBattleRoleAction{}
 	},
-	MessageType_BattleRoleSight: func() interface{} {
-		return &MsgBattleRoleSight{}
+	MessageType_BattleRoleEyeField: func() interface{} {
+		return &MsgBattleRoleEyeField{}
 	},
 	MessageType_BattleRoleMove: func() interface{} {
 		return &MsgBattleRoleMove{}
+	},
+	MessageType_BattleRoleShoot: func() interface{} {
+		return &MsgBattleRoleShoot{}
+	},
+	MessageType_BattleRoleShootHit: func() interface{} {
+		return &MsgBattleRoleShootHit{}
+	},
+	MessageType_BattleRoleHealth: func() interface{} {
+		return &MsgBattleRoleHealth{}
+	},
+	MessageType_BattleRoleDead: func() interface{} {
+		return &MsgBattleRoleDead{}
 	},
 	MessageType_BattleRunAway: func() interface{} {
 		return &MsgBattleRunAway{}
