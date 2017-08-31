@@ -30,7 +30,7 @@ func (h *HitEffect) Name() string {
 
 // Hit sheet Hit of excel HitEffect
 type Hit struct {
-	Gun string
+	Gun int32
 }
 
 func (h *Hit) String() string {
