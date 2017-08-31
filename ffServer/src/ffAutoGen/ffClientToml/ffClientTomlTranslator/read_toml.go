@@ -7,6 +7,7 @@ import (
 
 var tomlAsset *ffClientToml.Asset
 var tomlExcelExportTest *ffClientToml.ExcelExportTest
+var tomlHitEffect *ffClientToml.HitEffect
 var tomlItem *ffClientToml.Item
 var tomlLanguage *ffClientToml.Language
 
@@ -21,6 +22,11 @@ func readToml() {
 	tomlExcelExportTest, err = ffClientToml.ReadExcelExportTest()
 	if err != nil {
 		log.RunLogger.Printf("ReadExcelExportTest get error[%v]", err)
+	}
+
+	tomlHitEffect, err = ffClientToml.ReadHitEffect()
+	if err != nil {
+		log.RunLogger.Printf("ReadHitEffect get error[%v]", err)
 	}
 
 	tomlItem, err = ffClientToml.ReadItem()
