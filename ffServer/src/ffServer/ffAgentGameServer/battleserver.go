@@ -97,25 +97,6 @@ func (b *battle) Init(uuidTokens []uint64) {
 		last := len(b.uniqueids) - 1 - i
 		b.uniqueids[last], b.uniqueids[j] = b.uniqueids[j], b.uniqueids[last]
 	}
-
-	// if proto.ProtoID() == ffProto.MessageType_MatchResult {
-	// 	message := proto.Message().(*ffProto.MsgMatchResult)
-	// 	if message.Result == 0 {
-	// 		go util.SafeGo(func(params ...interface{}) {
-	// 			<-time.After(time.Second * 30)
-
-	// 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
-	// 			m := p.Message().(*ffProto.MsgBattleSettle)
-	// 			m.Rank = 1
-	// 			m.RankCount = 1
-	// 			m.Kill = 0
-	// 			m.RankScore = 1
-	// 			m.KillScore = 0
-	// 			m.Health = 100
-	// 			ffProto.SendProtoExtraDataNormal(agent, p, false)
-	// 		}, nil)
-	// 	}
-	// }
 }
 
 func (b *battle) newMember() *ffProto.StBattleMember {
@@ -191,8 +172,10 @@ func (b *battle) ShootHit(agent *agentUser, shootid int32, Targetuniqueid int32)
 	if target, ok := b.agents[Targetuniqueid]; ok {
 		if target.health > 60 {
 			target.health -= 60
-		} else {
+		} else if target.health > 0 {
 			target.health = 0
+		} else {
+			return
 		}
 
 		// 血量同步
@@ -230,7 +213,7 @@ func (b *battle) ShootHit(agent *agentUser, shootid int32, Targetuniqueid int32)
 			b.aliveCount--
 
 			// 结束
-			if b.aliveCount == 0 {
+			if b.aliveCount == 1 {
 				for _, agent := range b.agents {
 					if agent.health > 0 {
 						p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
@@ -267,16 +250,6 @@ func (b *battle) Prop(uniqueid int32) (*ffProto.StBattleProp, bool) {
 func (b *battle) PickProp(uniqueid int32) {
 	delete(b.Props, uniqueid)
 }
-
-// func (b *battle) SendProtoToAllExcept(proto *ffProto.Proto) {
-// 	message := proto.Message()
-// 	for _, agent := range b.agents {
-// 		p := ffProto.ApplyProtoForSend(proto.ProtoID())
-// 		m := p.Message()
-// 		m.
-// 		ffProto.SendProtoExtraDataNormal(agent, p, false)
-// 	}
-// }
 
 func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleStartSync)
@@ -348,10 +321,12 @@ func onBattleProtoPickProp(agent *agentUser, proto *ffProto.Proto) (result bool)
 	message.Itemtemplateid, message.Itemnumber = prop.Templateid, prop.Number
 
 	if ok {
-		p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRemoveProp)
-		m := p.Message().(*ffProto.MsgBattleRemoveProp)
-		m.Uniqueid = prop.Uniqueid
-		ffProto.SendProtoExtraDataNormal(agent, p, false)
+		for _, agent := range battle.agents {
+			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRemoveProp)
+			m := p.Message().(*ffProto.MsgBattleRemoveProp)
+			m.Uniqueid = prop.Uniqueid
+			ffProto.SendProtoExtraDataNormal(agent, p, false)
+		}
 	}
 
 	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
@@ -372,10 +347,12 @@ func onBattleProtoDropProp(agent *agentUser, proto *ffProto.Proto) (result bool)
 	result = ffProto.SendProtoExtraDataNormal(agent, proto, true)
 
 	{
-		p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleAddProp)
-		m := p.Message().(*ffProto.MsgBattleAddProp)
-		m.Prop = battle.NewProp(message.Itemtemplateid, message.Itemnumber, message.Position)
-		ffProto.SendProtoExtraDataNormal(agent, p, false)
+		for _, agent := range battle.agents {
+			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleAddProp)
+			m := p.Message().(*ffProto.MsgBattleAddProp)
+			m.Prop = battle.NewProp(message.Itemtemplateid, message.Itemnumber, message.Position)
+			ffProto.SendProtoExtraDataNormal(agent, p, false)
+		}
 	}
 
 	return
@@ -469,9 +446,14 @@ func onBattleProtoRoleShootHit(agent *agentUser, proto *ffProto.Proto) (result b
 		m.Roleuniqueid = message.Roleuniqueid
 		m.Shootid = message.Shootid
 		m.Targetuniqueid = message.Targetuniqueid
+		m.Endtag = message.Endtag
 		m.Endposition = message.Endposition
 		m.Endnormal = message.Endnormal
 		ffProto.SendProtoExtraDataNormal(agent, p, false)
+	}
+
+	if message.Targetuniqueid != 0 {
+		battle.ShootHit(agent, message.Shootid, message.Targetuniqueid)
 	}
 
 	return
@@ -513,6 +495,32 @@ func onBattleProtoRoleEyeField(agent *agentUser, proto *ffProto.Proto) (result b
 		m := p.Message().(*ffProto.MsgBattleRoleEyeField)
 		m.Roleuniqueid = message.Roleuniqueid
 		m.EyeField = message.EyeField
+		ffProto.SendProtoExtraDataNormal(agent, p, false)
+	}
+
+	return
+}
+
+// 治疗
+func onBattleProtoRoleHeal(agent *agentUser, proto *ffProto.Proto) (result bool) {
+	message, _ := proto.Message().(*ffProto.MsgBattleRoleHeal)
+
+	battle, ok := mapBattle[agent.uuidBattle]
+	if !ok {
+		message.Result = ffError.ErrUnknown.Code()
+		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+	}
+
+	for _, agent := range battle.agents {
+		if agent.uniqueid == message.Roleuniqueid {
+			continue
+		}
+
+		p := ffProto.ApplyProtoForSend(proto.ProtoID())
+		m := p.Message().(*ffProto.MsgBattleRoleHeal)
+		m.Roleuniqueid = message.Roleuniqueid
+		m.Itemtemplateid = message.Itemtemplateid
+		m.State = message.State
 		ffProto.SendProtoExtraDataNormal(agent, p, false)
 	}
 

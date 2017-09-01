@@ -37,6 +37,7 @@ var listMessageID = []MessageType{
 	MessageType_BattleRoleShootState,
 	MessageType_BattleRoleShoot,
 	MessageType_BattleRoleShootHit,
+	MessageType_BattleRoleHeal,
 	MessageType_BattleRoleHealth,
 	MessageType_BattleRoleDead,
 	MessageType_BattleRunAway,
@@ -151,6 +152,9 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	},
 	MessageType_BattleRoleShootHit: func() interface{} {
 		return &MsgBattleRoleShootHit{}
+	},
+	MessageType_BattleRoleHeal: func() interface{} {
+		return &MsgBattleRoleHeal{}
 	},
 	MessageType_BattleRoleHealth: func() interface{} {
 		return &MsgBattleRoleHealth{}

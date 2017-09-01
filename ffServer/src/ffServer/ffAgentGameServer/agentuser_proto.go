@@ -29,6 +29,8 @@ var mapAgentUserProtoCallback = map[ffProto.MessageType]func(agent *agentUser, p
 	ffProto.MessageType_BattleRoleShootHit:   onBattleProtoRoleShootHit,
 	ffProto.MessageType_BattleRoleMove:       onBattleProtoRoleMove,
 	ffProto.MessageType_BattleRoleEyeField:   onBattleProtoRoleEyeField,
+
+	ffProto.MessageType_BattleRoleHeal: onBattleProtoRoleHeal,
 }
 
 func onProtoEnterGameWorld(agent *agentUser, proto *ffProto.Proto) (result bool) {
