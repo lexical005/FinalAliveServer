@@ -10,15 +10,18 @@ import (
 	"time"
 )
 
-// matchManager 匹配组管理器
+// matchManager 匹配管理器
 type matchManager struct {
 	groups []*matchGroup
 
 	matchProto chan *ffProto.Proto // 开始/取消匹配
+
+	uuidBattleGenerator      uuid.Generator
+	uuidBattleTokenGenerator uuid.Generator
 }
 
 // Start 初始化
-func (mgr *matchManager) Start() error {
+func (mgr *matchManager) Start() (err error) {
 	mgr.groups = []*matchGroup{
 		newMatchGroup(matchModeSingle),
 		newMatchGroup(matchModeDouble),
@@ -27,6 +30,14 @@ func (mgr *matchManager) Start() error {
 	}
 
 	mgr.matchProto = make(chan *ffProto.Proto, appConfig.Match.InitMatchCount)
+	mgr.uuidBattleGenerator, err = uuid.NewGeneratorSafe(uint64(appConfig.Server.ServerID))
+	if err != nil {
+		return err
+	}
+	mgr.uuidBattleTokenGenerator, err = uuid.NewGeneratorSafe(0)
+	if err != nil {
+		return err
+	}
 
 	go util.SafeGo(mgr.mainLoop, mgr.mainLoopEnd)
 

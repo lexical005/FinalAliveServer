@@ -15,6 +15,20 @@ var mapAgentUserProtoCallback = map[ffProto.MessageType]func(agent *agentUser, p
 
 	ffProto.MessageType_StartMatch: onProtoStartMatch,
 	ffProto.MessageType_StopMatch:  onProtoStopMatch,
+
+	ffProto.MessageType_BattlePickProp: onBattleProtoPickProp,
+	ffProto.MessageType_BattleDropProp: onBattleProtoDropProp,
+
+	ffProto.MessageType_BattleStartSync: onBattleProtoStartSync,
+	ffProto.MessageType_BattleRunAway:   onBattleProtoRunAway,
+
+	ffProto.MessageType_BattleRoleAction: onBattleProtoRoleAction,
+
+	ffProto.MessageType_BattleRoleShootState: onBattleProtoRoleShootState,
+	ffProto.MessageType_BattleRoleShoot:      onBattleProtoRoleShoot,
+	ffProto.MessageType_BattleRoleShootHit:   onBattleProtoRoleShootHit,
+	ffProto.MessageType_BattleRoleMove:       onBattleProtoRoleMove,
+	ffProto.MessageType_BattleRoleEyeField:   onBattleProtoRoleEyeField,
 }
 
 func onProtoEnterGameWorld(agent *agentUser, proto *ffProto.Proto) (result bool) {

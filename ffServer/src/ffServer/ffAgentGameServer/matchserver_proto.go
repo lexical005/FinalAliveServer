@@ -15,6 +15,10 @@ var mapMatchServerProtoCallback = map[ffProto.MessageType]func(server *matchServ
 	ffProto.MessageType_StartMatch:  onProtoStartMatchResult,
 	ffProto.MessageType_StopMatch:   onProtoStopMatchResult,
 	ffProto.MessageType_MatchResult: onProtoMatchResult,
+
+	ffProto.MessageType_ServerNewBattle:       onProtoServerNewBattle,
+	ffProto.MessageType_ServerBattleUserEnter: onProtoServerBattleMemberEnter,
+	ffProto.MessageType_ServerBattleUserLeave: onProtoServerBattleMemberLeave,
 }
 
 func onProtoEnterMatchServer(server *matchServer, proto *ffProto.Proto) (result bool) {
@@ -37,4 +41,27 @@ func onProtoStopMatchResult(server *matchServer, proto *ffProto.Proto) (result b
 
 func onProtoMatchResult(server *matchServer, proto *ffProto.Proto) (result bool) {
 	return instAgentUserServer.OnMatchServerProto(proto)
+}
+
+func onProtoServerNewBattle(server *matchServer, proto *ffProto.Proto) (result bool) {
+	message := proto.Message().(*ffProto.MsgServerNewBattle)
+	battle := newBattle(uuid.NewUUID(message.UUIDBattle))
+	battle.Init(message.UserTokens)
+	return false
+}
+
+func onProtoServerBattleMemberEnter(server *matchServer, proto *ffProto.Proto) (result bool) {
+	message := proto.Message().(*ffProto.MsgServerBattleUserEnter)
+	if battle, ok := mapBattle[uuid.NewUUID(message.UUIDBattle)]; ok {
+		battle.AddToken(message.UserToken)
+	}
+	return
+}
+
+func onProtoServerBattleMemberLeave(server *matchServer, proto *ffProto.Proto) (result bool) {
+	message := proto.Message().(*ffProto.MsgServerBattleUserEnter)
+	if battle, ok := mapBattle[uuid.NewUUID(message.UUIDBattle)]; ok {
+		battle.RemoveToken(message.UserToken)
+	}
+	return
 }

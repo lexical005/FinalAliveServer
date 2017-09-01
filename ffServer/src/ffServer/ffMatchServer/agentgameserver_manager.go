@@ -101,6 +101,28 @@ func (mgr *agentGameServerManager) SendProtoExtraDataUUID(player *matchPlayer, p
 		player.sourceServerUUID, player.sourceServerID)
 }
 
+// SendServerProto 发送Proto到对端服务器
+//	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
+func (mgr *agentGameServerManager) SendServerProto(sourceServerUUID uuid.UUID, sourceServerID int32, proto *ffProto.Proto, isProtoRecved bool) {
+	mgr.mutexAgent.Lock()
+	defer mgr.mutexAgent.Unlock()
+
+	// 服务器唯一标识
+	server, ok := mgr.mapAgent[sourceServerUUID]
+	if ok {
+		ffProto.SendProtoExtraDataUUID(server, sourceServerUUID, proto, false)
+		return
+	}
+
+	// 服务器编号
+	for uuid, server := range mgr.mapAgent {
+		if server.serverID == sourceServerID {
+			ffProto.SendProtoExtraDataUUID(server, uuid, proto, false)
+			return
+		}
+	}
+}
+
 // Status 当前服务状态描述
 func (mgr *agentGameServerManager) Status() string {
 	return fmt.Sprintf("mapAgent[%v] agentPool[%v] netManager[%v]",

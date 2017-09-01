@@ -12,6 +12,9 @@ type matchPlayer struct {
 	uuidAccount      uuid.UUID // 用户的真实唯一id
 	uuidTeam         uuid.UUID // 队伍id
 
+	uuidBattle uuid.UUID
+	uuidToken  uuid.UUID
+
 	mode    matchMode // 匹配模式
 	inMatch bool      // 是否在匹配中
 }
@@ -56,17 +59,21 @@ func (player *matchPlayer) Count() int {
 }
 
 // MatchSuccess 进入了准备组, 匹配完成
-func (player *matchPlayer) MatchSuccess() {
+func (player *matchPlayer) MatchSuccess(uuidBattle uuid.UUID, uuidTokens []uuid.UUID) {
+	player.uuidBattle, player.uuidToken = uuidBattle, uuidTokens[0]
+
 	proto := ffProto.ApplyProtoForSend(ffProto.MessageType_MatchResult)
 	message := proto.Message().(*ffProto.MsgMatchResult)
 	message.Addr = "127.0.0.1:15201"
-	message.Token = player.uuidAccount.Value()
+	message.UUIDBattle = uuidBattle.Value()
+	message.UUIDToken = player.uuidToken.Value()
 	instAgentGameServerMgr.SendProtoExtraDataUUID(player, proto, false)
 }
 
 func (player *matchPlayer) Init(sourceServer *agentGameServer, uuidPlayerKey, uuidAccount, uuidTeam uuid.UUID) {
 	player.sourceServerID, player.sourceServerUUID = sourceServer.serverID, sourceServer.UUID()
 	player.uuidPlayerKey, player.uuidAccount, player.uuidTeam = uuidPlayerKey, uuidAccount, uuidTeam
+	player.uuidToken = uuid.InvalidUUID
 }
 
 func (player *matchPlayer) back() {

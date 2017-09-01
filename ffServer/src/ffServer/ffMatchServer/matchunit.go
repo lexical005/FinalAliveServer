@@ -1,5 +1,9 @@
 package main
 
+import (
+	"ffCommon/uuid"
+)
+
 // iMatchUnit 匹配单元
 type iMatchUnit interface {
 	// AllReady 匹配单元是不是已经全部准备
@@ -9,5 +13,5 @@ type iMatchUnit interface {
 	Count() int
 
 	// MatchSuccess 进入了准备组, 匹配完成
-	MatchSuccess()
+	MatchSuccess(uuidBattle uuid.UUID, uuidTokens []uuid.UUID)
 }

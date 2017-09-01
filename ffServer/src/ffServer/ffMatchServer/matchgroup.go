@@ -69,11 +69,12 @@ func (group *matchGroup) Match() {
 
 	// 移除已开启的战场
 	{
-		for i, ready := range group.ready {
-			if ready.stopEnterTime.After(group.now) {
-				if i > 0 {
-					group.ready = group.ready[i:]
-				}
+		for i := 0; i < len(group.ready); i++ {
+			ready := group.ready[0]
+			if ready.stopEnterTime.Before(group.now) {
+				instReadyGroupPool.back(ready)
+				group.ready = group.ready[1:]
+			} else {
 				break
 			}
 		}
@@ -117,22 +118,21 @@ func (group *matchGroup) matchNormal() {
 				unit := group.units[index]
 				count += unit.Count()
 				if ready == nil {
-					count += unit.Count()
 					if count >= appConfig.Match.BattleMinPlayerCount { // 累计人数达成最低人数需求
-
-						// 创建准备组
-						stopEndTime := group.now.Add(time.Duration(appConfig.Match.StopEnterTime) * time.Second)
-						ready = instReadyGroupPool.apply()
-						ready.Init(appConfig.Match.ExpectMaxPlayerCount, stopEndTime)
-						group.ready = append(group.ready, ready)
 
 						// 更新units
 						units := group.units[:index+1]
 						group.units = group.units[index+1:]
 						index = 0
 
+						// 创建准备组
+						stopEndTime := group.now.Add(time.Duration(appConfig.Match.StopEnterTime) * time.Second)
+						ready = instReadyGroupPool.apply()
+						ready.Init(appConfig.Match.ExpectMaxPlayerCount, stopEndTime, units, count)
+						group.ready = append(group.ready, ready)
+
 						// 加入
-						if full := ready.EnterMulti(units, count); full {
+						if ready.IsFull() {
 							goto fullReady
 						}
 					} else {
@@ -141,6 +141,7 @@ func (group *matchGroup) matchNormal() {
 
 				} else {
 					if count <= ready.lackCount {
+
 						// 从等待列表内移除, index值不变
 						group.units = append(group.units[:index], group.units[index+1:]...)
 
