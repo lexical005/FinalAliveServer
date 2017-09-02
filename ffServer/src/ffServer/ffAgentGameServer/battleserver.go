@@ -251,6 +251,50 @@ func (b *battle) PickProp(uniqueid int32) {
 	delete(b.Props, uniqueid)
 }
 
+func (b *battle) Heal(agent *agentUser, healitemtemplateid int32, state int32) bool {
+	if state == 1 {
+		if agent.healitemtemplateid != 0 {
+			return false
+		}
+		agent.healitemtemplateid = healitemtemplateid
+		return true
+	}
+
+	if state == 0 {
+		agent.healitemtemplateid = 0
+		return true
+	}
+
+	if state == 2 {
+		if agent.healitemtemplateid == 0 {
+			return false
+		}
+		agent.healitemtemplateid = 0
+		agent.health += 20
+
+		// 血量同步
+		{
+			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleHealth)
+			m := p.Message().(*ffProto.MsgBattleRoleHealth)
+			m.Roleuniqueid = agent.uniqueid
+			m.Health = agent.health
+			ffProto.SendProtoExtraDataNormal(agent, p, false)
+		}
+
+		// 扣除道具(根据使用完成, 自行扣除)
+		{
+			// p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleDropProp)
+			// m := p.Message().(*ffProto.MsgBattleDropProp)
+			// m.Roleuniqueid = agent.uniqueid
+			// m.Itemtemplateid = healitemtemplateid
+			// m.Itemnumber = 1
+			// ffProto.SendProtoExtraDataNormal(agent, p, false)
+		}
+	}
+
+	return false
+}
+
 func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleStartSync)
 
@@ -511,11 +555,12 @@ func onBattleProtoRoleHeal(agent *agentUser, proto *ffProto.Proto) (result bool)
 		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
 	}
 
-	for _, agent := range battle.agents {
-		if agent.uniqueid == message.Roleuniqueid {
-			continue
-		}
+	if !battle.Heal(agent, message.Itemtemplateid, message.State) {
+		message.Result = ffError.ErrUnknown.Code()
+		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+	}
 
+	for _, agent := range battle.agents {
 		p := ffProto.ApplyProtoForSend(proto.ProtoID())
 		m := p.Message().(*ffProto.MsgBattleRoleHeal)
 		m.Roleuniqueid = message.Roleuniqueid

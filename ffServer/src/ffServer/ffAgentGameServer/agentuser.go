@@ -18,10 +18,11 @@ type agentUser struct {
 	uuidAccount       uint64 // 用户唯一id
 
 	// todo: 移除测试代码
-	uuidBattle uuid.UUID // 战场
-	uniqueid   int32     // 战场内的唯一标识
-	health     int32     // 血量
-	kill       int32     // 击杀
+	uuidBattle         uuid.UUID // 战场
+	uniqueid           int32     // 战场内的唯一标识
+	health             int32     // 血量
+	kill               int32     // 击杀
+	healitemtemplateid int32     // 正在使用的治疗物品模板id
 }
 
 func (agent *agentUser) String() string {
@@ -80,7 +81,7 @@ func (agent *agentUser) Init(netsession netmanager.INetSession) {
 	agent.uuidAccount = uuid.InvalidUUID.Value()
 	agent.uuidBattle = uuid.InvalidUUID
 	agent.uniqueid = 0
-	agent.health, agent.kill = 0, 0
+	agent.health, agent.kill, agent.healitemtemplateid = 0, 0, 0
 }
 
 // Back 回收
