@@ -32,7 +32,7 @@ var listMessageID = []MessageType{
 	MessageType_BattleChangeProp,
 	MessageType_BattleRemoveProp,
 	MessageType_BattleRoleAction,
-	MessageType_BattleRoleEyeField,
+	MessageType_BattleRoleEyeRotate,
 	MessageType_BattleRoleMove,
 	MessageType_BattleRoleShootState,
 	MessageType_BattleRoleShoot,
@@ -138,8 +138,8 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	MessageType_BattleRoleAction: func() interface{} {
 		return &MsgBattleRoleAction{}
 	},
-	MessageType_BattleRoleEyeField: func() interface{} {
-		return &MsgBattleRoleEyeField{}
+	MessageType_BattleRoleEyeRotate: func() interface{} {
+		return &MsgBattleRoleEyeRotate{}
 	},
 	MessageType_BattleRoleMove: func() interface{} {
 		return &MsgBattleRoleMove{}

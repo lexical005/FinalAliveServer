@@ -75,6 +75,16 @@ func (b *battle) Init(uuidTokens []uint64) {
 		Y: 155718,
 		Z: 2800251,
 	})
+	b.NewProp(10204, 1, &ffProto.StVector3{
+		X: 963,
+		Y: 155718,
+		Z: 2800251,
+	})
+	b.NewProp(40201, 1, &ffProto.StVector3{
+		X: 3963,
+		Y: 155718,
+		Z: 2800251,
+	})
 
 	b.bornPosition = make([]*ffProto.StVector3, 0, 50)
 	b.bornPosition = append(b.bornPosition, &ffProto.StVector3{
@@ -526,8 +536,8 @@ func onBattleProtoRoleMove(agent *agentUser, proto *ffProto.Proto) (result bool)
 }
 
 // 视野
-func onBattleProtoRoleEyeField(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleRoleEyeField)
+func onBattleProtoRoleEyeRotate(agent *agentUser, proto *ffProto.Proto) (result bool) {
+	message, _ := proto.Message().(*ffProto.MsgBattleRoleEyeRotate)
 
 	battle, ok := mapBattle[agent.uuidBattle]
 	if !ok {
@@ -535,10 +545,14 @@ func onBattleProtoRoleEyeField(agent *agentUser, proto *ffProto.Proto) (result b
 	}
 
 	for _, agent := range battle.agents {
+		if agent.uniqueid == message.Roleuniqueid {
+			continue
+		}
+
 		p := ffProto.ApplyProtoForSend(proto.ProtoID())
-		m := p.Message().(*ffProto.MsgBattleRoleEyeField)
+		m := p.Message().(*ffProto.MsgBattleRoleEyeRotate)
 		m.Roleuniqueid = message.Roleuniqueid
-		m.EyeField = message.EyeField
+		m.EyeRotate = message.EyeRotate
 		ffProto.SendProtoExtraDataNormal(agent, p, false)
 	}
 

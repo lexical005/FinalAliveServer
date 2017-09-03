@@ -28,7 +28,7 @@ var mapAgentUserProtoCallback = map[ffProto.MessageType]func(agent *agentUser, p
 	ffProto.MessageType_BattleRoleShoot:      onBattleProtoRoleShoot,
 	ffProto.MessageType_BattleRoleShootHit:   onBattleProtoRoleShootHit,
 	ffProto.MessageType_BattleRoleMove:       onBattleProtoRoleMove,
-	ffProto.MessageType_BattleRoleEyeField:   onBattleProtoRoleEyeField,
+	ffProto.MessageType_BattleRoleEyeRotate:  onBattleProtoRoleEyeRotate,
 
 	ffProto.MessageType_BattleRoleHeal: onBattleProtoRoleHeal,
 }
