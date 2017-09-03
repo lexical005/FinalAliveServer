@@ -1,19 +1,12 @@
 package main
 
 import (
+	"ffAutoGen/ffGameConfig"
 	"ffCommon/util"
 )
-
-var allRead = make([]func(), 0, 1)
-
-func reads() {
-	for _, f := range allRead {
-		f()
-	}
-}
 
 func main() {
 	defer util.PanicProtect(nil)
 
-	reads()
+	ffGameConfig.ReadAllToml()
 }
