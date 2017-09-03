@@ -6,6 +6,7 @@ import (
 	"ffCommon/uuid"
 	"ffProto"
 	"math/rand"
+	"strings"
 )
 
 var mapBattle = make(map[uuid.UUID]*battle, 1)
@@ -74,6 +75,11 @@ func (b *battle) Init(uuidTokens []uint64) {
 		X: -4202,
 		Y: 155718,
 		Z: 2800251,
+	})
+	b.NewProp(10402, 1, &ffProto.StVector3{
+		X: -4202,
+		Y: 155718,
+		Z: 2804251,
 	})
 	b.NewProp(10204, 1, &ffProto.StVector3{
 		X: 963,
@@ -224,18 +230,23 @@ func (b *battle) ShootHit(agent *agentUser, shootid int32, Targetuniqueid int32)
 
 			// 结束
 			if b.aliveCount == 1 {
-				for _, agent := range b.agents {
-					if agent.health > 0 {
-						p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
-						m := p.Message().(*ffProto.MsgBattleSettle)
-						m.Rank = b.aliveCount
-						m.RankCount = b.totalCount
-						m.Health = agent.health
-						m.Kill = agent.kill
-						ffProto.SendProtoExtraDataNormal(agent, p, false)
-					}
-				}
+				b.Settle()
 			}
+		}
+	}
+}
+
+// 结算
+func (b *battle) Settle() {
+	for _, agent := range b.agents {
+		if agent.health > 0 {
+			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
+			m := p.Message().(*ffProto.MsgBattleSettle)
+			m.Rank = b.aliveCount
+			m.RankCount = b.totalCount
+			m.Health = agent.health
+			m.Kill = agent.kill
+			ffProto.SendProtoExtraDataNormal(agent, p, false)
 		}
 	}
 }
@@ -581,6 +592,23 @@ func onBattleProtoRoleHeal(agent *agentUser, proto *ffProto.Proto) (result bool)
 		m.Itemtemplateid = message.Itemtemplateid
 		m.State = message.State
 		ffProto.SendProtoExtraDataNormal(agent, p, false)
+	}
+
+	return
+}
+
+// 战斗作弊指令
+func onBattleProtoCheat(agent *agentUser, proto *ffProto.Proto) (result bool) {
+	message, _ := proto.Message().(*ffProto.MsgBattleCheat)
+
+	battle, ok := mapBattle[agent.uuidBattle]
+	if !ok {
+		message.Result = ffError.ErrUnknown.Code()
+		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+	}
+
+	if strings.ToLower(message.Cmd) == "settle" {
+		battle.Settle()
 	}
 
 	return

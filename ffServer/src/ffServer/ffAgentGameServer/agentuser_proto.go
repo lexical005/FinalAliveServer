@@ -31,6 +31,9 @@ var mapAgentUserProtoCallback = map[ffProto.MessageType]func(agent *agentUser, p
 	ffProto.MessageType_BattleRoleEyeRotate:  onBattleProtoRoleEyeRotate,
 
 	ffProto.MessageType_BattleRoleHeal: onBattleProtoRoleHeal,
+
+	ffProto.MessageType_BattleCheat: onBattleProtoCheat,
+	ffProto.MessageType_PeaceCheat:  onPeaceProtoCheat,
 }
 
 func onProtoEnterGameWorld(agent *agentUser, proto *ffProto.Proto) (result bool) {
@@ -86,6 +89,11 @@ func onProtoStartMatch(agent *agentUser, proto *ffProto.Proto) (result bool) {
 
 func onProtoStopMatch(agent *agentUser, proto *ffProto.Proto) (result bool) {
 	return ffProto.SendProtoExtraDataUUID(instMatchServerClient, agent.UUID(), proto, true)
+}
+
+// 和平作弊指令
+func onPeaceProtoCheat(agent *agentUser, proto *ffProto.Proto) (result bool) {
+	return
 }
 
 func onCustomLoginResult(agent *agentUser, result *httpClientCustomLoginData) {
