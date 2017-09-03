@@ -48,7 +48,7 @@ func main() {
 			}
 
 			// 非配置文件
-			if name == "Error.go" || name == "Enum.go" {
+			if name == "Error.go" || name == "Enum.go" || name == "read_toml.go" {
 				return nil
 			}
 
@@ -66,11 +66,11 @@ func main() {
 
 	_, goCodePackageName := filepath.Split(*gocodedir)
 
-	// 生成读取文件
-	genReadTomlCode(filepath.Join(ffGameConfigPath, *readername, "read_toml.go"), golangFiles, goCodePackageName)
-
 	// go读取toml数据格式的代码 ==> ProtoBuf读取toml数据格式的代码
 	if *proto == "proto" {
+		// 生成读取文件
+		genReadTomlCode(filepath.Join(ffGameConfigPath, *readername, "read_toml.go"), golangFiles, goCodePackageName)
+
 		transGoToProto(
 			filepath.Join(ffGameConfigPath, *readername),
 			filepath.Join(ffGameConfigPath, *readername, "Config.pb.go"),

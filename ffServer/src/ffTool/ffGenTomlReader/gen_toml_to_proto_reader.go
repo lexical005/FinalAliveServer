@@ -12,37 +12,37 @@ import (
 var fmtTransPackage = `package main
 
 import (
-\t"ffCommon/log/log"
-\t"ffCommon/util"
-\t"path/filepath"
-\t{ImportSort}
+	"ffCommon/log/log"
+	"ffCommon/util"
+	"path/filepath"
+	{ImportSort}
 
-\tproto "github.com/golang/protobuf/proto"
+	proto "github.com/golang/protobuf/proto"
 )
 `
 
 var fmtTransInit = `
 func init() {
-\tallTrans = append(allTrans, trans{FileName})
+	allTrans = append(allTrans, trans{FileName})
 }
 `
 
 var fmtTransFuncMain = `
 func trans{FileName}() {
-\tmessage := &{FileName}{}
+	message := &{FileName}{}
 %v
-\tpbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
-\tif err := pbBuf.Marshal(message); err != nil {
-\t\tlog.RunLogger.Printf("trans{FileName} err[%%v]", err)
-\t\treturn
-\t}
+	pbBuf := proto.NewBuffer(make([]byte, 0, 1024*10))
+	if err := pbBuf.Marshal(message); err != nil {
+		log.RunLogger.Printf("trans{FileName} err[%%v]", err)
+		return
+	}
 
-\tutil.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", toml{FileName}.Name()+".bytes"), pbBuf.Bytes())
+	util.WriteFile(filepath.Join("ProtoBuf", "Client", "bytes", toml{FileName}.Name()+".bytes"), pbBuf.Bytes())
 }
 `
 
 var fmtTransStructMap = `
-\t// {StructName}
+	// {StructName}
 	{MapKeyInt32Commet}{StructName}Keys := make([]{MapKeyInt32}, 0, len(toml{FileName}.{StructName})) // 必须使用64位机器
 	{MapKeyInt64Commet}{StructName}Keys := make([]{MapKeyInt64}, 0, len(toml{FileName}.{StructName})) // 必须使用64位机器
 	{MapKeyStringCommet}{StructName}Keys := make([]{MapKeyString}, 0, len(toml{FileName}.{StructName})) // 必须使用64位机器
@@ -71,7 +71,7 @@ var fmtTransStructMap = `
 `
 
 var fmtTransStructStruct = `
-\t// {StructName}
+	// {StructName}
 	message.{StructName} = &{FileName}_St{StructName}{%v
 	}
 	%v
@@ -87,16 +87,16 @@ var fmtTransStructList = `
 	}
 `
 
-var fmtTransMemberBasic = "\n\t\t\t{ProtoVar}: {GoDataVar}.{GoVar},"
-var fmtTransMemberGrammar = "\n\t\t\t{ProtoVar}: transGrammar({GoDataVar}.{GoVar}),"
+var fmtTransMemberBasic = "\n			{ProtoVar}: {GoDataVar}.{GoVar},"
+var fmtTransMemberGrammar = "\n			{ProtoVar}: transGrammar({GoDataVar}.{GoVar}),"
 
-var fmtTransMemberEnum = "\n\t\tmessage.{StructName}{MapValue}[k].{ProtoVar} = {ProtoType}({GoDataVar}.{GoVar})"
+var fmtTransMemberEnum = "\n		message.{StructName}{MapValue}[k].{ProtoVar} = {ProtoType}({GoDataVar}.{GoVar})"
 
 var fmtTransMemberEnumArray = `
-\t\tmessage.{StructName}{MapValue}[k].{ProtoVar} = make({ProtoType}, len({GoDataVar}.{GoVar}), len({GoDataVar}.{GoVar}))
-\t\tfor xx, yy := range {GoDataVar}.{GoVar} {
-\t\t\tmessage.{StructName}{MapValue}[k].{ProtoVar}[xx] = {ProtoVarContentType}(yy)
-\t\t}`
+		message.{StructName}{MapValue}[k].{ProtoVar} = make({ProtoType}, len({GoDataVar}.{GoVar}), len({GoDataVar}.{GoVar}))
+		for xx, yy := range {GoDataVar}.{GoVar} {
+			message.{StructName}{MapValue}[k].{ProtoVar}[xx] = {ProtoVarContentType}(yy)
+		}`
 
 // 正则表达式说明
 // http://www.cnblogs.com/golove/p/3269099.html
@@ -273,7 +273,6 @@ func genTransCode(saveFullDir string, protoFileDef, tomlFileDef *fileStructDef) 
 				member = strings.Replace(member, "{GoVar}", tomlDef.vars[j], -1)
 				member = strings.Replace(member, "{MapValue}", MapValue, -1)
 				member = strings.Replace(member, "{ProtoVarContentType}", ProtoVarContentType, -1)
-				member = strings.Replace(member, "\\t", "\t", -1)
 
 				enumMembers += member
 			}

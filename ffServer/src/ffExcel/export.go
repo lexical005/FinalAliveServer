@@ -327,6 +327,11 @@ func ExportExcelDir(excelDirPath string, _exportConfig *ExportConfig) error {
 		allConfigExcels = append(allConfigExcels, excel)
 	}
 
+	// 生成服务端toml数据读取代码
+	if exportConfig.ServerExportGoCodePath != "" && exportConfig.hasGoEnv {
+		genReadAllTomlCode(allExcels)
+	}
+
 	// 导出toml数据对应的Proto定义
 	if exportConfig.ClientExportProtoBufDataPath != "" {
 		goProto, csharpProto := genProtoDefineFromToml(allConfigExcels, "client")
