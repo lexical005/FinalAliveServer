@@ -46,8 +46,6 @@ type ExcelExportLimit struct {
 type ExportConfig struct {
 	// ServerExportGoCodePath 服务端导出的代码文件, 相对导出程序的路径, 为空时或者系统环境变量中未配置GOPATH时, 不导出
 	ServerExportGoCodePath string
-	// ServerExportTomlDataPath 服务端导出的toml配置文件, 相对导出程序的路径
-	ServerExportTomlDataPath string
 	// ServerReadTomlDataPath 服务端导出的toml配置文件, 相对读取程序的路径
 	ServerReadTomlDataPath string
 
@@ -81,7 +79,6 @@ func (ec *ExportConfig) check() error {
 func (ec *ExportConfig) String() string {
 	return fmt.Sprintf(`[
 	ServerExportGoCodePath:%v
-	ServerExportTomlDataPath:%v
 	ServerReadTomlDataPath:%v
 	ClientExportGoCodePath:%v
 	ClientExportCSharpCodePath:%v
@@ -89,7 +86,6 @@ func (ec *ExportConfig) String() string {
 ]`,
 
 		ec.ServerExportGoCodePath,
-		ec.ServerExportTomlDataPath,
 		ec.ServerReadTomlDataPath,
 		ec.ClientExportGoCodePath,
 		ec.ClientExportCSharpCodePath,
@@ -110,14 +106,6 @@ func clearPath(ec *ExportConfig) bool {
 
 	if ec.ServerExportGoCodePath != "" {
 		err := util.ClearPath(ec.ServerExportGoCodePath, false, []string{".go"})
-		if err != nil {
-			log.RunLogger.Println(err)
-			result = false
-		}
-	}
-
-	if ec.ServerExportTomlDataPath != "" {
-		err := util.ClearPath(ec.ServerExportTomlDataPath, false, []string{".toml"})
 		if err != nil {
 			log.RunLogger.Println(err)
 			result = false
@@ -174,17 +162,6 @@ func exportExcel(excel *excel) (err error) {
 		err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
 		if err != nil {
 			return err
-		}
-
-		if excel.exportType == "config" {
-			if exportConfig.ServerExportTomlDataPath != "" {
-				dataFilePath = path.Join(exportConfig.ServerExportTomlDataPath, excel.name+".toml")
-				err = util.WriteFile(dataFilePath, []byte(tomlDataServer))
-				if err != nil {
-					return err
-				}
-				log.RunLogger.Println(dataFilePath)
-			}
 		}
 	}
 
