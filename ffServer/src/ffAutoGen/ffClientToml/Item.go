@@ -17,7 +17,7 @@ type Item struct {
 	Ammunition   map[int32]*Ammunition
 	Attachment   map[int32]*Attachment
 	MelleeWeapon map[int32]*MelleeWeapon
-	Equipment    map[int32]*Equipment
+	Armor        map[int32]*Armor
 	Consumable   map[int32]*Consumable
 	Throwable    map[int32]*Throwable
 }
@@ -49,8 +49,8 @@ func (i *Item) String() string {
 		result += fmt.Sprintf("%v:%v\n", k, v)
 	}
 
-	result += "Equipment"
-	for k, v := range i.Equipment {
+	result += "Armor"
+	for k, v := range i.Armor {
 		result += fmt.Sprintf("%v:%v\n", k, v)
 	}
 
@@ -180,20 +180,20 @@ func (m *MelleeWeapon) String() string {
 	return result
 }
 
-// Equipment sheet Equipment of excel Item
-type Equipment struct {
-	EquipmentType ffEnum.EEquipmentType
-	Attrs         map[ffEnum.EAttr]int32
-	AttrsKey      []ffEnum.EAttr
-	AttrsValue    []int32
+// Armor sheet Armor of excel Item
+type Armor struct {
+	EArmorType ffEnum.EArmorType
+	Attrs      map[ffEnum.EAttr]int32
+	AttrsKey   []ffEnum.EAttr
+	AttrsValue []int32
 }
 
-func (e *Equipment) String() string {
+func (a *Armor) String() string {
 	result := "["
-	result += fmt.Sprintf("EquipmentType:%v,", e.EquipmentType)
-	result += fmt.Sprintf("Attrs:%v,", e.Attrs)
-	result += fmt.Sprintf("AttrsKey:%v,", e.AttrsKey)
-	result += fmt.Sprintf("AttrsValue:%v,", e.AttrsValue)
+	result += fmt.Sprintf("EArmorType:%v,", a.EArmorType)
+	result += fmt.Sprintf("Attrs:%v,", a.Attrs)
+	result += fmt.Sprintf("AttrsKey:%v,", a.AttrsKey)
+	result += fmt.Sprintf("AttrsValue:%v,", a.AttrsValue)
 	result += "]"
 	return result
 }
@@ -281,7 +281,7 @@ func ReadItem() (i *Item, err error) {
 		}
 	}
 
-	for _, one := range i.Equipment {
+	for _, one := range i.Armor {
 		one.Attrs = make(map[ffEnum.EAttr]int32, len(one.AttrsKey))
 		for index, v := range one.AttrsKey {
 			one.Attrs[v] = one.AttrsValue[index]

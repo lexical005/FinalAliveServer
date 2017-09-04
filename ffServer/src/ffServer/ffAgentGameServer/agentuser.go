@@ -23,9 +23,11 @@ type agentUser struct {
 	health             int32           // 血量
 	kill               int32           // 击杀
 	healitemtemplateid int32           // 正在使用的治疗物品模板id
-	items              map[int32]int32 // 拥有的物品
-	weapons            []int32         // 手上武器
+	items              map[int32]int32 // 拥有的物品数据
+	equips             []int32         // 装备信息(武器,防弹衣,头盔)
 	activeWeaponIndex  int32           // 手上武器下标
+	helmet             int32           // 当前头盔
+	vest               int32           // 当前防弹衣
 }
 
 func (agent *agentUser) String() string {
@@ -86,8 +88,10 @@ func (agent *agentUser) Init(netsession netmanager.INetSession) {
 	agent.uniqueid = 0
 	agent.health, agent.kill, agent.healitemtemplateid = 0, 0, 0
 	agent.items = make(map[int32]int32, 16)
-	agent.weapons = make([]int32, 4) // 4个武器栏位, 全为0
-	agent.activeWeaponIndex = -1     // -1 未使用武器位, 0-3 使用0-3号武器位
+	agent.equips = make([]int32, 6) // 6个装备位, 全为0
+	agent.activeWeaponIndex = 0     //  0-3 使用0-3号武器位
+	agent.helmet = 0
+	agent.vest = 0
 }
 
 // Back 回收

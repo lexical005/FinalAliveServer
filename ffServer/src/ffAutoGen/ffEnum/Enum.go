@@ -208,6 +208,60 @@ func (e EAmmunitionType) String() string {
 	return allEAmmunitionTypeInfo[e].toml
 }
 
+// EArmorType EArmorType
+type EArmorType int32
+
+const (
+	// EArmorTypeHelmet 战场防具-头盔
+	EArmorTypeHelmet EArmorType = EArmorType(0)
+	// EArmorTypeVest 防弹衣
+	EArmorTypeVest EArmorType = EArmorType(1)
+)
+
+type internalEArmorTypeInfo struct {
+	value EArmorType
+	toml  string
+	desc  string
+}
+
+var allEArmorTypeInfo = []*internalEArmorTypeInfo{
+	&internalEArmorTypeInfo{
+		value: EArmorTypeHelmet,
+		toml:  "EArmorType.Helmet",
+		desc:  "战场防具-头盔",
+	},
+	&internalEArmorTypeInfo{
+		value: EArmorTypeVest,
+		toml:  "EArmorType.Vest",
+		desc:  "防弹衣",
+	},
+}
+
+var mapCodeToEArmorTypeInfo = map[string]*internalEArmorTypeInfo{
+	allEArmorTypeInfo[int32(EArmorTypeHelmet)].toml: allEArmorTypeInfo[int(EArmorTypeHelmet)],
+	allEArmorTypeInfo[int32(EArmorTypeVest)].toml:   allEArmorTypeInfo[int(EArmorTypeVest)],
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler
+func (e *EArmorType) UnmarshalText(data []byte) error {
+	key := string(data)
+	v, ok := mapCodeToEArmorTypeInfo[key]
+	if !ok {
+		return fmt.Errorf("EArmorType.UnmarshalText failed: invalid EArmorType[%v]", key)
+	}
+	*e = v.value
+	return nil
+}
+
+// MarshalText implements encoding.TextMarshaler
+func (e EArmorType) MarshalText() ([]byte, error) {
+	return []byte(allEArmorTypeInfo[e].toml), nil
+}
+
+func (e EArmorType) String() string {
+	return allEArmorTypeInfo[e].toml
+}
+
 // EAttachmentType EAttachmentType
 type EAttachmentType int32
 
@@ -650,60 +704,6 @@ func (e EConsumableType) String() string {
 	return allEConsumableTypeInfo[e].toml
 }
 
-// EEquipmentType EEquipmentType
-type EEquipmentType int32
-
-const (
-	// EEquipmentTypeHelmet 战场防具-头盔
-	EEquipmentTypeHelmet EEquipmentType = EEquipmentType(0)
-	// EEquipmentTypeVest 防弹衣
-	EEquipmentTypeVest EEquipmentType = EEquipmentType(1)
-)
-
-type internalEEquipmentTypeInfo struct {
-	value EEquipmentType
-	toml  string
-	desc  string
-}
-
-var allEEquipmentTypeInfo = []*internalEEquipmentTypeInfo{
-	&internalEEquipmentTypeInfo{
-		value: EEquipmentTypeHelmet,
-		toml:  "EEquipmentType.Helmet",
-		desc:  "战场防具-头盔",
-	},
-	&internalEEquipmentTypeInfo{
-		value: EEquipmentTypeVest,
-		toml:  "EEquipmentType.Vest",
-		desc:  "防弹衣",
-	},
-}
-
-var mapCodeToEEquipmentTypeInfo = map[string]*internalEEquipmentTypeInfo{
-	allEEquipmentTypeInfo[int32(EEquipmentTypeHelmet)].toml: allEEquipmentTypeInfo[int(EEquipmentTypeHelmet)],
-	allEEquipmentTypeInfo[int32(EEquipmentTypeVest)].toml:   allEEquipmentTypeInfo[int(EEquipmentTypeVest)],
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler
-func (e *EEquipmentType) UnmarshalText(data []byte) error {
-	key := string(data)
-	v, ok := mapCodeToEEquipmentTypeInfo[key]
-	if !ok {
-		return fmt.Errorf("EEquipmentType.UnmarshalText failed: invalid EEquipmentType[%v]", key)
-	}
-	*e = v.value
-	return nil
-}
-
-// MarshalText implements encoding.TextMarshaler
-func (e EEquipmentType) MarshalText() ([]byte, error) {
-	return []byte(allEEquipmentTypeInfo[e].toml), nil
-}
-
-func (e EEquipmentType) String() string {
-	return allEEquipmentTypeInfo[e].toml
-}
-
 // EGunWeaponType EGunWeaponType
 type EGunWeaponType int32
 
@@ -810,8 +810,8 @@ const (
 	EItemTypeAttachment EItemType = EItemType(2)
 	// EItemTypeMelleeWeapon 战场近战物理武器
 	EItemTypeMelleeWeapon EItemType = EItemType(3)
-	// EItemTypeEquipment 战场防具
-	EItemTypeEquipment EItemType = EItemType(4)
+	// EItemTypeArmor 战场防具
+	EItemTypeArmor EItemType = EItemType(4)
 	// EItemTypeConsumable 战场补给品
 	EItemTypeConsumable EItemType = EItemType(5)
 	// EItemTypeThrowable 战场投掷物
@@ -850,8 +850,8 @@ var allEItemTypeInfo = []*internalEItemTypeInfo{
 		desc:  "战场近战物理武器",
 	},
 	&internalEItemTypeInfo{
-		value: EItemTypeEquipment,
-		toml:  "EItemType.Equipment",
+		value: EItemTypeArmor,
+		toml:  "EItemType.Armor",
 		desc:  "战场防具",
 	},
 	&internalEItemTypeInfo{
@@ -881,7 +881,7 @@ var mapCodeToEItemTypeInfo = map[string]*internalEItemTypeInfo{
 	allEItemTypeInfo[int32(EItemTypeAmmunition)].toml:   allEItemTypeInfo[int(EItemTypeAmmunition)],
 	allEItemTypeInfo[int32(EItemTypeAttachment)].toml:   allEItemTypeInfo[int(EItemTypeAttachment)],
 	allEItemTypeInfo[int32(EItemTypeMelleeWeapon)].toml: allEItemTypeInfo[int(EItemTypeMelleeWeapon)],
-	allEItemTypeInfo[int32(EItemTypeEquipment)].toml:    allEItemTypeInfo[int(EItemTypeEquipment)],
+	allEItemTypeInfo[int32(EItemTypeArmor)].toml:        allEItemTypeInfo[int(EItemTypeArmor)],
 	allEItemTypeInfo[int32(EItemTypeConsumable)].toml:   allEItemTypeInfo[int(EItemTypeConsumable)],
 	allEItemTypeInfo[int32(EItemTypeThrowable)].toml:    allEItemTypeInfo[int(EItemTypeThrowable)],
 	allEItemTypeInfo[int32(EItemTypeRole)].toml:         allEItemTypeInfo[int(EItemTypeRole)],

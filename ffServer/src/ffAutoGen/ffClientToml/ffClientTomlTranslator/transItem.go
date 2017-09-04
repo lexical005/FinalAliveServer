@@ -187,36 +187,36 @@ func transItem() {
 		}
 	}
 
-	// Equipment
-	EquipmentKeys := make([]int, 0, len(tomlItem.Equipment)) // 必须使用64位机器
-	//EquipmentKeys := make([]int, 0, len(tomlItem.Equipment)) // 必须使用64位机器
-	//EquipmentKeys := make([]string, 0, len(tomlItem.Equipment)) // 必须使用64位机器
-	for key := range tomlItem.Equipment {
-		EquipmentKeys = append(EquipmentKeys, int(key))
-		//EquipmentKeys = append(EquipmentKeys, int(key))
-		//EquipmentKeys = append(EquipmentKeys, string(key))
+	// Armor
+	ArmorKeys := make([]int, 0, len(tomlItem.Armor)) // 必须使用64位机器
+	//ArmorKeys := make([]int, 0, len(tomlItem.Armor)) // 必须使用64位机器
+	//ArmorKeys := make([]string, 0, len(tomlItem.Armor)) // 必须使用64位机器
+	for key := range tomlItem.Armor {
+		ArmorKeys = append(ArmorKeys, int(key))
+		//ArmorKeys = append(ArmorKeys, int(key))
+		//ArmorKeys = append(ArmorKeys, string(key))
 	}
-	sort.Ints(EquipmentKeys)
-	//sort.Ints(EquipmentKeys)
-	//sort.Strings(EquipmentKeys)
+	sort.Ints(ArmorKeys)
+	//sort.Ints(ArmorKeys)
+	//sort.Strings(ArmorKeys)
 
-	message.EquipmentKey = make([]int32, len(tomlItem.Equipment))
-	message.EquipmentValue = make([]*Item_StEquipment, len(tomlItem.Equipment))
-	for k, key := range EquipmentKeys {
+	message.ArmorKey = make([]int32, len(tomlItem.Armor))
+	message.ArmorValue = make([]*Item_StArmor, len(tomlItem.Armor))
+	for k, key := range ArmorKeys {
 		i := int32(key)
 		//i := int32(key)
 		//i := int32(key)
-		v := tomlItem.Equipment[i]
+		v := tomlItem.Armor[i]
 
-		message.EquipmentKey[k] = i
-		message.EquipmentValue[k] = &Item_StEquipment{
+		message.ArmorKey[k] = i
+		message.ArmorValue[k] = &Item_StArmor{
 			AttrsValue: v.AttrsValue,
 		}
 
-		message.EquipmentValue[k].EquipmentType = int32(v.EquipmentType)
-		message.EquipmentValue[k].AttrsKey = make([]int32, len(v.AttrsKey), len(v.AttrsKey))
+		message.ArmorValue[k].EArmorType = int32(v.EArmorType)
+		message.ArmorValue[k].AttrsKey = make([]int32, len(v.AttrsKey), len(v.AttrsKey))
 		for xx, yy := range v.AttrsKey {
-			message.EquipmentValue[k].AttrsKey[xx] = int32(yy)
+			message.ArmorValue[k].AttrsKey[xx] = int32(yy)
 		}
 	}
 
