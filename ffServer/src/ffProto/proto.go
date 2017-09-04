@@ -211,6 +211,7 @@ func (p *Proto) Marshal(header *ProtoHeader) (err error) {
 		}
 	} else {
 		p.buf = p.buf[0:bufLengthLimit]
+		copy(p.buf[protoHeaderLength:bufLengthLimit], contentBuf)
 	}
 
 	// 写入协议头
