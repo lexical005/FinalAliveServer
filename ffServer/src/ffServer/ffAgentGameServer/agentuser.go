@@ -18,11 +18,14 @@ type agentUser struct {
 	uuidAccount       uint64 // 用户唯一id
 
 	// todo: 移除测试代码
-	uuidBattle         uuid.UUID // 战场
-	uniqueid           int32     // 战场内的唯一标识
-	health             int32     // 血量
-	kill               int32     // 击杀
-	healitemtemplateid int32     // 正在使用的治疗物品模板id
+	uuidBattle         uuid.UUID       // 战场
+	uniqueid           int32           // 战场内的唯一标识
+	health             int32           // 血量
+	kill               int32           // 击杀
+	healitemtemplateid int32           // 正在使用的治疗物品模板id
+	items              map[int32]int32 // 拥有的物品
+	weapons            []int32         // 手上武器
+	activeWeaponIndex  int32           // 手上武器下标
 }
 
 func (agent *agentUser) String() string {
@@ -82,6 +85,9 @@ func (agent *agentUser) Init(netsession netmanager.INetSession) {
 	agent.uuidBattle = uuid.InvalidUUID
 	agent.uniqueid = 0
 	agent.health, agent.kill, agent.healitemtemplateid = 0, 0, 0
+	agent.items = make(map[int32]int32, 16)
+	agent.weapons = make([]int32, 4) // 4个武器栏位, 全为0
+	agent.activeWeaponIndex = -1     // -1 未使用武器位, 0-3 使用0-3号武器位
 }
 
 // Back 回收

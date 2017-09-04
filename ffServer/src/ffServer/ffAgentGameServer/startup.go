@@ -1,10 +1,12 @@
 package main
 
 import (
+	"ffAutoGen/ffGameConfig"
 	"ffCommon/log/log"
 	"ffCommon/log/logfile"
 	"ffCommon/net/tcpsession"
 	"ffCommon/uuid"
+	"fmt"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -55,6 +57,12 @@ func startup() (err error) {
 	err = tcpsession.Init(appConfig.Session, uuidSessionGenerator)
 	if err != nil {
 		return err
+	}
+
+	// 启动
+	ok := ffGameConfig.ReadAllToml()
+	if !ok {
+		return fmt.Errorf("ffGameConfig.ReadAllToml failed")
 	}
 
 	// 启动
