@@ -19,6 +19,7 @@ var mapAgentUserProtoCallback = map[ffProto.MessageType]func(agent *agentUser, p
 	ffProto.MessageType_BattlePickProp:      onBattleProtoPickProp,
 	ffProto.MessageType_BattleDropBagProp:   onBattleProtoDropBagProp,
 	ffProto.MessageType_BattleDropEquipProp: onBattleProtoDropEquipProp,
+	ffProto.MessageType_BattleSwitchWeapon:  onBattleProtoSwitchWeapon,
 
 	ffProto.MessageType_BattleStartSync: onBattleProtoStartSync,
 	ffProto.MessageType_BattleRunAway:   onBattleProtoRunAway,

@@ -501,18 +501,20 @@ func (b *battle) PickProp(agent *agentUser, message *ffProto.MsgBattlePickProp) 
 func (b *battle) SwitchWeapon(agent *agentUser, message *ffProto.MsgBattleSwitchWeapon) error {
 	// 参数无效
 	if message.EquipIndex < 0 || int(message.EquipIndex) >= len(agent.equips) || agent.activeWeaponIndex == message.EquipIndex {
-		return fmt.Errorf("SwitchWeapon invalid equipIndex[%v] equips[%v]", message.EquipIndex, agent.equips)
+		return fmt.Errorf("SwitchWeapon invalid equipIndex[%v] activeWeaponIndex[%v] equips[%v]",
+			message.EquipIndex, agent.activeWeaponIndex, agent.equips)
 	}
 
 	// 当前武器位改变
 	agent.activeWeaponIndex = message.EquipIndex
 
 	// 装备状态改变
-	message.EquipState = &ffProto.StBattleEquipState{
+	EquipState := &ffProto.StBattleEquipState{
 		EquipIndex:      message.EquipIndex,
 		EquipTemplateID: agent.equips[message.EquipIndex],
 		EquipState:      5,
 	}
+	message.EquipState = EquipState
 
 	// 广播用户的装备状态改变
 	for _, one := range b.agents {
@@ -520,7 +522,7 @@ func (b *battle) SwitchWeapon(agent *agentUser, message *ffProto.MsgBattleSwitch
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleEquipState)
 			m := p.Message().(*ffProto.MsgBattleEquipState)
 			m.Roleuniqueid = agent.uniqueid
-			m.EquipState = message.EquipState
+			m.EquipState = EquipState
 			ffProto.SendProtoExtraDataNormal(one, p, false)
 		}
 	}
