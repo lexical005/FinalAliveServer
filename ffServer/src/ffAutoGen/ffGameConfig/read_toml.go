@@ -13,6 +13,9 @@ var ItemData *Item
 // LanguageData 配置表Language的数据
 var LanguageData *Language
 
+// RandBornData 配置表RandBorn的数据
+var RandBornData *RandBorn
+
 // ReadAllToml 读取所有toml配置
 func ReadAllToml() (result bool) {
 	result = true
@@ -35,6 +38,12 @@ func ReadAllToml() (result bool) {
 	if err != nil {
 		result = false
 		log.FatalLogger.Printf("ReadLanguage get error[%v]", err)
+	}
+
+	RandBornData, err = ReadRandBorn()
+	if err != nil {
+		result = false
+		log.FatalLogger.Printf("ReadRandBorn get error[%v]", err)
 	}
 
 	return result

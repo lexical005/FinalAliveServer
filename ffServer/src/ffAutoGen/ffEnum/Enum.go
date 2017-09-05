@@ -626,6 +626,68 @@ func (e EAttr) String() string {
 	return allEAttrInfo[e].toml
 }
 
+// EBornType EBornType
+type EBornType int32
+
+const (
+	// EBornTypeRandRolePrepare 准备期间-角色出生点
+	EBornTypeRandRolePrepare EBornType = EBornType(0)
+	// EBornTypeRandItemPrepare 准备期间-物品出生点
+	EBornTypeRandItemPrepare EBornType = EBornType(1)
+	// EBornTypeRandItemBattle 战斗期间-物品出生点
+	EBornTypeRandItemBattle EBornType = EBornType(2)
+)
+
+type internalEBornTypeInfo struct {
+	value EBornType
+	toml  string
+	desc  string
+}
+
+var allEBornTypeInfo = []*internalEBornTypeInfo{
+	&internalEBornTypeInfo{
+		value: EBornTypeRandRolePrepare,
+		toml:  "EBornType.RandRolePrepare",
+		desc:  "准备期间-角色出生点",
+	},
+	&internalEBornTypeInfo{
+		value: EBornTypeRandItemPrepare,
+		toml:  "EBornType.RandItemPrepare",
+		desc:  "准备期间-物品出生点",
+	},
+	&internalEBornTypeInfo{
+		value: EBornTypeRandItemBattle,
+		toml:  "EBornType.RandItemBattle",
+		desc:  "战斗期间-物品出生点",
+	},
+}
+
+var mapCodeToEBornTypeInfo = map[string]*internalEBornTypeInfo{
+	allEBornTypeInfo[int32(EBornTypeRandRolePrepare)].toml: allEBornTypeInfo[int(EBornTypeRandRolePrepare)],
+	allEBornTypeInfo[int32(EBornTypeRandItemPrepare)].toml: allEBornTypeInfo[int(EBornTypeRandItemPrepare)],
+	allEBornTypeInfo[int32(EBornTypeRandItemBattle)].toml:  allEBornTypeInfo[int(EBornTypeRandItemBattle)],
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler
+func (e *EBornType) UnmarshalText(data []byte) error {
+	key := string(data)
+	v, ok := mapCodeToEBornTypeInfo[key]
+	if !ok {
+		return fmt.Errorf("EBornType.UnmarshalText failed: invalid EBornType[%v]", key)
+	}
+	*e = v.value
+	return nil
+}
+
+// MarshalText implements encoding.TextMarshaler
+func (e EBornType) MarshalText() ([]byte, error) {
+	return []byte(allEBornTypeInfo[e].toml), nil
+}
+
+func (e EBornType) String() string {
+	return allEBornTypeInfo[e].toml
+}
+
 // EConsumableType EConsumableType
 type EConsumableType int32
 
