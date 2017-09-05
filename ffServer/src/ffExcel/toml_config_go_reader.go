@@ -18,6 +18,8 @@ func ReadAllToml() (result bool) {
 
 	var err error
 {AllTomlReader}
+	initHelper()
+
 	return result
 }
 `

@@ -105,11 +105,21 @@ func clearPath(ec *ExportConfig) bool {
 	}
 
 	if ec.ServerExportGoCodePath != "" {
-		err := util.ClearPath(ec.ServerExportGoCodePath, false, []string{".go"})
-		if err != nil {
-			log.RunLogger.Println(err)
-			result = false
-		}
+		util.Walk(ec.ServerExportGoCodePath, func(f os.FileInfo) error {
+			// 忽略文件夹以及非go文件
+			name := f.Name()
+			if f.IsDir() || !strings.HasSuffix(name, ".go") {
+				return nil
+			}
+
+			// 非配置文件
+			if name[0] == strings.ToLower(name)[0] {
+				return nil
+			}
+
+			// 删除生成的文件
+			return os.Remove(filepath.Join(ec.ServerExportGoCodePath, f.Name()))
+		})
 	}
 
 	if ec.ClientExportGoCodePath != "" {

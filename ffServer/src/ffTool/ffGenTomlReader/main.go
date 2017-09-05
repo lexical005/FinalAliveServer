@@ -48,7 +48,7 @@ func main() {
 			}
 
 			// 非配置文件
-			if name == "Error.go" || name == "Enum.go" || name == "read_toml.go" {
+			if name == "Error.go" || name == "Enum.go" || name[0] == strings.ToLower(name)[0] {
 				return nil
 			}
 
