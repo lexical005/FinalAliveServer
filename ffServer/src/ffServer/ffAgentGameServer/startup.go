@@ -64,6 +64,7 @@ func startup() (err error) {
 	if !ok {
 		return fmt.Errorf("ffGameConfig.ReadAllToml failed")
 	}
+	initBattleBorn()
 
 	// 启动
 	err = instAgentUserServer.Start()

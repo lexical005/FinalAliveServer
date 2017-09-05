@@ -10,9 +10,14 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 )
 
 var mapBattle = make(map[uuid.UUID]*battle, 1)
+
+const (
+	maxRoleCount = 50
+)
 
 type battle struct {
 	uuidBattle uuid.UUID
@@ -30,13 +35,19 @@ type battle struct {
 
 	uniqueids []int32
 
-	bornPosition []*ffProto.StVector3
-
 	totalCount int32
 	aliveCount int32
 
 	// 累计射击编号
 	shootid int32
+
+	// 随机数
+	Rand *rand.Rand
+
+	// 角色出生点
+	rolePreparePosition []int32
+
+	BattleProps map[int32]*ffProto.StBattleProp
 }
 
 func (b *battle) Init(uuidTokens []uint64) {
@@ -46,102 +57,77 @@ func (b *battle) Init(uuidTokens []uint64) {
 		b.uuidTokens = append(b.uuidTokens, uuid.NewUUID(token))
 	}
 
-	b.PreloadBattle = map[int32]int32{
-		1:     1,
-		2:     1,
-		10301: 1,
-		10401: 1,
-		1101:  2,
-		1201:  2,
-		1301:  2,
-		1401:  2,
-		1501:  2,
-		1601:  2,
-		1701:  2,
-		50101: 1,
-		50102: 1,
-		50201: 1,
-		50202: 1,
+	seed := time.Now().Nanosecond()
+	b.Rand = rand.New(rand.NewSource(int64(seed)))
+
+	// 角色出生点
+	b.rolePreparePosition = make([]int32, len(instBattleBorn.randRolePreparePositions))
+	for i := 0; i < len(b.rolePreparePosition); i++ {
+		b.rolePreparePosition[i] = int32(i)
 	}
-	b.PreloadScene = map[int32]int32{
-		10301: 1,
-		10401: 1,
-		50101: 1,
-		50102: 1,
-		50201: 1,
-		50202: 1,
+	for i := 0; i < len(b.rolePreparePosition); i++ {
+		j := b.Rand.Intn(len(b.rolePreparePosition) - i)
+		last := len(b.rolePreparePosition) - 1 - i
+		b.rolePreparePosition[last], b.rolePreparePosition[j] = b.rolePreparePosition[j], b.rolePreparePosition[last]
 	}
+
+	// 物品
+	b.Props = make(map[int32]*ffProto.StBattleProp, 1024)
+	for _, config := range ffGameConfig.RandBornData.BornPrepareItem {
+		err := instBattleBorn.GenItemPrepareGroup(config, b.Rand, b)
+		if err != nil {
+			log.RunLogger.Println(err)
+		}
+	}
+
+	battleAssetCount, sceneAssetCount := 0, 0
+	for _, template := range ffGameConfig.ItemData.ItemTemplate {
+		if template.ItemType == ffEnum.EItemTypeGunWeapon {
+			battleAssetCount++
+			sceneAssetCount++
+		} else if template.ItemType == ffEnum.EItemTypeRole {
+			battleAssetCount++
+		} else {
+			sceneAssetCount++
+		}
+	}
+	b.PreloadBattle = make(map[int32]int32, battleAssetCount)
+	b.PreloadScene = make(map[int32]int32, sceneAssetCount)
+
+	for _, prop := range b.Props {
+		template := ffGameConfig.ItemData.ItemTemplate[prop.Templateid]
+		if template.ItemType == ffEnum.EItemTypeGunWeapon {
+			if c, ok := b.PreloadBattle[template.AssetID]; ok {
+				b.PreloadBattle[template.AssetID] = c + 1
+			} else {
+				b.PreloadBattle[template.AssetID] = 1
+			}
+			if c, ok := b.PreloadScene[template.AssetID]; ok {
+				b.PreloadScene[template.AssetID] = c + 1
+			} else {
+				b.PreloadScene[template.AssetID] = 1
+			}
+		} else {
+			if c, ok := b.PreloadScene[template.AssetID]; ok {
+				b.PreloadScene[template.AssetID] = c + 1
+			} else {
+				b.PreloadScene[template.AssetID] = 1
+			}
+		}
+	}
+	b.PreloadBattle[1] = 5
+	b.PreloadBattle[2] = 5
 
 	b.agents = make(map[int32]*agentUser, 50)
 
-	b.Members = make([]*ffProto.StBattleMember, 0, 50)
-
-	b.Props = make(map[int32]*ffProto.StBattleProp, 50)
-	b.NewProp(10301, 1, &ffProto.StVector3{
-		X: -7414,
-		Y: 155718,
-		Z: 2800251,
-	})
-	b.NewProp(10401, 1, &ffProto.StVector3{
-		X: -4202,
-		Y: 155718,
-		Z: 2800251,
-	})
-	b.NewProp(10402, 1, &ffProto.StVector3{
-		X: -4202,
-		Y: 155718,
-		Z: 2804251,
-	})
-	b.NewProp(10204, 1, &ffProto.StVector3{
-		X: 963,
-		Y: 155718,
-		Z: 2800251,
-	})
-	b.NewProp(40201, 1, &ffProto.StVector3{
-		X: 3963,
-		Y: 155718,
-		Z: 2800251,
-	})
-
-	b.NewProp(50101, 80, &ffProto.StVector3{
-		X: -7414,
-		Y: 155718,
-		Z: 2803251,
-	})
-	b.NewProp(50102, 100, &ffProto.StVector3{
-		X: -4202,
-		Y: 155718,
-		Z: 2803251,
-	})
-	b.NewProp(50201, 200, &ffProto.StVector3{
-		X: 963,
-		Y: 155718,
-		Z: 2803251,
-	})
-	b.NewProp(50202, 220, &ffProto.StVector3{
-		X: 3963,
-		Y: 155718,
-		Z: 2803251,
-	})
-
-	b.bornPosition = make([]*ffProto.StVector3, 0, 50)
-	b.bornPosition = append(b.bornPosition, &ffProto.StVector3{
-		X: -708,
-		Y: 155718,
-		Z: 2803553,
-	})
-	b.bornPosition = append(b.bornPosition, &ffProto.StVector3{
-		X: -708,
-		Y: 155718,
-		Z: 2812334,
-	})
+	b.Members = make([]*ffProto.StBattleMember, 0, maxRoleCount)
 
 	b.uniqueids = make([]int32, 50)
 	for i := 0; i < len(b.uniqueids); i++ {
-		b.uniqueids[i] = int32(4*i) + 1 + rand.Int31n(4) // [4n, 4n+1)
+		b.uniqueids[i] = int32(4*i) + 1 + b.Rand.Int31n(4) // [4n, 4n+1)
 	}
 	for i := 0; i < len(b.uniqueids); i++ {
-		j := rand.Intn(len(b.uniqueids) - i)
+		j := b.Rand.Intn(len(b.uniqueids) - i)
 		last := len(b.uniqueids) - 1 - i
 		b.uniqueids[last], b.uniqueids[j] = b.uniqueids[j], b.uniqueids[last]
 	}
@@ -152,8 +138,9 @@ func (b *battle) newMember() *ffProto.StBattleMember {
 	uniqueid := b.uniqueids[len(b.uniqueids)-1]
 	b.uniqueids = b.uniqueids[0 : len(b.uniqueids)-1]
 
-	bornPosition := b.bornPosition[len(b.bornPosition)-1]
-	b.bornPosition = b.bornPosition[0 : len(b.bornPosition)-1]
+	bornPositionIndex := b.rolePreparePosition[len(b.rolePreparePosition)-1]
+	b.rolePreparePosition = b.rolePreparePosition[:len(b.rolePreparePosition)-1]
+	bornPosition := instBattleBorn.randRolePreparePositions[bornPositionIndex]
 
 	member := &ffProto.StBattleMember{
 		Position: bornPosition,
@@ -530,23 +517,41 @@ func (b *battle) SwitchWeapon(agent *agentUser, message *ffProto.MsgBattleSwitch
 	return nil
 }
 
-func (b *battle) Heal(agent *agentUser, healitemtemplateid int32, state int32) bool {
+func (b *battle) Heal(agent *agentUser, healitemtemplateid int32, state int32) error {
+	// 开始
 	if state == 1 {
 		if agent.healitemtemplateid != 0 {
-			return false
+			return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] conflict with healing healitemtemplateid[%v]",
+				healitemtemplateid, state, agent.healitemtemplateid)
 		}
-		agent.healitemtemplateid = healitemtemplateid
-		return true
+
+		ItemData, ok := agent.items[healitemtemplateid]
+		if !ok || ItemData == 0 {
+			return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] not own item",
+				healitemtemplateid, state)
+		}
+
+		template := ffGameConfig.ItemData.ItemTemplate[healitemtemplateid]
+		if template.ItemType != ffEnum.EItemTypeConsumable {
+			return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] not a consumable item",
+				healitemtemplateid, state)
+		}
+
+		agent.healitemtemplateid, agent.healTime = healitemtemplateid, time.Now()
+		return nil
 	}
 
+	// 取消
 	if state == 0 {
 		agent.healitemtemplateid = 0
-		return true
+		return nil
 	}
 
+	// 结算
 	if state == 2 {
 		if agent.healitemtemplateid == 0 {
-			return false
+			return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] not in healing",
+				healitemtemplateid, state)
 		}
 		agent.healitemtemplateid = 0
 		agent.health += 20
@@ -571,7 +576,7 @@ func (b *battle) Heal(agent *agentUser, healitemtemplateid int32, state int32) b
 		}
 	}
 
-	return false
+	return nil
 }
 
 func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool) {
@@ -625,6 +630,7 @@ func onBattleProtoRunAway(agent *agentUser, proto *ffProto.Proto) (result bool) 
 	return
 }
 
+// 捡取场景物品
 func onBattleProtoPickProp(agent *agentUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattlePickProp)
 
@@ -645,6 +651,7 @@ func onBattleProtoPickProp(agent *agentUser, proto *ffProto.Proto) (result bool)
 	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
 }
 
+// 丢弃非装备
 func onBattleProtoDropBagProp(agent *agentUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleDropBagProp)
 
@@ -663,6 +670,7 @@ func onBattleProtoDropBagProp(agent *agentUser, proto *ffProto.Proto) (result bo
 	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
 }
 
+// 丢弃装备
 func onBattleProtoDropEquipProp(agent *agentUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleDropEquipProp)
 
@@ -672,6 +680,7 @@ func onBattleProtoDropEquipProp(agent *agentUser, proto *ffProto.Proto) (result 
 		message.Result = ffError.ErrUnknown.Code()
 	}
 
+	message.EquipState = &ffProto.StBattleEquipState{}
 	if err := battle.DropEquipProp(agent, message.EquipIndex, message.Position, message.EquipState); err != nil {
 		message.Result = ffError.ErrUnknown.Code()
 		log.RunLogger.Println(err)
@@ -841,21 +850,22 @@ func onBattleProtoRoleHeal(agent *agentUser, proto *ffProto.Proto) (result bool)
 	battle, ok := mapBattle[agent.uuidBattle]
 	if !ok {
 		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	if !battle.Heal(agent, message.Itemtemplateid, message.State) {
+	} else if err := battle.Heal(agent, message.Itemtemplateid, message.State); err != nil {
 		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+		log.RunLogger.Println(err)
 	}
 
-	for _, agent := range battle.agents {
-		p := ffProto.ApplyProtoForSend(proto.ProtoID())
-		m := p.Message().(*ffProto.MsgBattleRoleHeal)
-		m.Roleuniqueid = message.Roleuniqueid
-		m.Itemtemplateid = message.Itemtemplateid
-		m.State = message.State
-		ffProto.SendProtoExtraDataNormal(agent, p, false)
+	result = ffProto.SendProtoExtraDataNormal(agent, proto, true)
+
+	for _, one := range battle.agents {
+		if one.uniqueid != agent.uniqueid {
+			p := ffProto.ApplyProtoForSend(proto.ProtoID())
+			m := p.Message().(*ffProto.MsgBattleRoleHeal)
+			m.Roleuniqueid = message.Roleuniqueid
+			m.Itemtemplateid = message.Itemtemplateid
+			m.State = message.State
+			ffProto.SendProtoExtraDataNormal(one, p, false)
+		}
 	}
 
 	return

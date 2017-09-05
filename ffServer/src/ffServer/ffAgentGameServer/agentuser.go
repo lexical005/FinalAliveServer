@@ -6,6 +6,7 @@ import (
 	"ffCommon/uuid"
 	"ffProto"
 	"fmt"
+	"time"
 )
 
 // 连接对象
@@ -23,11 +24,10 @@ type agentUser struct {
 	health             int32           // 血量
 	kill               int32           // 击杀
 	healitemtemplateid int32           // 正在使用的治疗物品模板id
+	healTime           time.Time       // 开始heal的时间
 	items              map[int32]int32 // 拥有的物品数据
 	equips             []int32         // 装备信息(武器,防弹衣,头盔)
 	activeWeaponIndex  int32           // 手上武器下标
-	helmet             int32           // 当前头盔
-	vest               int32           // 当前防弹衣
 }
 
 func (agent *agentUser) String() string {
@@ -90,8 +90,6 @@ func (agent *agentUser) Init(netsession netmanager.INetSession) {
 	agent.items = make(map[int32]int32, 16)
 	agent.equips = make([]int32, 6) // 6个装备位, 全为0
 	agent.activeWeaponIndex = 0     //  0-3 使用0-3号武器位
-	agent.helmet = 0
-	agent.vest = 0
 }
 
 // Back 回收
