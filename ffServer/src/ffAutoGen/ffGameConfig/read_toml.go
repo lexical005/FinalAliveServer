@@ -46,5 +46,7 @@ func ReadAllToml() (result bool) {
 		log.FatalLogger.Printf("ReadRandBorn get error[%v]", err)
 	}
 
+	initHelper()
+
 	return result
 }

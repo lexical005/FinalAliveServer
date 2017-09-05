@@ -1,0 +1,4 @@
+package ffGameConfig
+
+func initHelper() {
+}

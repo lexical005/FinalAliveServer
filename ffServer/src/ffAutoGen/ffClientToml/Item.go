@@ -98,7 +98,7 @@ func (i *ItemTemplate) String() string {
 type GunWeapon struct {
 	GunWeaponType   ffEnum.EGunWeaponType
 	ShootMode       []ffEnum.EShootMode
-	AmmunitionType  ffEnum.EAmmunitionType
+	Ammunition      int32
 	AttachmentTypes []ffEnum.EAttachmentType
 	Attrs           map[ffEnum.EAttr]int32
 	AttrsKey        []ffEnum.EAttr
@@ -109,7 +109,7 @@ func (g *GunWeapon) String() string {
 	result := "["
 	result += fmt.Sprintf("GunWeaponType:%v,", g.GunWeaponType)
 	result += fmt.Sprintf("ShootMode:%v,", g.ShootMode)
-	result += fmt.Sprintf("AmmunitionType:%v,", g.AmmunitionType)
+	result += fmt.Sprintf("Ammunition:%v,", g.Ammunition)
 	result += fmt.Sprintf("AttachmentTypes:%v,", g.AttachmentTypes)
 	result += fmt.Sprintf("Attrs:%v,", g.Attrs)
 	result += fmt.Sprintf("AttrsKey:%v,", g.AttrsKey)

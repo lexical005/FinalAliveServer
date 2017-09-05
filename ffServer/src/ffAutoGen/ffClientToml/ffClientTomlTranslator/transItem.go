@@ -68,6 +68,7 @@ func transItem() {
 
 		message.GunWeaponKey[k] = i
 		message.GunWeaponValue[k] = &Item_StGunWeapon{
+			Ammunition: v.Ammunition,
 			AttrsValue: v.AttrsValue,
 		}
 
@@ -76,7 +77,6 @@ func transItem() {
 		for xx, yy := range v.ShootMode {
 			message.GunWeaponValue[k].ShootMode[xx] = int32(yy)
 		}
-		message.GunWeaponValue[k].AmmunitionType = int32(v.AmmunitionType)
 		message.GunWeaponValue[k].AttachmentTypes = make([]int32, len(v.AttachmentTypes), len(v.AttachmentTypes))
 		for xx, yy := range v.AttachmentTypes {
 			message.GunWeaponValue[k].AttachmentTypes[xx] = int32(yy)

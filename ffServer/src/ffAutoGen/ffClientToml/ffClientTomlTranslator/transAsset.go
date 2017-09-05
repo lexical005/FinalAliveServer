@@ -35,6 +35,7 @@ func transAsset() {
 
 		message.AssetsKey[k] = i
 		message.AssetsValue[k] = &Asset_StAssets{
+			IsDefault:     v.IsDefault,
 			BattleDefault: v.BattleDefault,
 			HomeDefault:   v.HomeDefault,
 			SceneDefault:  v.SceneDefault,

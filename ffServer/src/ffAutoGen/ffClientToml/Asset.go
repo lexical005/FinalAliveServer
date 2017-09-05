@@ -30,6 +30,7 @@ func (a *Asset) Name() string {
 
 // Assets sheet Assets of excel Asset
 type Assets struct {
+	IsDefault     int32
 	BattleDefault string
 	HomeDefault   string
 	SceneDefault  string
@@ -37,6 +38,7 @@ type Assets struct {
 
 func (a *Assets) String() string {
 	result := "["
+	result += fmt.Sprintf("IsDefault:%v,", a.IsDefault)
 	result += fmt.Sprintf("BattleDefault:%v,", a.BattleDefault)
 	result += fmt.Sprintf("HomeDefault:%v,", a.HomeDefault)
 	result += fmt.Sprintf("SceneDefault:%v,", a.SceneDefault)
