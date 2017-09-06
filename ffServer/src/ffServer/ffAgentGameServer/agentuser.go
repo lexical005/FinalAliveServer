@@ -6,7 +6,6 @@ import (
 	"ffCommon/uuid"
 	"ffProto"
 	"fmt"
-	"time"
 )
 
 // 连接对象
@@ -19,15 +18,7 @@ type agentUser struct {
 	uuidAccount       uint64 // 用户唯一id
 
 	// todo: 移除测试代码
-	uuidBattle         uuid.UUID       // 战场
-	uniqueid           int32           // 战场内的唯一标识
-	health             int32           // 血量
-	kill               int32           // 击杀
-	healitemtemplateid int32           // 正在使用的治疗物品模板id
-	healTime           time.Time       // 开始heal的时间
-	items              map[int32]int32 // 拥有的物品数据
-	equips             []int32         // 装备信息(武器,防弹衣,头盔)
-	activeWeaponIndex  int32           // 手上武器下标
+	battleUser *battleUser
 }
 
 func (agent *agentUser) String() string {
@@ -60,6 +51,10 @@ func (agent *agentUser) OnProto(proto *ffProto.Proto) bool {
 		return callback(agent, proto)
 	}
 
+	if result, ok := onBattleProto(agent, proto); ok {
+		return result
+	}
+
 	log.FatalLogger.Printf("%v.OnProto not support protoID[%v]", agent.name, protoID)
 
 	return false
@@ -84,12 +79,6 @@ func (agent *agentUser) Init(netsession netmanager.INetSession) {
 	// 用户数据
 	agent.uuidPlatformLogin = ""
 	agent.uuidAccount = uuid.InvalidUUID.Value()
-	agent.uuidBattle = uuid.InvalidUUID
-	agent.uniqueid = 0
-	agent.health, agent.kill, agent.healitemtemplateid = 0, 0, 0
-	agent.items = make(map[int32]int32, 16)
-	agent.equips = make([]int32, 6) // 6个装备位, 全为0
-	agent.activeWeaponIndex = 0     //  0-3 使用0-3号武器位
 }
 
 // Back 回收

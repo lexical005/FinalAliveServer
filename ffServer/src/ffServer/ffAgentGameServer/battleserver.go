@@ -2,14 +2,12 @@ package main
 
 import (
 	"ffAutoGen/ffEnum"
-	"ffAutoGen/ffError"
 	"ffAutoGen/ffGameConfig"
 	"ffCommon/log/log"
 	"ffCommon/uuid"
 	"ffProto"
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 )
 
@@ -29,7 +27,7 @@ type battle struct {
 	PreloadBattle map[int32]int32
 	PreloadScene  map[int32]int32
 
-	agents map[int32]*agentUser
+	agents map[int32]*battleUser
 
 	Members []*ffProto.StBattleMember
 
@@ -118,7 +116,7 @@ func (b *battle) Init(uuidTokens []uint64) {
 	b.PreloadBattle[1] = 5
 	b.PreloadBattle[2] = 5
 
-	b.agents = make(map[int32]*agentUser, 50)
+	b.agents = make(map[int32]*battleUser, 50)
 
 	b.Members = make([]*ffProto.StBattleMember, 0, maxRoleCount)
 
@@ -167,14 +165,15 @@ func (b *battle) RemoveToken(token uint64) {
 	}
 }
 
-func (b *battle) Enter(agent *agentUser, UUIDBattle, UUIDToken uuid.UUID) bool {
+func (b *battle) Enter(agent *agentUser, uuidBattle, uuidToken uuid.UUID) bool {
 	for i, token := range b.uuidTokens {
-		if token == UUIDToken {
+		if token == uuidToken {
 			b.uuidTokens = append(b.uuidTokens[:i], b.uuidTokens[i+1:]...)
 
 			member := b.newMember()
 
-			agent.uuidBattle, agent.uniqueid, agent.health = UUIDBattle, member.Uniqueid, 100
+			battleUser := newBattleUser(agent, uuidBattle, member.Uniqueid)
+			agent.battleUser = battleUser
 
 			b.Members = append(b.Members, member)
 
@@ -186,7 +185,7 @@ func (b *battle) Enter(agent *agentUser, UUIDBattle, UUIDToken uuid.UUID) bool {
 				ffProto.SendProtoExtraDataNormal(agent, p1, false)
 			}
 
-			b.agents[agent.uniqueid] = agent
+			b.agents[battleUser.uniqueid] = agent.battleUser
 			b.totalCount++
 			b.aliveCount++
 			return true
@@ -195,11 +194,11 @@ func (b *battle) Enter(agent *agentUser, UUIDBattle, UUIDToken uuid.UUID) bool {
 	return false
 }
 
-func (b *battle) Shoot(agent *agentUser, shootid int32) {
+func (b *battle) Shoot(agent *battleUser, shootid int32) {
 
 }
 
-func (b *battle) ShootHit(agent *agentUser, shootid int32, Targetuniqueid int32) {
+func (b *battle) ShootHit(agent *battleUser, shootid int32, Targetuniqueid int32) {
 	if Targetuniqueid == 0 {
 		return
 	}
@@ -270,7 +269,8 @@ func (b *battle) Settle() {
 	}
 }
 
-func (b *battle) NewProp(templateid int32, ItemData int32, position *ffProto.StVector3) *ffProto.StBattleProp {
+// 场景新增物品
+func (b *battle) newProp(templateid int32, ItemData int32, position *ffProto.StVector3) *ffProto.StBattleProp {
 	prop := &ffProto.StBattleProp{
 		Position:   position,
 		Uniqueid:   b.idProp,
@@ -282,629 +282,125 @@ func (b *battle) NewProp(templateid int32, ItemData int32, position *ffProto.StV
 	return prop
 }
 
-// 修改持有的物品, 场景内新增扔掉的物品
-func (b *battle) DropBagItem(agent *agentUser, Itemtemplateid, dropItemData int32, Position *ffProto.StVector3) error {
-	// 持有的物品判定
-	ownItemData, ok := agent.items[Itemtemplateid]
+// 获取场景物品
+func (b *battle) Prop(uniqueid int32) (*ffProto.StBattleProp, error) {
+	prop, ok := b.Props[uniqueid]
 	if !ok {
-		return fmt.Errorf("DropBagItem Itemtemplateid[%v] not in bag", Itemtemplateid)
+		return nil, fmt.Errorf("Prop item uniqueid[%v] not exist", uniqueid)
 	}
+	return prop, nil
+}
 
-	template := ffGameConfig.ItemData.ItemTemplate[Itemtemplateid]
-	if template.ItemType != ffEnum.EItemTypeArmor { // 非防具类, ownItemData为数量, 判定数量是否足够
-		if ownItemData < dropItemData {
-			return fmt.Errorf("DropBagItem Itemtemplateid[%v] ownItemData[%v] < dropItemData[%v]",
-				Itemtemplateid, ownItemData, dropItemData)
-		}
+// 场景移除物品, 通知所有用户
+func (b *battle) RemoveSceneProp(uniqueid int32) {
+	// 删除场景物品
+	delete(b.Props, uniqueid)
 
-		// 持有的数量减少
-		agent.items[Itemtemplateid] -= dropItemData
-
-	} else { // 防具类, ownItemData为防具耐久, 判定耐久是否大于0, 大于0时则防具有效
-		if ownItemData < 1 {
-			return fmt.Errorf("DropBagItem Itemtemplateid[%v] not int bag", Itemtemplateid)
-		}
-
-		// 持有的数量减少
-		agent.items[Itemtemplateid] = 0
+	// 广播场景物品移除
+	for _, agent := range b.agents {
+		p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRemoveProp)
+		m := p.Message().(*ffProto.MsgBattleRemoveProp)
+		m.Uniqueid = uniqueid
+		ffProto.SendProtoExtraDataNormal(agent, p, false)
 	}
+}
 
+// 场景内新增物品, 通知所有用户
+func (b *battle) AddSceneProp(itemtemplateid, dropItemData int32, Position *ffProto.StVector3) {
 	// 场景添加物品
-	prop := b.NewProp(Itemtemplateid, dropItemData, Position)
+	prop := b.newProp(itemtemplateid, dropItemData, Position)
+
 	for _, one := range b.agents {
 		p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleAddProp)
 		m := p.Message().(*ffProto.MsgBattleAddProp)
 		m.Prop = prop
 		ffProto.SendProtoExtraDataNormal(one, p, false)
 	}
-	return nil
 }
 
-// 修改装备状态, 修改持有的物品, 场景内新增扔掉的物品
-func (b *battle) DropEquipProp(agent *agentUser, equipIndex int32, Position *ffProto.StVector3, EquipState *ffProto.StBattleEquipState) error {
-	// 参数无效
-	if equipIndex < 0 || int(equipIndex) >= len(agent.equips) || agent.equips[equipIndex] == 0 {
-		return fmt.Errorf("DropEquipProp invalid equipIndex[%v] equips[%v]", equipIndex, agent.equips)
-	}
-
-	// 枪械上的配件卸下
-	// 枪上的子弹状态修改
-
-	EquipTemplateID := agent.equips[equipIndex]
-
-	// 武器位清空
-	agent.equips[equipIndex] = 0
-
-	// 装备状态
-	if EquipState != nil {
-		// 2 丢弃装备位上的装备(如果装备位正在使用, 则播放丢弃动作, 否则, 背着的装备位上的装备直接消失);(装备位不变);
-		EquipState.EquipIndex = equipIndex
-		EquipState.EquipTemplateID = EquipTemplateID
-		EquipState.EquipState = 2
-	}
-
-	// 修改持有的物品, 场景内新增扔掉的物品
-	template := ffGameConfig.ItemData.ItemTemplate[EquipTemplateID]
-	if template.ItemType != ffEnum.EItemTypeArmor { // 非防具类, dropItemData为数量
-		return b.DropBagItem(agent, EquipTemplateID, 1, Position)
-	}
-
-	// 防具类, dropItemData为防具耐久
-	return b.DropBagItem(agent, EquipTemplateID, agent.items[EquipTemplateID], Position)
-}
-
-// 捡取场景里的物品
-func (b *battle) PickProp(agent *agentUser, message *ffProto.MsgBattlePickProp) error {
-	prop, ok := b.Props[message.Itemuniqueid]
-	if !ok {
-		return fmt.Errorf("PickProp ItemUniqueID[%v] not exist", message.Itemuniqueid)
-	}
-
-	// 装备类, 捡取后立即装备
-	var equip bool
-	var equipIndex int32 = -1
-	template := ffGameConfig.ItemData.ItemTemplate[prop.Templateid]
-	if template.ItemType == ffEnum.EItemTypeGunWeapon {
-		gun := ffGameConfig.ItemData.GunWeapon[prop.Templateid]
-		equip = true
-		if gun.GunWeaponType == ffEnum.EGunWeaponTypePistol {
-			// 手枪
-			equipIndex = 2
-		} else {
-			if agent.equips[0] == 0 {
-				// 0号武器位为空
-				equipIndex = 0
-			} else if agent.equips[1] == 0 {
-				// 1号武器位为空
-				equipIndex = 1
-			} else if agent.activeWeaponIndex == 0 {
-				// 当前使用0号武器位
-				equipIndex = 0
-			} else if agent.activeWeaponIndex == 1 {
-				// 当前使用1号武器位
-				equipIndex = 1
-			} else {
-				// 装备到0号武器位
-				equipIndex = 0
-			}
-		}
-	} else if template.ItemType == ffEnum.EItemTypeMelleeWeapon {
-		// 近战武器
-		equip = true
-		equipIndex = 3
-	} else if template.ItemType == ffEnum.EItemTypeArmor {
-		// 防具
-		equip = true
-		armor := ffGameConfig.ItemData.Armor[prop.Templateid]
-		if armor.EArmorType == ffEnum.EArmorTypeVest {
-			// 防弹衣位
-			equipIndex = 4
-		} else {
-			// 头盔位
-			equipIndex = 5
-		}
-	}
-
-	if equip {
-		/*装备状态
-		0 手上武器放回背部(装备位不变);
-		1 背部武器拿到手上(装备位不变);
-		2 丢弃装备位上的装备(如果装备位正在使用, 则播放丢弃动作, 否则, 背着的装备位上的装备直接消失);(装备位不变);
-		3 从地上捡起装备拿到手上(装备位变更为新捡起的装备的装备位)(装备位上有装备时, 由客户端维护删除);
-		4 从地上捡起装备背到背部(装备位不变)(装备位上有装备时, 由客户端维护删除);
-		5 切换武器位(武器位改变)
-		*/
-		// 修改装备状态, 修改持有的物品, 场景内新增扔掉的物品
-		if agent.equips[equipIndex] != 0 {
-			if err := b.DropEquipProp(agent, equipIndex, message.Position, nil); err != nil {
-				return err
-			}
-		}
-
-		// 装备位状态
-		var state int32
-		agent.equips[equipIndex] = prop.Templateid
-		if template.ItemType != ffEnum.EItemTypeArmor {
-			if agent.activeWeaponIndex == equipIndex { // 武器位不变, 从地上捡起武器拿到手上
-				state = 3
-			} else if agent.equips[agent.activeWeaponIndex] == 0 { // 原先手上为空, 从地上捡起武器, 手上切换到捡起武器所在武器位
-				agent.activeWeaponIndex = equipIndex
-				state = 3
-			} else { // 武器位不变, 从地上捡起武器背到背部
-				state = 4
-			}
-		} else {
-			// 防具状态, 总是为4
-			state = 4
-		}
-
-		// 装备状态
-		EquipState := &ffProto.StBattleEquipState{
-			EquipIndex:      equipIndex,
-			EquipTemplateID: prop.Templateid,
-			EquipState:      state,
-		}
-
-		// 捡取导致装备状态改变
-		message.EquipState = EquipState
-
-		// 广播用户的装备状态改变
-		for _, one := range b.agents {
-			if one.uniqueid != agent.uniqueid {
-				p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleEquipState)
-				m := p.Message().(*ffProto.MsgBattleEquipState)
-				m.Roleuniqueid = agent.uniqueid
-				m.EquipState = EquipState
-				ffProto.SendProtoExtraDataNormal(one, p, false)
-			}
-		}
-	}
-
-	// 删除场景物品
-	delete(b.Props, prop.Uniqueid)
-
-	// 捡成功, 修改持有的物品
-	if _, ok = agent.items[prop.Templateid]; ok {
-		agent.items[prop.Templateid] += prop.ItemData
-	} else {
-		agent.items[prop.Templateid] = prop.ItemData
-	}
-	message.Itemtemplateid, message.ItemData = prop.Templateid, prop.ItemData
-
-	// 广播场景物品移除
-	{
-		for _, agent := range b.agents {
-			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRemoveProp)
-			m := p.Message().(*ffProto.MsgBattleRemoveProp)
-			m.Uniqueid = prop.Uniqueid
-			ffProto.SendProtoExtraDataNormal(agent, p, false)
-		}
-	}
-
-	return nil
-}
-
-// 切换武器
-func (b *battle) SwitchWeapon(agent *agentUser, message *ffProto.MsgBattleSwitchWeapon) error {
-	// 参数无效
-	if message.EquipIndex < 0 || int(message.EquipIndex) >= len(agent.equips) || agent.activeWeaponIndex == message.EquipIndex {
-		return fmt.Errorf("SwitchWeapon invalid equipIndex[%v] activeWeaponIndex[%v] equips[%v]",
-			message.EquipIndex, agent.activeWeaponIndex, agent.equips)
-	}
-
-	// 当前武器位改变
-	agent.activeWeaponIndex = message.EquipIndex
-
-	// 装备状态改变
-	EquipState := &ffProto.StBattleEquipState{
-		EquipIndex:      message.EquipIndex,
-		EquipTemplateID: agent.equips[message.EquipIndex],
-		EquipState:      5,
-	}
-	message.EquipState = EquipState
-
+// 装备状态改变
+func (b *battle) EquipStateChanged(uniqueid int32, equipState *ffProto.StBattleEquipState) {
 	// 广播用户的装备状态改变
 	for _, one := range b.agents {
-		if one.uniqueid != agent.uniqueid {
+		if one.uniqueid != uniqueid {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleEquipState)
 			m := p.Message().(*ffProto.MsgBattleEquipState)
-			m.Roleuniqueid = agent.uniqueid
-			m.EquipState = EquipState
+			m.Roleuniqueid = uniqueid
+			m.EquipState = equipState
 			ffProto.SendProtoExtraDataNormal(one, p, false)
 		}
 	}
-
-	return nil
 }
 
-func (b *battle) Heal(agent *agentUser, healitemtemplateid int32, state int32) error {
-	// 开始
-	if state == 1 {
-		if agent.healitemtemplateid != 0 {
-			return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] conflict with healing healitemtemplateid[%v]",
-				healitemtemplateid, state, agent.healitemtemplateid)
-		}
-
-		ItemData, ok := agent.items[healitemtemplateid]
-		if !ok || ItemData == 0 {
-			return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] not own item",
-				healitemtemplateid, state)
-		}
-
-		template := ffGameConfig.ItemData.ItemTemplate[healitemtemplateid]
-		if template.ItemType != ffEnum.EItemTypeConsumable {
-			return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] not a consumable item",
-				healitemtemplateid, state)
-		}
-
-		agent.healitemtemplateid, agent.healTime = healitemtemplateid, time.Now()
-		return nil
-	}
-
-	// 取消
-	if state == 0 {
-		agent.healitemtemplateid = 0
-		return nil
-	}
-
-	// 结算
-	if state == 2 {
-		if agent.healitemtemplateid == 0 {
-			return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] not in healing",
-				healitemtemplateid, state)
-		}
-		agent.healitemtemplateid = 0
-		agent.health += 20
-
-		// 血量同步
-		{
-			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleHealth)
-			m := p.Message().(*ffProto.MsgBattleRoleHealth)
-			m.Roleuniqueid = agent.uniqueid
-			m.Health = agent.health
-			ffProto.SendProtoExtraDataNormal(agent, p, false)
-		}
-
-		// 扣除道具(根据使用完成, 自行扣除)
-		{
-			// p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleDropProp)
-			// m := p.Message().(*ffProto.MsgBattleDropProp)
-			// m.Roleuniqueid = agent.uniqueid
-			// m.Itemtemplateid = healitemtemplateid
-			// m.Itemnumber = 1
-			// ffProto.SendProtoExtraDataNormal(agent, p, false)
-		}
-	}
-
-	return nil
-}
-
-func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleStartSync)
-
-	UUIDBattle := uuid.NewUUID(message.UUIDBattle)
-	battle, ok := mapBattle[UUIDBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	UUIDToken := uuid.NewUUID(message.UUIDToken)
-	if !battle.Enter(agent, UUIDBattle, UUIDToken) {
-		message.Result = ffError.ErrUnknown.Code()
-	}
-
-	// 反馈
-	message.Uniqueid = agent.uniqueid
-	message.PreloadBattle = battle.PreloadBattle
-	message.PreloadScene = battle.PreloadScene
-	result = ffProto.SendProtoExtraDataNormal(agent, proto, true)
-
-	// 成员列表
-	{
-		p1 := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleMember)
-		m := p1.Message().(*ffProto.MsgBattleMember)
-		m.Members = battle.Members
-		ffProto.SendProtoExtraDataNormal(agent, p1, false)
-	}
-
-	// 战场道具
-	{
-		p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleProp)
-		m := p.Message().(*ffProto.MsgBattleProp)
-		for _, prop := range battle.Props {
-			m.Props = append(m.Props, prop)
-		}
-
-		ffProto.SendProtoExtraDataNormal(agent, p, false)
-	}
-
-	return
-}
-
-func onBattleProtoRunAway(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleRunAway)
-	message.Result = ffError.ErrNone.Code()
-	ffProto.SendProtoExtraDataNormal(agent, proto, true)
-
-	return
-}
-
-// 捡取场景物品
-func onBattleProtoPickProp(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattlePickProp)
-
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	// 捡取
-	err := battle.PickProp(agent, message)
-	message.Itemuniqueid, message.Position = 0, nil
-	if err != nil {
-		message.Result = ffError.ErrUnknown.Code()
-		log.RunLogger.Println(err)
-	}
-
-	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-}
-
-// 丢弃非装备
-func onBattleProtoDropBagProp(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleDropBagProp)
-
-	// 战场不存在或者扔失败
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-	}
-	if err := battle.DropBagItem(agent, message.Itemtemplateid, message.ItemData, message.Position); err != nil {
-		message.Result = ffError.ErrUnknown.Code()
-		log.RunLogger.Println(err)
-	}
-	message.Position = nil
-
-	// 扔成功
-	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-}
-
-// 丢弃装备
-func onBattleProtoDropEquipProp(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleDropEquipProp)
-
-	// 战场不存在或者扔失败
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-	}
-
-	message.EquipState = &ffProto.StBattleEquipState{}
-	if err := battle.DropEquipProp(agent, message.EquipIndex, message.Position, message.EquipState); err != nil {
-		message.Result = ffError.ErrUnknown.Code()
-		log.RunLogger.Println(err)
-	}
-	message.Position = nil
-
-	// 扔成功
-	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-}
-
-// 行为
-func onBattleProtoRoleAction(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleRoleAction)
-
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	for _, one := range battle.agents {
-		if one.uniqueid != agent.uniqueid {
-			p := ffProto.ApplyProtoForSend(proto.ProtoID())
-			m := p.Message().(*ffProto.MsgBattleRoleAction)
-			m.Roleuniqueid = message.Roleuniqueid
-			m.Position = message.Position
-			m.Action = message.Action
-			ffProto.SendProtoExtraDataNormal(one, p, false)
-		}
-	}
-
-	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-}
-
-// 射击开火状态
-func onBattleProtoRoleShootState(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleRoleShootState)
-
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	for _, one := range battle.agents {
-		if one.uniqueid != agent.uniqueid {
-			p := ffProto.ApplyProtoForSend(proto.ProtoID())
-			m := p.Message().(*ffProto.MsgBattleRoleShootState)
-			m.Roleuniqueid = message.Roleuniqueid
-			m.State = message.State
-			ffProto.SendProtoExtraDataNormal(one, p, false)
-		}
-	}
-
-	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-}
-
-// 射击开火
-func onBattleProtoRoleShoot(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleRoleShoot)
-
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	Shootid := battle.shootid
-	for _, one := range battle.agents {
-		if one.uniqueid != agent.uniqueid {
-			p := ffProto.ApplyProtoForSend(proto.ProtoID())
-			m := p.Message().(*ffProto.MsgBattleRoleShoot)
-			m.Roleuniqueid = message.Roleuniqueid
-			m.Shootid = Shootid
-			m.Position = message.Position
-			m.Fireposition = message.Fireposition
-			m.EyeField = message.EyeField
-			ffProto.SendProtoExtraDataNormal(one, p, false)
-		}
-	}
-
-	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-}
-
-// 射击击中
-func onBattleProtoRoleShootHit(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleRoleShootHit)
-
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	for _, agent := range battle.agents {
-		if agent.uniqueid != message.Roleuniqueid {
-			p := ffProto.ApplyProtoForSend(proto.ProtoID())
-			m := p.Message().(*ffProto.MsgBattleRoleShootHit)
-			m.Roleuniqueid = message.Roleuniqueid
-			m.Shootid = message.Shootid
-			m.Targetuniqueid = message.Targetuniqueid
-			m.Endtag = message.Endtag
-			m.Endposition = message.Endposition
-			m.Endnormal = message.Endnormal
-			ffProto.SendProtoExtraDataNormal(agent, p, false)
-		}
-	}
-
-	if message.Targetuniqueid != 0 {
-		battle.ShootHit(agent, message.Shootid, message.Targetuniqueid)
-	}
-
-	// 客户端已进行了预表现, 不需要给客户端返回
-	return
-}
-
-// 移动
-func onBattleProtoRoleMove(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleRoleMove)
-
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	for _, agent := range battle.agents {
-		p := ffProto.ApplyProtoForSend(proto.ProtoID())
-		m := p.Message().(*ffProto.MsgBattleRoleMove)
-		m.Roleuniqueid = message.Roleuniqueid
-		m.Move = message.Move
-		m.SpeedDocument = message.SpeedDocument
-		ffProto.SendProtoExtraDataNormal(agent, p, false)
-	}
-
-	return
-}
-
-// 视野
-func onBattleProtoRoleEyeRotate(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleRoleEyeRotate)
-
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		return false
-	}
-
-	for _, agent := range battle.agents {
-		if agent.uniqueid == message.Roleuniqueid {
-			continue
-		}
-
-		p := ffProto.ApplyProtoForSend(proto.ProtoID())
-		m := p.Message().(*ffProto.MsgBattleRoleEyeRotate)
-		m.Roleuniqueid = message.Roleuniqueid
-		m.EyeRotate = message.EyeRotate
-		ffProto.SendProtoExtraDataNormal(agent, p, false)
-	}
-
-	return
-}
-
-// 治疗
-func onBattleProtoRoleHeal(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleRoleHeal)
-
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-	} else if err := battle.Heal(agent, message.Itemtemplateid, message.State); err != nil {
-		message.Result = ffError.ErrUnknown.Code()
-		log.RunLogger.Println(err)
-	}
-
-	result = ffProto.SendProtoExtraDataNormal(agent, proto, true)
-
-	for _, one := range battle.agents {
-		if one.uniqueid != agent.uniqueid {
-			p := ffProto.ApplyProtoForSend(proto.ProtoID())
+// 治疗状态改变
+func (b *battle) HealStateChanged(uniqueid int32, itemtemplateid int32, state int32) {
+	for _, one := range b.agents {
+		if one.uniqueid != uniqueid {
+			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleHeal)
 			m := p.Message().(*ffProto.MsgBattleRoleHeal)
-			m.Roleuniqueid = message.Roleuniqueid
-			m.Itemtemplateid = message.Itemtemplateid
-			m.State = message.State
+			m.Roleuniqueid = uniqueid
+			m.Itemtemplateid = itemtemplateid
+			m.State = state
 			ffProto.SendProtoExtraDataNormal(one, p, false)
 		}
 	}
 
-	return
+	// // 开始
+	// if state == 1 {
+	// 	if agent.healitemtemplateid != 0 {
+	// 		return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] conflict with healing healitemtemplateid[%v]",
+	// 			healitemtemplateid, state, agent.healitemtemplateid)
+	// 	}
+
+	// 	ItemData, ok := agent.items[healitemtemplateid]
+	// 	if !ok || ItemData == 0 {
+	// 		return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] not own item",
+	// 			healitemtemplateid, state)
+	// 	}
+
+	// 	template := ffGameConfig.ItemData.ItemTemplate[healitemtemplateid]
+	// 	if template.ItemType != ffEnum.EItemTypeConsumable {
+	// 		return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] not a consumable item",
+	// 			healitemtemplateid, state)
+	// 	}
+
+	// 	agent.healitemtemplateid, agent.healTime = healitemtemplateid, time.Now()
+	// 	return nil
+	// }
+
+	// // 取消
+	// if state == 0 {
+	// 	agent.healitemtemplateid = 0
+	// 	return nil
+	// }
+
+	// // 结算
+	// if state == 2 {
+	// 	if agent.healitemtemplateid == 0 {
+	// 		return fmt.Errorf("Heal failed, healitemtemplateid[%v] state[%v] not in healing",
+	// 			healitemtemplateid, state)
+	// 	}
+	// 	agent.healitemtemplateid = 0
+	// 	agent.health += 20
+
+	// 	// 血量同步
+	// 	{
+	// 		p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleHealth)
+	// 		m := p.Message().(*ffProto.MsgBattleRoleHealth)
+	// 		m.Roleuniqueid = agent.uniqueid
+	// 		m.Health = agent.health
+	// 		ffProto.SendProtoExtraDataNormal(agent, p, false)
+	// 	}
+	// }
 }
 
-// 切换武器
-func onBattleProtoSwitchWeapon(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleSwitchWeapon)
-
+func checkBattle(agent *battleUser) (*battle, error) {
 	battle, ok := mapBattle[agent.uuidBattle]
 	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+		return nil, fmt.Errorf("checkBattle failed, agent[%v] uniqueid[%v] uuidBattle[%v]",
+			agent.agent.UUID(), agent.uniqueid, agent.uuidBattle)
 	}
-
-	err := battle.SwitchWeapon(agent, message)
-	if err != nil {
-		message.Result = ffError.ErrUnknown.Code()
-		log.RunLogger.Println(err)
-	}
-
-	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-}
-
-// 战斗作弊指令
-func onBattleProtoCheat(agent *agentUser, proto *ffProto.Proto) (result bool) {
-	message, _ := proto.Message().(*ffProto.MsgBattleCheat)
-
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	if strings.ToLower(message.Cmd) == "settle" {
-		battle.Settle()
-	}
-
-	return
+	return battle, nil
 }
 
 func newBattle(uuidBattle uuid.UUID) *battle {

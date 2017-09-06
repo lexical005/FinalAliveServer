@@ -46,10 +46,10 @@ func (b *battleBorn) GenItemPrepareGroup(config *ffGameConfig.BornPrepareItem, R
 
 			template := ffGameConfig.ItemData.ItemTemplate[Item]
 			if template.ItemType != ffEnum.EItemTypeArmor {
-				battle.NewProp(Item, Number, group.Positions[indexGroup])
+				battle.newProp(Item, Number, group.Positions[indexGroup])
 			} else {
 				armor := ffGameConfig.ItemData.Armor[Item]
-				battle.NewProp(Item, armor.Attrs[ffEnum.EAttrDurable], group.Positions[indexGroup])
+				battle.newProp(Item, armor.Attrs[ffEnum.EAttrDurable], group.Positions[indexGroup])
 			}
 
 			indexGroup++

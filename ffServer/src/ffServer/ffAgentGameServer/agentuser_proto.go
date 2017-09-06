@@ -16,26 +16,7 @@ var mapAgentUserProtoCallback = map[ffProto.MessageType]func(agent *agentUser, p
 	ffProto.MessageType_StartMatch: onProtoStartMatch,
 	ffProto.MessageType_StopMatch:  onProtoStopMatch,
 
-	ffProto.MessageType_BattlePickProp:      onBattleProtoPickProp,
-	ffProto.MessageType_BattleDropBagProp:   onBattleProtoDropBagProp,
-	ffProto.MessageType_BattleDropEquipProp: onBattleProtoDropEquipProp,
-	ffProto.MessageType_BattleSwitchWeapon:  onBattleProtoSwitchWeapon,
-
-	ffProto.MessageType_BattleStartSync: onBattleProtoStartSync,
-	ffProto.MessageType_BattleRunAway:   onBattleProtoRunAway,
-
-	ffProto.MessageType_BattleRoleAction: onBattleProtoRoleAction,
-
-	ffProto.MessageType_BattleRoleShootState: onBattleProtoRoleShootState,
-	ffProto.MessageType_BattleRoleShoot:      onBattleProtoRoleShoot,
-	ffProto.MessageType_BattleRoleShootHit:   onBattleProtoRoleShootHit,
-	ffProto.MessageType_BattleRoleMove:       onBattleProtoRoleMove,
-	ffProto.MessageType_BattleRoleEyeRotate:  onBattleProtoRoleEyeRotate,
-
-	ffProto.MessageType_BattleRoleHeal: onBattleProtoRoleHeal,
-
-	ffProto.MessageType_BattleCheat: onBattleProtoCheat,
-	ffProto.MessageType_PeaceCheat:  onPeaceProtoCheat,
+	ffProto.MessageType_PeaceCheat: onPeaceProtoCheat,
 }
 
 func onProtoEnterGameWorld(agent *agentUser, proto *ffProto.Proto) (result bool) {
