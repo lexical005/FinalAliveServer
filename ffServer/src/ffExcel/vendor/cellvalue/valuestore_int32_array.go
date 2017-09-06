@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var regexpInt32Array = regexp.MustCompile(`([\d]+)`)
+var regexpInt32Array = regexp.MustCompile(`([-\d]+)`)
 
 type valueStoreInt32Array struct {
 	*valueStore
