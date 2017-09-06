@@ -306,9 +306,9 @@ func (b *battle) RemoveSceneProp(uniqueid int32) {
 }
 
 // 场景内新增物品, 通知所有用户
-func (b *battle) AddSceneProp(itemtemplateid, dropItemData int32, Position *ffProto.StVector3) {
+func (b *battle) AddSceneProp(itemtemplateid, itemdata int32, position *ffProto.StVector3) {
 	// 场景添加物品
-	prop := b.newProp(itemtemplateid, dropItemData, Position)
+	prop := b.newProp(itemtemplateid, itemdata, position)
 
 	for _, one := range b.agents {
 		p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleAddProp)
