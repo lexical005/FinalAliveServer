@@ -1,10 +1,13 @@
 package main
 
 import (
+	"ffAutoGen/ffEnum"
 	"ffAutoGen/ffError"
+	"ffAutoGen/ffGameConfig"
 	"ffCommon/log/log"
 	"ffCommon/uuid"
 	"ffProto"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -324,11 +327,12 @@ func onBattleProtoCheat(agent *battleUser, proto *ffProto.Proto) (result bool) {
 	}
 
 	cmd := strings.ToLower(message.Cmd)
+	fmt.Println("onBattleProtoCheat", cmd)
 	if cmd == "settle" {
 		battle.Settle()
-	} else if strings.HasPrefix("item ", " ") {
+	} else if strings.HasPrefix(cmd, "item ") {
 		tmp := strings.Split(cmd, " ")
-		itemtemplate, _ := strconv.Atoi(tmp[1])
+		itemtemplateid, _ := strconv.Atoi(tmp[1])
 		itemdata, _ := strconv.Atoi(tmp[2])
 		x, _ := strconv.Atoi(tmp[3])
 		y, _ := strconv.Atoi(tmp[4])
@@ -338,8 +342,37 @@ func onBattleProtoCheat(agent *battleUser, proto *ffProto.Proto) (result bool) {
 			Y: int64(y),
 			Z: int64(z),
 		}
-		if battle, ok := mapBattle[agent.uuidBattle]; ok {
-			battle.AddSceneProp(int32(itemtemplate), int32(itemdata), pos)
+
+		template, ok := ffGameConfig.ItemData.ItemTemplate[int32(itemtemplateid)]
+		if !ok {
+			fmt.Println("cheat cmd item, invalid itemtemplateid", itemtemplateid)
+			message.Result = ffError.ErrUnknown.Code()
+			return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+		}
+
+		if template.ItemType == ffEnum.EItemTypeGunWeapon ||
+			template.ItemType == ffEnum.EItemTypeAttachment ||
+			template.ItemType == ffEnum.EItemTypeConsumable ||
+			template.ItemType == ffEnum.EItemTypeThrowable ||
+			template.ItemType == ffEnum.EItemTypeMelleeWeapon {
+			battle.AddSceneProp(int32(itemtemplateid), 1, pos)
+
+		} else if template.ItemType == ffEnum.EItemTypeAmmunition {
+			if itemdata < 1 || itemdata > 300 {
+				fmt.Println("cheat cmd item, invalid ammunition itemdata", itemdata)
+				message.Result = ffError.ErrUnknown.Code()
+				return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+			}
+			battle.AddSceneProp(int32(itemtemplateid), int32(itemdata), pos)
+
+		} else if template.ItemType == ffEnum.EItemTypeArmor {
+			armor := ffGameConfig.ItemData.Armor[int32(itemtemplateid)]
+			if itemdata < 1 || int32(itemdata) > armor.Attrs[ffEnum.EAttrDurable] {
+				fmt.Println("cheat cmd item, invalid armor itemdata", itemdata)
+				message.Result = ffError.ErrUnknown.Code()
+				return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+			}
+			battle.AddSceneProp(int32(itemtemplateid), int32(itemdata), pos)
 		}
 	}
 
