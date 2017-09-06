@@ -5,6 +5,7 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/uuid"
 	"ffProto"
+	"strconv"
 	"strings"
 )
 
@@ -322,8 +323,24 @@ func onBattleProtoCheat(agent *battleUser, proto *ffProto.Proto) (result bool) {
 		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
 	}
 
-	if strings.ToLower(message.Cmd) == "settle" {
+	cmd := strings.ToLower(message.Cmd)
+	if cmd == "settle" {
 		battle.Settle()
+	} else if strings.HasPrefix("item ", " ") {
+		tmp := strings.Split(cmd, " ")
+		itemtemplate, _ := strconv.Atoi(tmp[1])
+		itemdata, _ := strconv.Atoi(tmp[2])
+		x, _ := strconv.Atoi(tmp[3])
+		y, _ := strconv.Atoi(tmp[4])
+		z, _ := strconv.Atoi(tmp[5])
+		pos := &ffProto.StVector3{
+			X: int64(x),
+			Y: int64(y),
+			Z: int64(z),
+		}
+		if battle, ok := mapBattle[agent.uuidBattle]; ok {
+			battle.AddSceneProp(int32(itemtemplate), int32(itemdata), pos)
+		}
 	}
 
 	return
