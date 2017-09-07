@@ -45,23 +45,18 @@ func onProtoMatchResult(server *matchServer, proto *ffProto.Proto) (result bool)
 
 func onProtoServerNewBattle(server *matchServer, proto *ffProto.Proto) (result bool) {
 	message := proto.Message().(*ffProto.MsgServerNewBattle)
-	battle := newBattle(uuid.NewUUID(message.UUIDBattle))
-	battle.Init(message.UserTokens)
+	instBattleGameWorld.NewScene(message)
 	return false
 }
 
 func onProtoServerBattleMemberEnter(server *matchServer, proto *ffProto.Proto) (result bool) {
 	message := proto.Message().(*ffProto.MsgServerBattleUserEnter)
-	if battle, ok := mapBattle[uuid.NewUUID(message.UUIDBattle)]; ok {
-		battle.AddToken(message.UserToken)
-	}
+	instBattleGameWorld.OnUserEnterScene(message)
 	return
 }
 
 func onProtoServerBattleMemberLeave(server *matchServer, proto *ffProto.Proto) (result bool) {
-	message := proto.Message().(*ffProto.MsgServerBattleUserEnter)
-	if battle, ok := mapBattle[uuid.NewUUID(message.UUIDBattle)]; ok {
-		battle.RemoveToken(message.UserToken)
-	}
+	message := proto.Message().(*ffProto.MsgServerBattleUserLeave)
+	instBattleGameWorld.OnUserLeaveScene(message)
 	return
 }

@@ -6,8 +6,17 @@ import (
 	"time"
 )
 
+type battleStatus byte
+
+const (
+	battleStatusAlive battleStatus = iota
+	battleStatusDead
+	battleStatusRunAway
+)
+
 type battleUser struct {
-	agent *agentUser
+	agent  *agentUser
+	status battleStatus
 
 	member     *ffProto.StBattleMember
 	uuidBattle uuid.UUID // 战场
@@ -39,7 +48,7 @@ func (agent *battleUser) SendProtoExtraDataNormal(proto *ffProto.Proto) bool {
 
 // 修改持有的物品, 场景内新增扔掉的物品
 func (agent *battleUser) DropBagItem(itemtemplateid, dropItemData int32, position *ffProto.StVector3) error {
-	battle, err := checkBattle(agent)
+	battle, err := instBattleGameWorld.CheckBattle(agent)
 	if err != nil {
 		return err
 	}
@@ -54,7 +63,7 @@ func (agent *battleUser) DropBagItem(itemtemplateid, dropItemData int32, positio
 
 // 修改装备状态, 修改持有的物品, 场景内新增扔掉的物品
 func (agent *battleUser) DropEquip(message *ffProto.MsgBattleDropEquipProp) error {
-	battle, err := checkBattle(agent)
+	battle, err := instBattleGameWorld.CheckBattle(agent)
 	if err != nil {
 		return err
 	}
@@ -72,7 +81,7 @@ func (agent *battleUser) DropEquip(message *ffProto.MsgBattleDropEquipProp) erro
 
 // 捡取场景里的物品
 func (agent *battleUser) PickProp(message *ffProto.MsgBattlePickProp) error {
-	battle, err := checkBattle(agent)
+	battle, err := instBattleGameWorld.CheckBattle(agent)
 	if err != nil {
 		return err
 	}
@@ -101,7 +110,7 @@ func (agent *battleUser) PickProp(message *ffProto.MsgBattlePickProp) error {
 
 // 切换武器
 func (agent *battleUser) SwitchWeapon(message *ffProto.MsgBattleSwitchWeapon) error {
-	battle, err := checkBattle(agent)
+	battle, err := instBattleGameWorld.CheckBattle(agent)
 	if err != nil {
 		return err
 	}
@@ -118,9 +127,82 @@ func (agent *battleUser) SwitchWeapon(message *ffProto.MsgBattleSwitchWeapon) er
 	return nil
 }
 
+// 移动
+func (agent *battleUser) RoleMove(message *ffProto.MsgBattleRoleMove) error {
+	battle, err := instBattleGameWorld.CheckBattle(agent)
+	if err != nil {
+		return err
+	}
+
+	battle.RoleMove(agent.uniqueid, message)
+	return nil
+}
+
+// 视野
+func (agent *battleUser) RoleEyeRotate(message *ffProto.MsgBattleRoleEyeRotate) error {
+	battle, err := instBattleGameWorld.CheckBattle(agent)
+	if err != nil {
+		return err
+	}
+
+	battle.RoleEyeRotate(agent.uniqueid, message)
+	return nil
+}
+
+// 行为
+func (agent *battleUser) RoleAction(message *ffProto.MsgBattleRoleAction) error {
+	battle, err := instBattleGameWorld.CheckBattle(agent)
+	if err != nil {
+		return err
+	}
+
+	battle.RoleAction(agent.uniqueid, message)
+	return nil
+}
+
+// 射击状态
+func (agent *battleUser) RoleShootState(message *ffProto.MsgBattleRoleShootState) error {
+	battle, err := instBattleGameWorld.CheckBattle(agent)
+	if err != nil {
+		return err
+	}
+
+	battle.RoleShootState(agent.uniqueid, message)
+	return nil
+}
+
+// 射击
+func (agent *battleUser) RoleShoot(message *ffProto.MsgBattleRoleShoot) error {
+	battle, err := instBattleGameWorld.CheckBattle(agent)
+	if err != nil {
+		return err
+	}
+
+	battle.RoleShoot(agent.uniqueid, message)
+	return nil
+}
+
+// 射击结果
+func (agent *battleUser) RoleShootHit(message *ffProto.MsgBattleRoleShootHit) error {
+	battle, err := instBattleGameWorld.CheckBattle(agent)
+	if err != nil {
+		return err
+	}
+
+	// 广播击中表现
+	battle.RoleShootHit(agent.uniqueid, message)
+
+	// 处理击中逻辑
+	if message.Targetuniqueid != 0 {
+		battle.OnShootHit(agent, message.Shootid, message.Targetuniqueid)
+	}
+
+	return nil
+}
+
 // 治疗开始
 func (agent *battleUser) HealStart(message *ffProto.MsgBattleRoleHeal) error {
-	battle, err := checkBattle(agent)
+	battle, err := instBattleGameWorld.CheckBattle(agent)
 	if err != nil {
 		return err
 	}
@@ -137,7 +219,7 @@ func (agent *battleUser) HealStart(message *ffProto.MsgBattleRoleHeal) error {
 
 // 治疗中断
 func (agent *battleUser) HealCancel(message *ffProto.MsgBattleRoleHeal) error {
-	battle, err := checkBattle(agent)
+	battle, err := instBattleGameWorld.CheckBattle(agent)
 	if err != nil {
 		return err
 	}
@@ -154,7 +236,7 @@ func (agent *battleUser) HealCancel(message *ffProto.MsgBattleRoleHeal) error {
 
 // 治疗结算
 func (agent *battleUser) HealSettle(message *ffProto.MsgBattleRoleHeal) error {
-	battle, err := checkBattle(agent)
+	battle, err := instBattleGameWorld.CheckBattle(agent)
 	if err != nil {
 		return err
 	}
@@ -171,10 +253,12 @@ func (agent *battleUser) HealSettle(message *ffProto.MsgBattleRoleHeal) error {
 
 // 逃跑(主动逃跑, 断线)
 func (agent *battleUser) RunAway() error {
-	battle, err := checkBattle(agent)
+	battle, err := instBattleGameWorld.CheckBattle(agent)
 	if err != nil {
 		return err
 	}
+
+	agent.status = battleStatusRunAway
 
 	// 逃跑
 	battle.RunAway(agent)
@@ -183,7 +267,8 @@ func (agent *battleUser) RunAway() error {
 
 func newBattleUser(agent *agentUser, uuidBattle uuid.UUID, member *ffProto.StBattleMember) *battleUser {
 	return &battleUser{
-		agent: agent,
+		agent:  agent,
+		status: battleStatusAlive,
 
 		member:     member,
 		uuidBattle: uuidBattle,

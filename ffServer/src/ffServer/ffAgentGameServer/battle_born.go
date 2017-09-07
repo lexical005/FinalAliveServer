@@ -20,7 +20,7 @@ type battleBorn struct {
 	randItemPrepareGroups map[int32]*bornGroup
 }
 
-func (b *battleBorn) GenItemPrepareGroup(config *ffGameConfig.BornPrepareItem, Rand *rand.Rand, battle *battle) (err error) {
+func (b *battleBorn) GenItemPrepareGroup(config *ffGameConfig.BornPrepareItem, Rand *rand.Rand, battle *battleScene) (err error) {
 	key := config.Area*1000 + config.Group
 
 	ItemBase, ok := ffGameConfig.RandBornData.ItemBase[config.ItemBase]

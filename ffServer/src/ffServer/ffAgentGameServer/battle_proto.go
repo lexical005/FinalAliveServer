@@ -54,7 +54,7 @@ func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool
 
 	uuidBattle := uuid.NewUUID(message.UUIDBattle)
 	uuidToken := uuid.NewUUID(message.UUIDToken)
-	battle, ok := mapBattle[uuidBattle]
+	battle, ok := instBattleGameWorld.mapScene[uuidBattle]
 
 	if !ok {
 		message.Result = ffError.ErrUnknown.Code()
@@ -156,21 +156,9 @@ func onBattleProtoDropEquipProp(agent *battleUser, proto *ffProto.Proto) (result
 func onBattleProtoRoleAction(agent *battleUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleRoleAction)
 
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
+	if err := agent.RoleAction(message); err != nil {
 		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	for _, one := range battle.agents {
-		if one.uniqueid != agent.uniqueid {
-			p := ffProto.ApplyProtoForSend(proto.ProtoID())
-			m := p.Message().(*ffProto.MsgBattleRoleAction)
-			m.Roleuniqueid = message.Roleuniqueid
-			m.Position = message.Position
-			m.Action = message.Action
-			ffProto.SendProtoExtraDataNormal(one, p, false)
-		}
+		log.RunLogger.Println(err)
 	}
 
 	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
@@ -180,20 +168,9 @@ func onBattleProtoRoleAction(agent *battleUser, proto *ffProto.Proto) (result bo
 func onBattleProtoRoleShootState(agent *battleUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleRoleShootState)
 
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
+	if err := agent.RoleShootState(message); err != nil {
 		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	for _, one := range battle.agents {
-		if one.uniqueid != agent.uniqueid {
-			p := ffProto.ApplyProtoForSend(proto.ProtoID())
-			m := p.Message().(*ffProto.MsgBattleRoleShootState)
-			m.Roleuniqueid = message.Roleuniqueid
-			m.State = message.State
-			ffProto.SendProtoExtraDataNormal(one, p, false)
-		}
+		log.RunLogger.Println(err)
 	}
 
 	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
@@ -203,24 +180,9 @@ func onBattleProtoRoleShootState(agent *battleUser, proto *ffProto.Proto) (resul
 func onBattleProtoRoleShoot(agent *battleUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleRoleShoot)
 
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
+	if err := agent.RoleShoot(message); err != nil {
 		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	Shootid := battle.shootid
-	for _, one := range battle.agents {
-		if one.uniqueid != agent.uniqueid {
-			p := ffProto.ApplyProtoForSend(proto.ProtoID())
-			m := p.Message().(*ffProto.MsgBattleRoleShoot)
-			m.Roleuniqueid = message.Roleuniqueid
-			m.Shootid = Shootid
-			m.Position = message.Position
-			m.Fireposition = message.Fireposition
-			m.EyeField = message.EyeField
-			ffProto.SendProtoExtraDataNormal(one, p, false)
-		}
+		log.RunLogger.Println(err)
 	}
 
 	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
@@ -230,28 +192,9 @@ func onBattleProtoRoleShoot(agent *battleUser, proto *ffProto.Proto) (result boo
 func onBattleProtoRoleShootHit(agent *battleUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleRoleShootHit)
 
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
+	if err := agent.RoleShootHit(message); err != nil {
 		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
-	}
-
-	for _, agent := range battle.agents {
-		if agent.uniqueid != message.Roleuniqueid {
-			p := ffProto.ApplyProtoForSend(proto.ProtoID())
-			m := p.Message().(*ffProto.MsgBattleRoleShootHit)
-			m.Roleuniqueid = message.Roleuniqueid
-			m.Shootid = message.Shootid
-			m.Targetuniqueid = message.Targetuniqueid
-			m.Endtag = message.Endtag
-			m.Endposition = message.Endposition
-			m.Endnormal = message.Endnormal
-			ffProto.SendProtoExtraDataNormal(agent, p, false)
-		}
-	}
-
-	if message.Targetuniqueid != 0 {
-		battle.ShootHit(agent, message.Shootid, message.Targetuniqueid)
+		log.RunLogger.Println(err)
 	}
 
 	// 客户端已进行了预表现, 不需要给客户端返回
@@ -262,45 +205,23 @@ func onBattleProtoRoleShootHit(agent *battleUser, proto *ffProto.Proto) (result 
 func onBattleProtoRoleMove(agent *battleUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleRoleMove)
 
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
+	if err := agent.RoleMove(message); err != nil {
 		message.Result = ffError.ErrUnknown.Code()
-		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+		log.RunLogger.Println(err)
 	}
 
-	for _, agent := range battle.agents {
-		p := ffProto.ApplyProtoForSend(proto.ProtoID())
-		m := p.Message().(*ffProto.MsgBattleRoleMove)
-		m.Roleuniqueid = message.Roleuniqueid
-		m.Move = message.Move
-		m.SpeedDocument = message.SpeedDocument
-		ffProto.SendProtoExtraDataNormal(agent, p, false)
-	}
-
-	return
+	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
 }
 
 // 视野
 func onBattleProtoRoleEyeRotate(agent *battleUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleRoleEyeRotate)
 
-	battle, ok := mapBattle[agent.uuidBattle]
-	if !ok {
-		return false
+	if err := agent.RoleEyeRotate(message); err != nil {
+		log.RunLogger.Println(err)
 	}
 
-	for _, agent := range battle.agents {
-		if agent.uniqueid == message.Roleuniqueid {
-			continue
-		}
-
-		p := ffProto.ApplyProtoForSend(proto.ProtoID())
-		m := p.Message().(*ffProto.MsgBattleRoleEyeRotate)
-		m.Roleuniqueid = message.Roleuniqueid
-		m.EyeRotate = message.EyeRotate
-		ffProto.SendProtoExtraDataNormal(agent, p, false)
-	}
-
+	// 客户端已进行了预表现, 不需要给客户端返回
 	return
 }
 
@@ -335,7 +256,7 @@ func onBattleProtoSwitchWeapon(agent *battleUser, proto *ffProto.Proto) (result 
 func onBattleProtoCheat(agent *battleUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleCheat)
 
-	battle, ok := mapBattle[agent.uuidBattle]
+	battle, ok := instBattleGameWorld.mapScene[agent.uuidBattle]
 	if !ok {
 		message.Result = ffError.ErrUnknown.Code()
 		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
