@@ -32,7 +32,7 @@ func (s *tcpServer) Start(chNewSession chan base.Session, chServerClosed chan st
 	// 建立监听
 	listener, err := net.ListenTCP("tcp", s.tcpAddr)
 	if err != nil {
-		return fmt.Errorf("tcpServer.Start ListenTCP failed err[%v]: %v", err, s)
+		return fmt.Errorf("tcpServer[%v].Start ListenTCP failed err[%v]", s, err)
 	}
 
 	s.listener = listener
@@ -43,7 +43,7 @@ func (s *tcpServer) Start(chNewSession chan base.Session, chServerClosed chan st
 
 	s.working = true
 
-	log.RunLogger.Printf("tcpServer.Start: %v", s)
+	log.RunLogger.Printf("tcpServer[%v].Start", s)
 
 	// tcpServer loop
 	go util.SafeGo(s.mainAccept, s.mainAcceptEnd)
@@ -53,7 +53,7 @@ func (s *tcpServer) Start(chNewSession chan base.Session, chServerClosed chan st
 
 // StopAccept 关闭服务器, 只应在关闭服务器进程时调用
 func (s *tcpServer) StopAccept() {
-	log.RunLogger.Printf("tcpServer.Close: %v", s)
+	log.RunLogger.Printf("tcpServer[%v].Close", s)
 
 	// 立即标识停止工作
 	s.working = false
@@ -69,7 +69,7 @@ func (s *tcpServer) StopAccept() {
 
 // Back 回收Server资源, 只应在Start失败或者外界通过chServerClose接收到可回收事件之后下执行
 func (s *tcpServer) Back() {
-	log.RunLogger.Printf("tcpServer.mainSession Back: %v", s)
+	log.RunLogger.Printf("tcpServer[%v].mainSession Back", s)
 
 	// 不再引用外界管道
 	s.chNewSession, s.chServerClosed = nil, nil
@@ -90,12 +90,12 @@ func (s *tcpServer) UUID() uuid.UUID {
 
 // String 返回Server的自我描述
 func (s *tcpServer) String() string {
-	return fmt.Sprintf(`%p uuidServer[%v]`, s, s.uuid)
+	return fmt.Sprintf(`%p:%v`, s, s.uuid)
 }
 
 // mainAccept 接受客户端连接请求
 func (s *tcpServer) mainAccept(params ...interface{}) {
-	log.RunLogger.Printf("tcpServer.mainAccept: %v", s)
+	log.RunLogger.Printf("tcpServer[%v].mainAccept", s)
 
 	var tempDelay time.Duration
 	for {
@@ -119,7 +119,7 @@ func (s *tcpServer) mainAccept(params ...interface{}) {
 				tempDelay = max
 			}
 
-			log.RunLogger.Printf("tcpServer.mainAccept Accept error[%v], retry in [%v] milisecond: %v", err, tempDelay, s)
+			log.RunLogger.Printf("tcpServer[%v].mainAccept Accept error[%v], retry in [%v] milisecond", s, err, tempDelay)
 
 			time.Sleep(tempDelay)
 
@@ -134,7 +134,7 @@ func (s *tcpServer) mainAccept(params ...interface{}) {
 		// 创建session
 		sess := tcpsession.Apply(conn)
 
-		log.RunLogger.Printf("tcpServer.mainAccept accept session[%v]: %v", sess, s)
+		log.RunLogger.Printf("tcpServer[%v].mainAccept accept session[%v]", s, sess)
 
 		// 向外界通知
 		s.chNewSession <- sess
@@ -143,7 +143,7 @@ func (s *tcpServer) mainAccept(params ...interface{}) {
 
 // mainAcceptEnd 接受客户端连接彻底退出了
 func (s *tcpServer) mainAcceptEnd(isPanic bool) {
-	log.RunLogger.Printf("tcpServer.mainAcceptEnd isPanic[%v]: %v", isPanic, s)
+	log.RunLogger.Printf("tcpServer[%v].mainAcceptEnd isPanic[%v]", s, isPanic)
 
 	// 退出完成
 	s.chServerClosed <- struct{}{}

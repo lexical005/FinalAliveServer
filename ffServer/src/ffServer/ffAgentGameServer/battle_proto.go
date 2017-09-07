@@ -56,8 +56,15 @@ func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool
 	uuidToken := uuid.NewUUID(message.UUIDToken)
 	battle, ok := mapBattle[uuidBattle]
 
-	if !ok || !battle.Enter(agent, uuidBattle, uuidToken) {
+	if !ok {
 		message.Result = ffError.ErrUnknown.Code()
+		log.RunLogger.Printf("onBattleProtoStartSync uuidBattle[%v] not exist", uuidBattle)
+		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+	}
+
+	if err := battle.Enter(agent, uuidToken); err != nil {
+		message.Result = ffError.ErrUnknown.Code()
+		log.RunLogger.Println(err)
 		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
 	}
 
@@ -71,7 +78,9 @@ func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool
 	{
 		p1 := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleMember)
 		m := p1.Message().(*ffProto.MsgBattleMember)
-		m.Members = battle.Members
+		for _, agent := range battle.agents {
+			m.Members = append(m.Members, agent.member)
+		}
 		ffProto.SendProtoExtraDataNormal(agent, p1, false)
 	}
 
@@ -90,6 +99,12 @@ func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool
 
 // 逃跑
 func onBattleProtoRunAway(agent *battleUser, proto *ffProto.Proto) (result bool) {
+	if err := agent.RunAway(); err != nil {
+		message, _ := proto.Message().(*ffProto.MsgBattleRunAway)
+		message.Result = ffError.ErrUnknown.Code()
+		log.RunLogger.Println(err)
+	}
+
 	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
 }
 

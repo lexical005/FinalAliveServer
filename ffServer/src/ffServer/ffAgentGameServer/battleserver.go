@@ -29,8 +29,6 @@ type battle struct {
 
 	agents map[int32]*battleUser
 
-	Members []*ffProto.StBattleMember
-
 	uniqueids []int32
 
 	totalCount int32
@@ -118,8 +116,6 @@ func (b *battle) Init(uuidTokens []uint64) {
 
 	b.agents = make(map[int32]*battleUser, 50)
 
-	b.Members = make([]*ffProto.StBattleMember, 0, maxRoleCount)
-
 	b.uniqueids = make([]int32, 50)
 	for i := 0; i < len(b.uniqueids); i++ {
 		b.uniqueids[i] = int32(4*i) + 1 + b.Rand.Int31n(4) // [4n, 4n+1)
@@ -165,17 +161,16 @@ func (b *battle) RemoveToken(token uint64) {
 	}
 }
 
-func (b *battle) Enter(agent *agentUser, uuidBattle, uuidToken uuid.UUID) bool {
+// 用户进入
+func (b *battle) Enter(agent *agentUser, uuidToken uuid.UUID) error {
 	for i, token := range b.uuidTokens {
 		if token == uuidToken {
 			b.uuidTokens = append(b.uuidTokens[:i], b.uuidTokens[i+1:]...)
 
 			member := b.newMember()
 
-			battleUser := newBattleUser(agent, uuidBattle, member.Uniqueid)
+			battleUser := newBattleUser(agent, b.uuidBattle, member)
 			agent.battleUser = battleUser
-
-			b.Members = append(b.Members, member)
 
 			// 新增成员
 			for _, agent := range b.agents {
@@ -188,16 +183,31 @@ func (b *battle) Enter(agent *agentUser, uuidBattle, uuidToken uuid.UUID) bool {
 			b.agents[battleUser.uniqueid] = agent.battleUser
 			b.totalCount++
 			b.aliveCount++
-			return true
+			log.RunLogger.Printf("Enter agent[%v] uuidToken[%v] success, left uuidTokens[%v]",
+				agent.UUID(), uuidToken, b.uuidTokens)
+			return nil
 		}
 	}
-	return false
+	return fmt.Errorf("Enter agent[%v] can not find uuidToken[%v] or used, valid uuidTokens[%v]",
+		agent.UUID(), uuidToken, b.uuidTokens)
 }
 
-func (b *battle) Shoot(agent *battleUser, shootid int32) {
+// 用户逃跑
+func (b *battle) RunAway(agent *battleUser) {
+	for _, one := range b.agents {
+		if one.uniqueid != agent.uniqueid {
+			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRunAway)
+			m := p.Message().(*ffProto.MsgBattleRunAway)
+			m.Roleuniqueid = agent.uniqueid
+			ffProto.SendProtoExtraDataNormal(one, p, false)
+		}
+	}
 
+	// 移除记录
+	delete(b.agents, agent.uniqueid)
 }
 
+// 击中
 func (b *battle) ShootHit(agent *battleUser, shootid int32, Targetuniqueid int32) {
 	if Targetuniqueid == 0 {
 		return

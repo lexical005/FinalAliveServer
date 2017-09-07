@@ -39,6 +39,11 @@ func (agent *agentUser) OnDisConnect() {
 		proto := ffProto.ApplyProtoForSend(ffProto.MessageType_LeaveMatchServer)
 		ffProto.SendProtoExtraDataUUID(instMatchServerClient, agent.UUID(), proto, false)
 	}
+
+	// 在战场, 则退出
+	if agent.battleUser != nil {
+		agent.battleUser.RunAway()
+	}
 }
 
 // OnProto 收到Proto

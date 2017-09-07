@@ -29,7 +29,7 @@ func (p *Proto) setBuf(buf []byte) {
 }
 
 func (p *Proto) back() {
-	log.RunLogger.Printf("Proto.back: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].back: %v", p, p)
 
 	if p.msg != nil {
 		p.useState, p.limitState = useStateNone, limitStateInvalid
@@ -47,7 +47,7 @@ func (p *Proto) back() {
 
 // BackAfterRecv 在接收完协议后, 尝试回收(比如解析失败时)
 func (p *Proto) BackAfterRecv() {
-	log.RunLogger.Printf("Proto.BackAfterRecv: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].BackAfterRecv: %v", p, p)
 	if p.useState == useStateRecv && p.msg != nil {
 		p.back()
 	}
@@ -55,7 +55,7 @@ func (p *Proto) BackAfterRecv() {
 
 // BackAfterSend 在底层发送协议后, 尝试回收
 func (p *Proto) BackAfterSend() {
-	log.RunLogger.Printf("Proto.BackAfterSend: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].BackAfterSend: %v", p, p)
 	if p.useState == useStateSend && p.msg != nil {
 		p.back()
 	}
@@ -63,7 +63,7 @@ func (p *Proto) BackAfterSend() {
 
 // BackAfterDispatch 缓存分发后, 不再需要时, 尝试回收
 func (p *Proto) BackAfterDispatch() {
-	log.RunLogger.Printf("Proto.BackAfterDispatch: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].BackAfterDispatch: %v", p, p)
 	if p.useState == useStateCacheWaitDispatch && p.msg != nil {
 		p.back()
 	}
@@ -71,7 +71,7 @@ func (p *Proto) BackAfterDispatch() {
 
 // BackForce 强制回收, 慎用!!
 func (p *Proto) BackForce() {
-	log.RunLogger.Printf("Proto.BackForce: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].BackForce: %v", p, p)
 	p.back()
 }
 
@@ -163,7 +163,7 @@ func (p *Proto) OnRecvAllBytes(header *ProtoHeader) error {
 // 此方法在Proto使用期间内，只应该被调用一次
 // 一旦调用此接口, 则认为外界需要修改协议内容, 则在转发协议时, 需要重新序列化协议内容到字节流
 func (p *Proto) Unmarshal() error {
-	log.RunLogger.Printf("Proto.Unmarshal: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].Unmarshal: %v", p, p)
 
 	p.msgNeedMarshal = true
 	return p.pb.Unmarshal(p.msg)
@@ -173,7 +173,7 @@ func (p *Proto) Unmarshal() error {
 // 此方法在Proto使用期间内，只应该被调用一次
 // 设置协议内容Message完毕后, 发送前夕, 调用此接口, 以生成待发送的字节流
 func (p *Proto) Marshal(header *ProtoHeader) (err error) {
-	log.RunLogger.Printf("Proto.Marshal: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].Marshal: %v", p, p)
 
 	var contentBuf []byte
 
@@ -245,7 +245,7 @@ func (p *Proto) ExtraData() (extraData uint64) {
 // SetExtraDataUUID 发送协议前, 必须设置附加数据类型及数据, 为发送而申请的协议, 其默认附加数据类型是ExtraDataTypeNormal
 //	extraData: 附加数据
 func (p *Proto) SetExtraDataUUID(extraData uint64) {
-	log.RunLogger.Printf("Proto.SetExtraDataUUID: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].SetExtraDataUUID: %v", p, p)
 
 	if p.limitState == limitStateSend {
 		p.useState, p.limitState = useStateSend, limitStateInvalid
@@ -260,31 +260,31 @@ func (p *Proto) SetExtraDataUUID(extraData uint64) {
 		p.extraData[6] = byte(extraData >> 8)
 		p.extraData[7] = byte(extraData)
 	} else {
-		log.FatalLogger.Printf("Proto.SetExtraDataUUID invalid limitState: %v", p)
+		log.FatalLogger.Printf("ffProto.Proto[%p].SetExtraDataUUID invalid limitState: %v", p, p)
 	}
 }
 
 // SetExtraDataNormal 发送协议前, 必须设置附加数据类型及数据, 为发送而申请的协议, 其默认附加数据类型是ExtraDataTypeNormal
 //	extraData: 附加数据
 func (p *Proto) SetExtraDataNormal() {
-	log.RunLogger.Printf("Proto.SetExtraDataNormal: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].SetExtraDataNormal: %v", p, p)
 
 	if p.limitState == limitStateSend {
 		p.useState, p.limitState = useStateSend, limitStateInvalid
 		p.extraDataType = ExtraDataTypeNormal
 	} else {
-		log.FatalLogger.Printf("Proto.SetExtraDataNormal invalid limitState: %v", p)
+		log.FatalLogger.Printf("ffProto.Proto[%p].SetExtraDataNormal invalid limitState: %v", p, p)
 	}
 }
 
 // SetCacheWaitDispatch 协议被缓存以待分发
 func (p *Proto) SetCacheWaitDispatch() {
-	log.RunLogger.Printf("Proto.SetCacheWaitDispatch: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].SetCacheWaitDispatch: %v", p, p)
 
 	if p.limitState == limitStateRecv {
 		p.useState = useStateCacheWaitDispatch
 	} else {
-		log.FatalLogger.Printf("Proto.SetCacheWaitDispatch invalid limitState: %v", p)
+		log.FatalLogger.Printf("ffProto.Proto[%p].SetCacheWaitDispatch invalid limitState: %v", p, p)
 	}
 }
 
@@ -294,23 +294,23 @@ func (p *Proto) SetCacheWaitDispatch() {
 //	2. 协议最终会被返回给客户端或者转发给其他服务端
 // 在异步查询结果出来前，如果需要销毁，允许执行强制回收。
 func (p *Proto) SetCacheWaitSend() {
-	log.RunLogger.Printf("Proto.SetCacheWaitSend: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].SetCacheWaitSend: %v", p, p)
 
 	if p.limitState == limitStateSend {
 		p.useState = useStateCacheWaitSend
 	} else {
-		log.FatalLogger.Printf("Proto.SetCacheWaitSend invalid limitState: %v", p)
+		log.FatalLogger.Printf("ffProto.Proto[%p].SetCacheWaitSend invalid limitState: %v", p, p)
 	}
 }
 
 // ChangeLimitStateRecvToSend 将limitState从limitStateRecv转到limitStateSend, 你要明白, 此操作意味着什么!
 func (p *Proto) ChangeLimitStateRecvToSend() {
-	log.RunLogger.Printf("Proto.ChangeLimitStateRecvToSend: %v", p)
+	log.RunLogger.Printf("ffProto.Proto[%p].ChangeLimitStateRecvToSend: %v", p, p)
 
 	if p.limitState == limitStateRecv {
 		p.limitState = limitStateSend
 	} else {
-		log.FatalLogger.Printf("Proto.ChangeLimitStateRecvToSend invalid limitState: %v", p)
+		log.FatalLogger.Printf("ffProto.Proto[%p].ChangeLimitStateRecvToSend invalid limitState: %v", p, p)
 	}
 }
 

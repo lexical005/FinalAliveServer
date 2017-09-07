@@ -60,7 +60,7 @@ func (s *tcpSession) Start(chSendProto chan *ffProto.Proto, chNetEventData chan 
 
 	s.chNetEventData, s.chSendProto = chNetEventData, chSendProto
 
-	log.RunLogger.Printf("tcpSession.Start: %v", s)
+	log.RunLogger.Printf("tcpSession[%v].Start", s)
 
 	s.chNetEventData <- newSessionNetEventOn(s)
 
@@ -83,7 +83,7 @@ func (s *tcpSession) Close() {
 }
 
 func (s *tcpSession) String() string {
-	return fmt.Sprintf(`%p uuidSession[%v]`, s, s.uuid)
+	return fmt.Sprintf(`%p:%v`, s, s.uuid)
 }
 
 // setConn 设置底层连接对象
@@ -92,7 +92,7 @@ func (s *tcpSession) setConn(conn net.Conn) {
 }
 
 func (s *tcpSession) mainSend(params ...interface{}) {
-	log.RunLogger.Printf("tcpSession.mainSend: %v", s)
+	log.RunLogger.Printf("tcpSession[%v].mainSend", s)
 
 	for {
 		select {
@@ -104,7 +104,7 @@ func (s *tcpSession) mainSend(params ...interface{}) {
 			if proto == nil {
 				// 标识主动退出
 				s.manualClose = true
-				log.RunLogger.Printf("tcpSession.mainSend start quit: %v", s)
+				log.RunLogger.Printf("tcpSession[%v].mainSend start quit", s)
 				return
 			} else if !s.doSend(proto) {
 				return
@@ -133,7 +133,7 @@ func (s *tcpSession) mainSend(params ...interface{}) {
 }
 
 func (s *tcpSession) mainSendEnd(isPanic bool) {
-	log.RunLogger.Printf("tcpSession.mainSendEnd isPanic[%v]: %v", isPanic, s)
+	log.RunLogger.Printf("tcpSession[%v].mainSendEnd isPanic[%v]", s, isPanic)
 
 	s.chWaitRecvSendGoroutineExit <- struct{}{}
 
@@ -147,7 +147,7 @@ func (s *tcpSession) doSend(p *ffProto.Proto) bool {
 
 	err := p.Marshal(s.sendProtoHeader)
 	if err != nil {
-		log.RunLogger.Printf("tcpSession.doSend err[%v]: %v", err, s)
+		log.RunLogger.Printf("tcpSession[%v].doSend err[%v]", s, err)
 		return false
 	}
 
@@ -168,14 +168,14 @@ func (s *tcpSession) doSendBuf(buf []byte) bool {
 	// 发送
 	n, err := s.conn.Write(buf)
 
-	log.RunLogger.Printf("tcpSession.doSend send buf[%v] send real[%d] err[%v]: %v", buf, n, err, s)
+	log.RunLogger.Printf("tcpSession[%v].doSend send buf[%v] send real[%d] err[%v]", s, buf, n, err)
 
 	// 全部发送
 	if n == len(buf) {
 		return true
 	}
 
-	log.RunLogger.Printf("tcpSession.doSend send expect[%v] send real[%v] err[%v]: %v", len(buf), n, err, s)
+	log.RunLogger.Printf("tcpSession[%v].doSend send expect[%v] send real[%v] err[%v]", s, len(buf), n, err)
 
 	// 发送了部分
 	if n > 0 {
@@ -188,13 +188,13 @@ func (s *tcpSession) doSendBuf(buf []byte) bool {
 }
 
 func (s *tcpSession) mainRecv(params ...interface{}) {
-	log.RunLogger.Printf("tcpSession.mainRecv: %v", s)
+	log.RunLogger.Printf("tcpSession[%v].mainRecv", s)
 
 	var err error
 	for {
 		// 接收
 		if err = s.doRecv(); err != nil {
-			log.RunLogger.Printf("tcpSession.mainRecv err[%v] manualClose[%v]: %v", err, s.manualClose, s)
+			log.RunLogger.Printf("tcpSession[%v].mainRecv err[%v] manualClose[%v]", s, err, s.manualClose)
 			return
 		}
 
@@ -208,7 +208,7 @@ func (s *tcpSession) mainRecv(params ...interface{}) {
 	}
 }
 func (s *tcpSession) mainRecvEnd(isPanic bool) {
-	log.RunLogger.Printf("tcpSession.mainRecvEnd isPanic[%v]: %v", isPanic, s)
+	log.RunLogger.Printf("tcpSession[%v].mainRecvEnd isPanic[%v]", s, isPanic)
 
 	s.chWaitRecvSendGoroutineExit <- struct{}{}
 
@@ -246,16 +246,16 @@ func (s *tcpSession) doRecvHeader() error {
 	// read Proto header
 	_, err := io.ReadFull(s.conn, s.recvHeaderBuf)
 	if err != nil {
-		log.RunLogger.Printf("tcpSession.doRecvHeader ReadFull header error[%v]: %v", err, s)
+		log.RunLogger.Printf("tcpSession[%v].doRecvHeader ReadFull header error[%v]", s, err)
 		return err
 	}
 
-	log.RunLogger.Printf("tcpSession.doRecvHeader recvHeaderBuf[%v]: %v", s.recvHeaderBuf, s)
+	log.RunLogger.Printf("tcpSession[%v].doRecvHeader recvHeaderBuf[%v]", s, s.recvHeaderBuf)
 
 	// 协议头解析
 	err = s.recvProtoHeader.Unmarshal(s.recvHeaderBuf)
 	if err != nil {
-		log.RunLogger.Printf("tcpSession.doRecvHeader recvProtoHeader.Unmarshal error[%v]: %v", err, s)
+		log.RunLogger.Printf("tcpSession[%v].doRecvHeader recvProtoHeader.Unmarshal error[%v]", s, err)
 		return err
 	}
 
@@ -278,16 +278,16 @@ func (s *tcpSession) doRecvContent() (data base.NetEventData, err error) {
 
 	_, err = io.ReadFull(s.conn, buf)
 	if err != nil {
-		log.RunLogger.Printf("tcpSession.doRecv ReadFull content error[%v]: %v", err, s)
+		log.RunLogger.Printf("tcpSession[%v].doRecv ReadFull content error[%v]", s, err)
 		return
 	}
 
-	log.RunLogger.Printf("tcpSession.doRecv recvProtoData[%v]: %v", buf, s)
+	log.RunLogger.Printf("tcpSession[%v].doRecv recvProtoData[%v]", s, buf)
 
 	// 数据接收完毕, 通知校验
 	err = p.OnRecvAllBytes(s.recvProtoHeader)
 	if err != nil {
-		log.RunLogger.Printf("tcpSession.doRecv proto[%v] OnRecvAllBytes error[%v]: %v", p, err, s)
+		log.RunLogger.Printf("tcpSession[%v].doRecv proto[%v] OnRecvAllBytes error[%v]", s, p, err)
 		return
 	}
 
@@ -299,7 +299,7 @@ func (s *tcpSession) doRecvContent() (data base.NetEventData, err error) {
 
 // doClose Session本次有效期间, 只会被执行一次
 func (s *tcpSession) doClose() {
-	log.RunLogger.Printf("tcpSession.doClose: %v", s)
+	log.RunLogger.Printf("tcpSession[%v].doClose", s)
 
 	// 关闭结束管道, 触发发送/接收协程退出
 	close(s.chNtfRecvSendGoroutineExit)
@@ -317,7 +317,7 @@ func (s *tcpSession) doClose() {
 
 // back 外界已停止引用Session, 可安全回收了
 func (s *tcpSession) back() {
-	log.RunLogger.Printf("tcpSession.back: %v", s)
+	log.RunLogger.Printf("tcpSession[%v].back", s)
 
 	// 清理内部数据
 	s.chSendProto = nil

@@ -9,6 +9,7 @@ import (
 type battleUser struct {
 	agent *agentUser
 
+	member     *ffProto.StBattleMember
 	uuidBattle uuid.UUID // 战场
 	uniqueid   int32     // 战场内的唯一标识
 
@@ -168,12 +169,25 @@ func (agent *battleUser) HealSettle(message *ffProto.MsgBattleRoleHeal) error {
 	return nil
 }
 
-func newBattleUser(agent *agentUser, uuidBattle uuid.UUID, uniqueid int32) *battleUser {
+// 逃跑(主动逃跑, 断线)
+func (agent *battleUser) RunAway() error {
+	battle, err := checkBattle(agent)
+	if err != nil {
+		return err
+	}
+
+	// 逃跑
+	battle.RunAway(agent)
+	return nil
+}
+
+func newBattleUser(agent *agentUser, uuidBattle uuid.UUID, member *ffProto.StBattleMember) *battleUser {
 	return &battleUser{
 		agent: agent,
 
+		member:     member,
 		uuidBattle: uuidBattle,
-		uniqueid:   uniqueid,
+		uniqueid:   member.Uniqueid,
 
 		itemManager: newItemManager(),
 		healManager: newHealManager(),
