@@ -51,6 +51,7 @@ func (mgr *matchManager) GetMatchGroup(mode matchMode) *matchGroup {
 
 // OnPlayerMatchProto 用户匹配相关协议
 func (mgr *matchManager) OnPlayerMatchProto(proto *ffProto.Proto) bool {
+	proto.SetCacheWaitDispatch()
 	mgr.matchProto <- proto
 	return true
 }

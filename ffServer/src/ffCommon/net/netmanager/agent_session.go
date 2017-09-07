@@ -117,7 +117,8 @@ func (agent *agentSession) onProto(data base.NetEventData) {
 	proto := data.Proto()
 	protoID := proto.ProtoID()
 
-	// 如果协议在处理完毕后, 未进入发送逻辑, 则回收
+	// 如果协议在处理完毕后, 依然处于缓存被处理状态(未被缓存也未进入发送流程), 则回收
+	proto.SetCacheDispatched()
 	defer func() {
 		if !changedToSendState {
 			proto.BackAfterDispatch()

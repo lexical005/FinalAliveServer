@@ -64,7 +64,7 @@ func (p *Proto) BackAfterSend() {
 // BackAfterDispatch 缓存分发后, 不再需要时, 尝试回收
 func (p *Proto) BackAfterDispatch() {
 	log.RunLogger.Printf("ffProto.Proto[%p].BackAfterDispatch: %v", p, p)
-	if p.useState == useStateCacheWaitDispatch && p.msg != nil {
+	if p.limitState == limitStateRecv && p.useState == useStateBackAfterDispatch && p.msg != nil {
 		p.back()
 	}
 }
@@ -285,6 +285,17 @@ func (p *Proto) SetCacheWaitDispatch() {
 		p.useState = useStateCacheWaitDispatch
 	} else {
 		log.FatalLogger.Printf("ffProto.Proto[%p].SetCacheWaitDispatch invalid limitState: %v", p, p)
+	}
+}
+
+// SetCacheDispatched 协议被分发处理了
+func (p *Proto) SetCacheDispatched() {
+	log.RunLogger.Printf("ffProto.Proto[%p].SetCacheDispatched: %v", p, p)
+
+	if p.limitState == limitStateRecv && p.useState == useStateCacheWaitDispatch {
+		p.useState = useStateBackAfterDispatch
+	} else {
+		log.FatalLogger.Printf("ffProto.Proto[%p].SetCacheDispatched invalid limitState or useState: %v", p, p)
 	}
 }
 

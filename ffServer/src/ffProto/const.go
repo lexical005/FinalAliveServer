@@ -62,11 +62,15 @@ const (
 	// useStateSend 协议准备被发送. 在底层将协议对应的字节流加入发送缓冲区后, 协议将被回收
 	useStateSend useState = 2
 
-	// useStateCacheWaitDispatch 缓存以待分发. 分发后, 要么被立即回收, 要么进入useStateSend状态或useStateCacheWaitSend状态
+	// useStateCacheWaitDispatch 缓存以待分发.
 	useStateCacheWaitDispatch useState = 3
 
+	// useStateBackAfterDispatch useStateCacheWaitDispatch状态的协议被处理时, 默认进入此状态. 在协议处理完毕后, 如果依然处于此状态, 则回收.
+	//	可进入useStateSend状态或useStateCacheWaitSend状态, 来避免被立即回收
+	useStateBackAfterDispatch useState = 4
+
 	// useStateCacheWaitSend 缓存以待异步查询结果出来后再发送，在异步查询结果出来前，如果需要销毁，允许执行回收
-	useStateCacheWaitSend useState = 4
+	useStateCacheWaitSend useState = 5
 )
 
 // useStateDesc useState的文本描述
@@ -75,6 +79,7 @@ var useStateDesc = [...]string{
 	"useStateRecv",
 	"useStateSend",
 	"useStateCacheWaitDispatch",
+	"useStateBackAfterDispatch",
 	"useStateCacheWaitSend",
 }
 
