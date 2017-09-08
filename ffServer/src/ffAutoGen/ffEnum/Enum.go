@@ -388,24 +388,26 @@ const (
 	EAttrCrossOutTime EAttr = EAttr(20)
 	// EAttrCrossInTime 准心收缩时间-单位毫秒
 	EAttrCrossInTime EAttr = EAttr(21)
+	// EAttrCrossMoveOutTime 移动准心扩散时间
+	EAttrCrossMoveOutTime EAttr = EAttr(22)
 	// EAttrCrossReduce 准心扩散降低-百分比
-	EAttrCrossReduce EAttr = EAttr(22)
+	EAttrCrossReduce EAttr = EAttr(23)
 	// EAttrCameraShakeRange 摄像机抖动位移-单位0.001
-	EAttrCameraShakeRange EAttr = EAttr(23)
+	EAttrCameraShakeRange EAttr = EAttr(24)
 	// EAttrCameraShakeTime 摄像机抖动时间-单位毫秒
-	EAttrCameraShakeTime EAttr = EAttr(24)
+	EAttrCameraShakeTime EAttr = EAttr(25)
 	// EAttrCameraShakeReduce 摄像机抖动降低-百分比
-	EAttrCameraShakeReduce EAttr = EAttr(25)
+	EAttrCameraShakeReduce EAttr = EAttr(26)
 	// EAttrShotRadius 散弹半径-单位0.001
-	EAttrShotRadius EAttr = EAttr(26)
+	EAttrShotRadius EAttr = EAttr(27)
 	// EAttrShotRadiusReduce 散弹半径降低-百分比
-	EAttrShotRadiusReduce EAttr = EAttr(27)
+	EAttrShotRadiusReduce EAttr = EAttr(28)
 	// EAttrMirrorMultiple 准镜倍数-单位0.001
-	EAttrMirrorMultiple EAttr = EAttr(28)
+	EAttrMirrorMultiple EAttr = EAttr(29)
 	// EAttrOpenMirrorTime 开镜时间-单位毫秒
-	EAttrOpenMirrorTime EAttr = EAttr(29)
+	EAttrOpenMirrorTime EAttr = EAttr(30)
 	// EAttrOpenMirrorTimeReduce 开镜时间降低-百分比
-	EAttrOpenMirrorTimeReduce EAttr = EAttr(30)
+	EAttrOpenMirrorTimeReduce EAttr = EAttr(31)
 )
 
 type internalEAttrInfo struct {
@@ -526,6 +528,11 @@ var allEAttrInfo = []*internalEAttrInfo{
 		desc:  "准心收缩时间-单位毫秒",
 	},
 	&internalEAttrInfo{
+		value: EAttrCrossMoveOutTime,
+		toml:  "EAttr.CrossMoveOutTime",
+		desc:  "移动准心扩散时间",
+	},
+	&internalEAttrInfo{
 		value: EAttrCrossReduce,
 		toml:  "EAttr.CrossReduce",
 		desc:  "准心扩散降低-百分比",
@@ -595,6 +602,7 @@ var mapCodeToEAttrInfo = map[string]*internalEAttrInfo{
 	allEAttrInfo[int32(EAttrCrossRange)].toml:           allEAttrInfo[int(EAttrCrossRange)],
 	allEAttrInfo[int32(EAttrCrossOutTime)].toml:         allEAttrInfo[int(EAttrCrossOutTime)],
 	allEAttrInfo[int32(EAttrCrossInTime)].toml:          allEAttrInfo[int(EAttrCrossInTime)],
+	allEAttrInfo[int32(EAttrCrossMoveOutTime)].toml:     allEAttrInfo[int(EAttrCrossMoveOutTime)],
 	allEAttrInfo[int32(EAttrCrossReduce)].toml:          allEAttrInfo[int(EAttrCrossReduce)],
 	allEAttrInfo[int32(EAttrCameraShakeRange)].toml:     allEAttrInfo[int(EAttrCameraShakeRange)],
 	allEAttrInfo[int32(EAttrCameraShakeTime)].toml:      allEAttrInfo[int(EAttrCameraShakeTime)],
