@@ -201,7 +201,7 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 		return
 	}
 
-	if target, ok := scene.agents[targetuniqueid]; ok {
+	if target, ok := scene.agents[targetuniqueid]; ok && target.health > 0 {
 		if target.health > 60 {
 			target.health -= 60
 		} else if target.health > 0 {
@@ -211,7 +211,7 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 		}
 
 		// 血量同步
-		{
+		if target.status != battleStatusRunAway {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleHealth)
 			m := p.Message().(*ffProto.MsgBattleRoleHealth)
 			m.Roleuniqueid = target.uniqueid
@@ -234,7 +234,7 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 				}
 			}
 
-			{
+			if target.status != battleStatusRunAway {
 				p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
 				m := p.Message().(*ffProto.MsgBattleSettle)
 				m.Rank = scene.aliveCount
