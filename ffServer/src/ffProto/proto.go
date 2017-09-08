@@ -38,6 +38,10 @@ func (p *Proto) back() {
 		p.msg = nil
 		p.msgNeedMarshal = false
 
+		for i := 0; i < len(p.extraData); i++ {
+			p.extraData[i] = 0
+		}
+
 		backBuffer(p.buf)
 		p.setBuf(nil)
 
