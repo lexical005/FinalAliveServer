@@ -78,7 +78,7 @@ func (mgr *agentGameServerManager) End() {
 
 // SendProtoExtraDataUUID 发送Proto
 //	返回值仅表明请求发送的协议, 是否被添加到待发送管道内, 不代表一定能发送到对端
-func (mgr *agentGameServerManager) SendProtoExtraDataUUID(player *matchPlayer, proto *ffProto.Proto, isProtoRecved bool) {
+func (mgr *agentGameServerManager) SendProtoExtraDataUUID(player *matchPlayer, proto *ffProto.Proto, isProtoRecved bool) bool {
 	mgr.mutexAgent.Lock()
 	defer mgr.mutexAgent.Unlock()
 
@@ -86,19 +86,20 @@ func (mgr *agentGameServerManager) SendProtoExtraDataUUID(player *matchPlayer, p
 	server, ok := mgr.mapAgent[player.sourceServerUUID]
 	if ok {
 		ffProto.SendProtoExtraDataUUID(server, player.uuidPlayerKey, proto, isProtoRecved)
-		return
+		return true
 	}
 
 	// 服务器编号
 	for _, server := range mgr.mapAgent {
 		if server.serverID == player.sourceServerID {
 			ffProto.SendProtoExtraDataUUID(server, player.uuidPlayerKey, proto, isProtoRecved)
-			return
+			return true
 		}
 	}
 
 	log.FatalLogger.Printf("agentGameServerManager.SendProtoExtraDataUUID server[%v:%v] not online",
 		player.sourceServerUUID, player.sourceServerID)
+	return false
 }
 
 // SendServerProto 发送Proto到对端服务器

@@ -48,7 +48,7 @@ func onBattleProto(agent *agentUser, proto *ffProto.Proto) (bool, bool) {
 	return false, false
 }
 
-// 开始同步
+// 进入战场同步
 func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool) {
 	message, _ := proto.Message().(*ffProto.MsgBattleStartSync)
 
@@ -70,8 +70,8 @@ func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool
 
 	// 反馈
 	message.Uniqueid = agent.battleUser.uniqueid
-	message.PreloadBattle = battle.PreloadBattle
-	message.PreloadScene = battle.PreloadScene
+	message.PreloadBattle = battle.preloadBattle
+	message.PreloadScene = battle.preloadScene
 	result = ffProto.SendProtoExtraDataNormal(agent, proto, true)
 
 	// 成员列表
@@ -88,7 +88,7 @@ func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool
 	{
 		p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleProp)
 		m := p.Message().(*ffProto.MsgBattleProp)
-		for _, prop := range battle.Props {
+		for _, prop := range battle.props {
 			m.Props = append(m.Props, prop)
 		}
 		ffProto.SendProtoExtraDataNormal(agent, p, false)

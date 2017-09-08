@@ -98,16 +98,41 @@ func (mgr *matchManager) mainLoop(params ...interface{}) {
 
 func (mgr *matchManager) onProto(proto *ffProto.Proto) {
 	log.RunLogger.Printf("matchManager.onProto proto[%v]", proto)
-	player := instMatchPlayerMgr.GetPlayer(uuid.NewUUID(proto.ExtraData()))
+
+	changedToSendState := false
+
+	proto.SetCacheDispatched()
+	defer func() {
+		if !changedToSendState {
+			proto.BackAfterDispatch()
+		}
+	}()
+
+	uuidPlayerKey := uuid.NewUUID(proto.ExtraData())
+	player := instMatchPlayerMgr.GetPlayer(uuidPlayerKey)
+	if player == nil {
+		log.RunLogger.Printf("matchManager.onProto, can not find player[%v]", uuidPlayerKey)
+		return
+	}
 
 	switch proto.ProtoID() {
 	case ffProto.MessageType_StartMatch:
 		mgr.doStartMatch(player, proto)
 	case ffProto.MessageType_StopMatch:
 		mgr.doStopMatch(player, proto)
+	case ffProto.MessageType_LeaveMatchServer:
+		mgr.leaveMatchServer(player, proto)
 	}
 
-	instAgentGameServerMgr.SendProtoExtraDataUUID(player, proto, true)
+	changedToSendState = instAgentGameServerMgr.SendProtoExtraDataUUID(player, proto, true)
+}
+
+// 用户离开匹配服务器
+func (mgr *matchManager) leaveMatchServer(player *matchPlayer, proto *ffProto.Proto) bool {
+	player.StopMatch()
+
+	instMatchPlayerMgr.RemovePlayer(player.uuidPlayerKey)
+	return false
 }
 
 // doStartMatch 开始匹配
@@ -115,12 +140,9 @@ func (mgr *matchManager) doStartMatch(player *matchPlayer, proto *ffProto.Proto)
 	message, _ := proto.Message().(*ffProto.MsgStartMatch)
 
 	result := false
-	if player != nil {
-		mode := matchMode(message.MatchMode)
-
-		if matchModeSingle == mode || matchModeDouble == mode || matchModeFour == mode {
-			result = player.StartMatch(mode)
-		}
+	mode := matchMode(message.MatchMode)
+	if matchModeSingle == mode || matchModeDouble == mode || matchModeFour == mode {
+		result = player.StartMatch(mode)
 	}
 
 	if !result {
@@ -132,11 +154,7 @@ func (mgr *matchManager) doStartMatch(player *matchPlayer, proto *ffProto.Proto)
 func (mgr *matchManager) doStopMatch(player *matchPlayer, proto *ffProto.Proto) {
 	message, _ := proto.Message().(*ffProto.MsgStopMatch)
 
-	result := false
-	if player != nil {
-		result = player.StopMatch()
-	}
-
+	result := player.StopMatch()
 	if !result {
 		message.Result = ffError.ErrUnknown.Code()
 	}

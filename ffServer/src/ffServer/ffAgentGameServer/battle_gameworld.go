@@ -2,23 +2,15 @@ package main
 
 import (
 	"ffCommon/log/log"
-	"ffCommon/util"
 	"ffCommon/uuid"
 	"ffProto"
 	"fmt"
 	"sync"
-	"time"
-)
-
-const (
-	worldTimerInterval = 20 * time.Microsecond // 逻辑50帧
 )
 
 type battleGameWorld struct {
 	mapScene    map[uuid.UUID]*battleScene
 	lockerScene sync.Mutex
-
-	lastTimer time.Time
 }
 
 // 新战场
@@ -30,6 +22,8 @@ func (world *battleGameWorld) NewScene(message *ffProto.MsgServerNewBattle) {
 
 	scene := &battleScene{
 		uuidBattle: uuid.NewUUID(message.UUIDBattle),
+
+		chProto: make(chan *userProto, maxRoleCount),
 	}
 	scene.Init(message.UserTokens)
 
@@ -76,7 +70,7 @@ func (world *battleGameWorld) OnUserLeaveScene(message *ffProto.MsgServerBattleU
 	}
 }
 
-func (world *battleGameWorld) CheckBattle(agent *battleUser) (*battleScene, error) {
+func (world *battleGameWorld) CheckScene(agent *battleUser) (*battleScene, error) {
 	battle, ok := world.mapScene[agent.uuidBattle]
 	if !ok {
 		return nil, fmt.Errorf("battleGameWorld.CheckBattle failed, agent[%v] uniqueid[%v] uuidBattle[%v]",
@@ -85,33 +79,7 @@ func (world *battleGameWorld) CheckBattle(agent *battleUser) (*battleScene, erro
 	return battle, nil
 }
 
-func (world *battleGameWorld) update(passTime time.Duration) {
-}
-
 func (world *battleGameWorld) Start() {
-	go util.SafeGo(world.mainLoop, world.mainLoopEnd)
-}
-
-func (world *battleGameWorld) mainLoop(params ...interface{}) {
-	log.RunLogger.Println("battleGameWorld.mainLoop")
-
-	world.lastTimer = time.Now()
-
-	{
-		waitTime := worldTimerInterval
-		for {
-			<-time.After(waitTime)
-
-			// 时间驱动
-			world.lastTimer = world.lastTimer.Add(worldTimerInterval)
-			waitTime = worldTimerInterval - time.Now().Sub(world.lastTimer)
-			world.update(worldTimerInterval)
-		}
-	}
-}
-
-func (world *battleGameWorld) mainLoopEnd(isPanic bool) {
-	log.RunLogger.Println("battleGameWorld.mainLoopEnd", isPanic)
 }
 
 var instBattleGameWorld = &battleGameWorld{

@@ -116,5 +116,6 @@ func (server *agentUserServer) OnMatchServerProto(proto *ffProto.Proto) bool {
 		return ffProto.SendProtoExtraDataNormal(agent, proto, true)
 	}
 	log.RunLogger.Printf("agentUserServer.OnMatchServerProto agent[%v] offline", uuid)
+	// todo:通知匹配服务器, 该用户已离线
 	return false
 }

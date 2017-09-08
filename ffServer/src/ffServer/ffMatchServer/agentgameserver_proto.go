@@ -54,9 +54,5 @@ func onProtoPlayerEnterMatchServer(server *agentGameServer, proto *ffProto.Proto
 
 // 用户离开匹配服务器
 func onProtoPlayerLeaveMatchServer(server *agentGameServer, proto *ffProto.Proto) bool {
-	uuidPlayerKey := uuid.NewUUID(proto.ExtraData())
-
-	instMatchPlayerMgr.RemovePlayer(uuidPlayerKey)
-
-	return ffProto.SendProtoExtraDataUUID(server, uuidPlayerKey, proto, true)
+	return instMatchMgr.OnPlayerMatchProto(proto)
 }

@@ -4,6 +4,7 @@ import (
 	"ffAutoGen/ffEnum"
 	"ffAutoGen/ffGameConfig"
 	"ffCommon/log/log"
+	"ffCommon/util"
 	"ffCommon/uuid"
 	"ffProto"
 	"fmt"
@@ -13,35 +14,38 @@ import (
 
 const (
 	maxRoleCount = 50
+
+	updateTimerInterval = 20 * time.Microsecond // 逻辑50帧
 )
 
+type userProto struct {
+	uniqueid int32          // 战场内的唯一标识
+	proto    *ffProto.Proto // 协议
+}
+
 type battleScene struct {
-	uuidBattle uuid.UUID
-	uuidTokens []uuid.UUID
+	uuidBattle uuid.UUID   // 战场标识
+	uuidTokens []uuid.UUID // 进入战场用户的凭证
 
-	idProp int32
-	Props  map[int32]*ffProto.StBattleProp
+	idProp        int32                           // 战场场景道具编号
+	props         map[int32]*ffProto.StBattleProp // 战场道具列表
+	preloadBattle map[int32]int32                 // 预加载战斗资源
+	preloadScene  map[int32]int32                 // 预加载场景资源
 
-	PreloadBattle map[int32]int32
-	PreloadScene  map[int32]int32
+	uniqueids  []int32               // 可用战场用户编号
+	agents     map[int32]*battleUser // 用户列表
+	aliveCount int32                 // 剩余活着用户数
 
-	agents map[int32]*battleUser
+	shootid int32 // 累计射击编号
 
-	uniqueids []int32
+	rand *rand.Rand // 随机数
 
-	totalCount int32
-	aliveCount int32
+	rolePreparePosition []int32 // 角色出生点
 
-	// 累计射击编号
-	shootid int32
+	lastTimer time.Time
 
-	// 随机数
-	Rand *rand.Rand
-
-	// 角色出生点
-	rolePreparePosition []int32
-
-	BattleProps map[int32]*ffProto.StBattleProp
+	// 用户发来的协议
+	chProto chan *userProto
 }
 
 func (scene *battleScene) Init(uuidTokens []uint64) {
@@ -53,7 +57,7 @@ func (scene *battleScene) Init(uuidTokens []uint64) {
 	}
 
 	seed := time.Now().Nanosecond()
-	scene.Rand = rand.New(rand.NewSource(int64(seed)))
+	scene.rand = rand.New(rand.NewSource(int64(seed)))
 
 	// 角色出生点
 	scene.rolePreparePosition = make([]int32, len(instBattleBorn.randRolePreparePositions))
@@ -61,15 +65,15 @@ func (scene *battleScene) Init(uuidTokens []uint64) {
 		scene.rolePreparePosition[i] = int32(i)
 	}
 	for i := 0; i < len(scene.rolePreparePosition); i++ {
-		j := scene.Rand.Intn(len(scene.rolePreparePosition) - i)
+		j := scene.rand.Intn(len(scene.rolePreparePosition) - i)
 		last := len(scene.rolePreparePosition) - 1 - i
 		scene.rolePreparePosition[last], scene.rolePreparePosition[j] = scene.rolePreparePosition[j], scene.rolePreparePosition[last]
 	}
 
 	// 物品
-	scene.Props = make(map[int32]*ffProto.StBattleProp, 1024)
+	scene.props = make(map[int32]*ffProto.StBattleProp, 1024)
 	for _, config := range ffGameConfig.RandBornData.BornPrepareItem {
-		err := instBattleBorn.GenItemPrepareGroup(config, scene.Rand, scene)
+		err := instBattleBorn.GenItemPrepareGroup(config, scene.rand, scene)
 		if err != nil {
 			log.RunLogger.Println(err)
 		}
@@ -86,41 +90,41 @@ func (scene *battleScene) Init(uuidTokens []uint64) {
 			sceneAssetCount++
 		}
 	}
-	scene.PreloadBattle = make(map[int32]int32, battleAssetCount)
-	scene.PreloadScene = make(map[int32]int32, sceneAssetCount)
+	scene.preloadBattle = make(map[int32]int32, battleAssetCount)
+	scene.preloadScene = make(map[int32]int32, sceneAssetCount)
 
-	for _, prop := range scene.Props {
+	for _, prop := range scene.props {
 		template := ffGameConfig.ItemData.ItemTemplate[prop.Templateid]
 		if template.ItemType == ffEnum.EItemTypeGunWeapon {
-			if c, ok := scene.PreloadBattle[template.AssetID]; ok {
-				scene.PreloadBattle[template.AssetID] = c + 1
+			if c, ok := scene.preloadBattle[template.AssetID]; ok {
+				scene.preloadBattle[template.AssetID] = c + 1
 			} else {
-				scene.PreloadBattle[template.AssetID] = 1
+				scene.preloadBattle[template.AssetID] = 1
 			}
-			if c, ok := scene.PreloadScene[template.AssetID]; ok {
-				scene.PreloadScene[template.AssetID] = c + 1
+			if c, ok := scene.preloadScene[template.AssetID]; ok {
+				scene.preloadScene[template.AssetID] = c + 1
 			} else {
-				scene.PreloadScene[template.AssetID] = 1
+				scene.preloadScene[template.AssetID] = 1
 			}
 		} else {
-			if c, ok := scene.PreloadScene[template.AssetID]; ok {
-				scene.PreloadScene[template.AssetID] = c + 1
+			if c, ok := scene.preloadScene[template.AssetID]; ok {
+				scene.preloadScene[template.AssetID] = c + 1
 			} else {
-				scene.PreloadScene[template.AssetID] = 1
+				scene.preloadScene[template.AssetID] = 1
 			}
 		}
 	}
-	scene.PreloadBattle[1] = 5
-	scene.PreloadBattle[2] = 5
+	scene.preloadBattle[1] = 5
+	scene.preloadBattle[2] = 5
 
 	scene.agents = make(map[int32]*battleUser, 50)
 
 	scene.uniqueids = make([]int32, 50)
 	for i := 0; i < len(scene.uniqueids); i++ {
-		scene.uniqueids[i] = int32(4*i) + 1 + scene.Rand.Int31n(4) // [4n, 4n+1)
+		scene.uniqueids[i] = int32(4*i) + 1 + scene.rand.Int31n(4) // [4n, 4n+1)
 	}
 	for i := 0; i < len(scene.uniqueids); i++ {
-		j := scene.Rand.Intn(len(scene.uniqueids) - i)
+		j := scene.rand.Intn(len(scene.uniqueids) - i)
 		last := len(scene.uniqueids) - 1 - i
 		scene.uniqueids[last], scene.uniqueids[j] = scene.uniqueids[j], scene.uniqueids[last]
 	}
@@ -168,10 +172,10 @@ func (scene *battleScene) Enter(agent *agentUser, uuidToken uuid.UUID) error {
 			}
 
 			scene.agents[battleUser.uniqueid] = agent.battleUser
-			scene.totalCount++
 			scene.aliveCount++
 			log.RunLogger.Printf("Enter agent[%v] uuidToken[%v] success, left uuidTokens[%v]",
 				agent.UUID(), uuidToken, scene.uuidTokens)
+
 			return nil
 		}
 	}
@@ -234,7 +238,7 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 				p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
 				m := p.Message().(*ffProto.MsgBattleSettle)
 				m.Rank = scene.aliveCount
-				m.RankCount = scene.totalCount
+				m.RankCount = int32(len(scene.agents))
 				m.Health = 0
 				m.Kill = target.kill
 				ffProto.SendProtoExtraDataNormal(target, p, false)
@@ -257,7 +261,7 @@ func (scene *battleScene) Settle() {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
 			m := p.Message().(*ffProto.MsgBattleSettle)
 			m.Rank = scene.aliveCount
-			m.RankCount = scene.totalCount
+			m.RankCount = int32(len(scene.agents))
 			m.Health = one.health
 			m.Kill = one.kill
 			ffProto.SendProtoExtraDataNormal(one, p, false)
@@ -273,14 +277,14 @@ func (scene *battleScene) newProp(templateid int32, ItemData int32, position *ff
 		Templateid: templateid,
 		ItemData:   ItemData,
 	}
-	scene.Props[scene.idProp] = prop
+	scene.props[scene.idProp] = prop
 	scene.idProp++
 	return prop
 }
 
 // 获取场景物品
 func (scene *battleScene) Prop(uniqueid int32) (*ffProto.StBattleProp, error) {
-	prop, ok := scene.Props[uniqueid]
+	prop, ok := scene.props[uniqueid]
 	if !ok {
 		return nil, fmt.Errorf("Prop item uniqueid[%v] not exist", uniqueid)
 	}
@@ -290,7 +294,7 @@ func (scene *battleScene) Prop(uniqueid int32) (*ffProto.StBattleProp, error) {
 // 场景移除物品, 通知所有用户
 func (scene *battleScene) RemoveSceneProp(uniqueid int32) {
 	// 删除场景物品
-	delete(scene.Props, uniqueid)
+	delete(scene.props, uniqueid)
 
 	// 广播场景物品移除
 	for _, one := range scene.agents {
@@ -489,3 +493,51 @@ func (scene *battleScene) HealStateChanged(uniqueid int32, itemtemplateid int32,
 	// 	}
 	// }
 }
+
+func (scene *battleScene) Start() {
+	go util.SafeGo(scene.mainLoop, scene.mainLoopEnd)
+}
+
+func (scene *battleScene) mainLoop(params ...interface{}) {
+	log.RunLogger.Println("battleScene.mainLoop")
+
+	scene.lastTimer = time.Now()
+
+	{
+		waitTime := updateTimerInterval
+		for {
+			<-time.After(waitTime)
+
+			// 时间驱动
+			scene.lastTimer = scene.lastTimer.Add(updateTimerInterval)
+			waitTime = updateTimerInterval - time.Now().Sub(scene.lastTimer)
+			scene.update(updateTimerInterval)
+		}
+	}
+}
+
+func (scene *battleScene) mainLoopEnd(isPanic bool) {
+	log.RunLogger.Println("battleScene.mainLoopEnd", isPanic)
+}
+
+func (scene *battleScene) update(passTime time.Duration) {
+	c := len(scene.chProto)
+	for i := 0; i < c; i++ {
+		// proto := <-scene.chProto
+
+		// proto.SetCacheDispatched()
+	}
+}
+
+// // 战斗协议
+// func (scene *battleScene) onBattleUserProto(userProto*userProto) (bool, bool) {
+// 	if ffProto.MessageType_BattleStartSync == proto.ProtoID() {
+// 		return onBattleProtoStartSync(agent, proto), true
+// 	}
+
+// 	if callback, ok := mapBattleProtoCallback[proto.ProtoID()]; ok {
+// 		return callback(agent.battleUser, proto), true
+// 	}
+
+// 	return false, false
+// }
