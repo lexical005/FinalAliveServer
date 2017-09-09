@@ -11,10 +11,10 @@ import (
 type roleStatus byte
 
 const (
-	roleStatusLoad    roleStatus = iota // 异步加载
-	roleStatusAlive                     // 存活中
-	roleStatusDead                      // 死亡
-	roleStatusRunAway                   // 逃跑
+	roleStatusLoad  roleStatus = iota // 异步加载
+	roleStatusAlive                   // 存活中
+	roleStatusDead                    // 死亡
+	roleStatusLeave                   // 离开(逃跑, 结算(死亡或获胜)后离开)
 )
 
 type battleUser struct {
@@ -304,10 +304,24 @@ func (agent *battleUser) RunAway() error {
 		return err
 	}
 
-	agent.status = roleStatusRunAway
+	agent.status = roleStatusLeave
 
 	// 逃跑
 	battle.RunAway(agent)
+	return nil
+}
+
+// 战斗结算后离开
+func (agent *battleUser) Leave() error {
+	log.RunLogger.Printf("battleUser[%v].Leave", agent)
+
+	_, err := instBattleGameWorld.CheckScene(agent)
+	if err != nil {
+		return err
+	}
+
+	agent.status = roleStatusLeave
+
 	return nil
 }
 

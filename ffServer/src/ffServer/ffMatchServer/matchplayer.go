@@ -21,6 +21,10 @@ type matchPlayer struct {
 
 // StartMatch 开始匹配
 func (player *matchPlayer) StartMatch(mode matchMode) bool {
+	if player.inMatch {
+		return false
+	}
+
 	player.mode, player.inMatch = mode, true
 
 	if player.mode == matchModeSingle {

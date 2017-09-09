@@ -67,10 +67,18 @@ func onProtoLoginPlatformUniqueID(agent *agentUser, proto *ffProto.Proto) (resul
 }
 
 func onProtoStartMatch(agent *agentUser, proto *ffProto.Proto) (result bool) {
+	if agent.battleUser != nil {
+		return false
+	}
+
 	return ffProto.SendProtoExtraDataUUID(instMatchServerClient, agent.UUID(), proto, true)
 }
 
 func onProtoStopMatch(agent *agentUser, proto *ffProto.Proto) (result bool) {
+	if agent.battleUser != nil {
+		return false
+	}
+
 	return ffProto.SendProtoExtraDataUUID(instMatchServerClient, agent.UUID(), proto, true)
 }
 

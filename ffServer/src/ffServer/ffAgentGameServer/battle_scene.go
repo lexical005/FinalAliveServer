@@ -178,7 +178,7 @@ func (scene *battleScene) Enter(agent *agentUser, uuidToken uuid.UUID) error {
 
 			// 新增成员
 			for _, one := range scene.agents {
-				if one.status != roleStatusRunAway {
+				if one.status != roleStatusLeave {
 					p1 := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleMember)
 					m := p1.Message().(*ffProto.MsgBattleMember)
 					m.Members = append(m.Members, member)
@@ -218,7 +218,7 @@ func (scene *battleScene) TryStart() {
 
 	// 向未逃跑用户发送开始
 	for _, one := range scene.agents {
-		if one.status != roleStatusRunAway {
+		if one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_LoadAsyncOver)
 			ffProto.SendProtoExtraDataNormal(one, p, false)
 		}
@@ -251,7 +251,7 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 		}
 
 		// 血量同步
-		if target.status != roleStatusRunAway {
+		if target.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleHealth)
 			m := p.Message().(*ffProto.MsgBattleRoleHealth)
 			m.Roleuniqueid = target.uniqueid
@@ -264,7 +264,7 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 			agent.kill++
 
 			for _, one := range scene.agents {
-				if one.status != roleStatusRunAway {
+				if one.status != roleStatusLeave {
 					p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleDead)
 					m := p.Message().(*ffProto.MsgBattleRoleDead)
 					m.Roleuniqueid = target.uniqueid
@@ -274,7 +274,7 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 				}
 			}
 
-			if target.status != roleStatusRunAway {
+			if target.status != roleStatusLeave {
 				p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
 				m := p.Message().(*ffProto.MsgBattleSettle)
 				m.Rank = scene.aliveCount
@@ -305,7 +305,7 @@ func (scene *battleScene) Settle() {
 	scene.status = sceneStatusSettle
 
 	for _, one := range scene.agents {
-		if one.health > 0 && one.status != roleStatusRunAway {
+		if one.health > 0 && one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
 			m := p.Message().(*ffProto.MsgBattleSettle)
 			m.Rank = scene.aliveCount
@@ -346,7 +346,7 @@ func (scene *battleScene) RemoveSceneProp(uniqueid int32) {
 
 	// 广播场景物品移除
 	for _, one := range scene.agents {
-		if one.status != roleStatusRunAway {
+		if one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRemoveProp)
 			m := p.Message().(*ffProto.MsgBattleRemoveProp)
 			m.Uniqueid = uniqueid
@@ -361,7 +361,7 @@ func (scene *battleScene) AddSceneProp(itemtemplateid, itemdata int32, position 
 	prop := scene.newProp(itemtemplateid, itemdata, position)
 
 	for _, one := range scene.agents {
-		if one.status != roleStatusRunAway {
+		if one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleAddProp)
 			m := p.Message().(*ffProto.MsgBattleAddProp)
 			m.Prop = prop
@@ -374,7 +374,7 @@ func (scene *battleScene) AddSceneProp(itemtemplateid, itemdata int32, position 
 func (scene *battleScene) RoleMove(uniqueid int32, message *ffProto.MsgBattleRoleMove) {
 	// 广播用户的装备状态改变
 	for _, one := range scene.agents {
-		if one.uniqueid != uniqueid && one.status != roleStatusRunAway {
+		if one.uniqueid != uniqueid && one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleMove)
 			m := p.Message().(*ffProto.MsgBattleRoleMove)
 			m.Roleuniqueid = message.Roleuniqueid
@@ -389,7 +389,7 @@ func (scene *battleScene) RoleMove(uniqueid int32, message *ffProto.MsgBattleRol
 func (scene *battleScene) RoleEyeRotate(uniqueid int32, message *ffProto.MsgBattleRoleEyeRotate) {
 	// 广播用户的装备状态改变
 	for _, one := range scene.agents {
-		if one.uniqueid != uniqueid && one.status != roleStatusRunAway {
+		if one.uniqueid != uniqueid && one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleEyeRotate)
 			m := p.Message().(*ffProto.MsgBattleRoleEyeRotate)
 			m.Roleuniqueid = message.Roleuniqueid
@@ -403,7 +403,7 @@ func (scene *battleScene) RoleEyeRotate(uniqueid int32, message *ffProto.MsgBatt
 func (scene *battleScene) RoleAction(uniqueid int32, message *ffProto.MsgBattleRoleAction) {
 	// 广播用户的装备状态改变
 	for _, one := range scene.agents {
-		if one.uniqueid != uniqueid && one.status != roleStatusRunAway {
+		if one.uniqueid != uniqueid && one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleAction)
 			m := p.Message().(*ffProto.MsgBattleRoleAction)
 			m.Roleuniqueid = message.Roleuniqueid
@@ -418,7 +418,7 @@ func (scene *battleScene) RoleAction(uniqueid int32, message *ffProto.MsgBattleR
 func (scene *battleScene) RoleShootState(uniqueid int32, message *ffProto.MsgBattleRoleShootState) {
 	// 广播用户的装备状态改变
 	for _, one := range scene.agents {
-		if one.uniqueid != uniqueid && one.status != roleStatusRunAway {
+		if one.uniqueid != uniqueid && one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleShootState)
 			m := p.Message().(*ffProto.MsgBattleRoleShootState)
 			m.Roleuniqueid = uniqueid
@@ -435,7 +435,7 @@ func (scene *battleScene) RoleShoot(uniqueid int32, message *ffProto.MsgBattleRo
 
 	// 广播用户的装备状态改变
 	for _, one := range scene.agents {
-		if one.uniqueid != uniqueid && one.status != roleStatusRunAway {
+		if one.uniqueid != uniqueid && one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleShoot)
 			m := p.Message().(*ffProto.MsgBattleRoleShoot)
 			m.Roleuniqueid = message.Roleuniqueid
@@ -452,7 +452,7 @@ func (scene *battleScene) RoleShoot(uniqueid int32, message *ffProto.MsgBattleRo
 func (scene *battleScene) RoleShootHit(uniqueid int32, message *ffProto.MsgBattleRoleShootHit) {
 	// 广播用户的装备状态改变
 	for _, one := range scene.agents {
-		if one.uniqueid != uniqueid && one.status != roleStatusRunAway {
+		if one.uniqueid != uniqueid && one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleShootHit)
 			m := p.Message().(*ffProto.MsgBattleRoleShootHit)
 			m.Roleuniqueid = message.Roleuniqueid
@@ -470,7 +470,7 @@ func (scene *battleScene) RoleShootHit(uniqueid int32, message *ffProto.MsgBattl
 func (scene *battleScene) EquipStateChanged(uniqueid int32, equipState *ffProto.StBattleEquipState) {
 	// 广播用户的装备状态改变
 	for _, one := range scene.agents {
-		if one.uniqueid != uniqueid && one.status != roleStatusRunAway {
+		if one.uniqueid != uniqueid && one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleEquipState)
 			m := p.Message().(*ffProto.MsgBattleEquipState)
 			m.Roleuniqueid = uniqueid
@@ -483,7 +483,7 @@ func (scene *battleScene) EquipStateChanged(uniqueid int32, equipState *ffProto.
 // 治疗状态改变
 func (scene *battleScene) HealStateChanged(uniqueid int32, itemtemplateid int32, state int32) {
 	for _, one := range scene.agents {
-		if one.uniqueid != uniqueid && one.status != roleStatusRunAway {
+		if one.uniqueid != uniqueid && one.status != roleStatusLeave {
 			p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleHeal)
 			m := p.Message().(*ffProto.MsgBattleRoleHeal)
 			m.Roleuniqueid = uniqueid

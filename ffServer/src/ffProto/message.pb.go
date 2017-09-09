@@ -48,6 +48,7 @@ var listMessageID = []MessageType{
 	MessageType_BattleEquipState,
 	MessageType_BattleRunAway,
 	MessageType_BattleSettle,
+	MessageType_BattleLeave,
 }
 
 var mapMessageCreator = map[MessageType]func() interface{}{
@@ -191,5 +192,8 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	},
 	MessageType_BattleSettle: func() interface{} {
 		return &MsgBattleSettle{}
+	},
+	MessageType_BattleLeave: func() interface{} {
+		return &MsgBattleLeave{}
 	},
 }

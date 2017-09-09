@@ -23,6 +23,7 @@ var mapBattleProtoCallback = map[ffProto.MessageType]func(agent *battleUser, pro
 	ffProto.MessageType_BattleSwitchWeapon:  onBattleProtoSwitchWeapon,
 
 	ffProto.MessageType_BattleRunAway: onBattleProtoRunAway,
+	ffProto.MessageType_BattleLeave:   onBattleProtoLeave,
 
 	ffProto.MessageType_BattleRoleAction: onBattleProtoRoleAction,
 
@@ -111,6 +112,17 @@ func onBattleProtoLoadAsyncOver(agent *battleUser, proto *ffProto.Proto) (result
 func onBattleProtoRunAway(agent *battleUser, proto *ffProto.Proto) (result bool) {
 	if err := agent.RunAway(); err != nil {
 		message, _ := proto.Message().(*ffProto.MsgBattleRunAway)
+		message.Result = ffError.ErrUnknown.Code()
+		log.RunLogger.Println(err)
+	}
+
+	return ffProto.SendProtoExtraDataNormal(agent, proto, true)
+}
+
+// 离开
+func onBattleProtoLeave(agent *battleUser, proto *ffProto.Proto) (result bool) {
+	if err := agent.Leave(); err != nil {
+		message, _ := proto.Message().(*ffProto.MsgBattleLeave)
 		message.Result = ffError.ErrUnknown.Code()
 		log.RunLogger.Println(err)
 	}
