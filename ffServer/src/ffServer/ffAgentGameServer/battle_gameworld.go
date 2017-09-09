@@ -22,6 +22,7 @@ func (world *battleGameWorld) NewScene(message *ffProto.MsgServerNewBattle) {
 
 	scene := &battleScene{
 		uuidBattle: uuid.NewUUID(message.UUIDBattle),
+		status:     sceneStatusLoad,
 
 		chProto: make(chan *userProto, maxRoleCount),
 	}

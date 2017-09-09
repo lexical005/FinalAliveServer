@@ -15,6 +15,8 @@ import (
 // 协议回调函数
 //	返回值表明接收到的Proto是否进入了发送逻辑(如果未正确设置返回值, 将导致泄露或者异常)
 var mapBattleProtoCallback = map[ffProto.MessageType]func(agent *battleUser, proto *ffProto.Proto) bool{
+	ffProto.MessageType_LoadAsyncOver: onBattleProtoLoadAsyncOver,
+
 	ffProto.MessageType_BattlePickProp:      onBattleProtoPickProp,
 	ffProto.MessageType_BattleDropBagProp:   onBattleProtoDropBagProp,
 	ffProto.MessageType_BattleDropEquipProp: onBattleProtoDropEquipProp,
@@ -95,6 +97,14 @@ func onBattleProtoStartSync(agent *agentUser, proto *ffProto.Proto) (result bool
 	}
 
 	return
+}
+
+// 场景异步加载完成
+func onBattleProtoLoadAsyncOver(agent *battleUser, proto *ffProto.Proto) (result bool) {
+	if err := agent.LoadAsyncOver(); err != nil {
+		log.RunLogger.Println(err)
+	}
+	return false
 }
 
 // 逃跑

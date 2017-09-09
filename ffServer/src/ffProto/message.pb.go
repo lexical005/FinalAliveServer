@@ -28,6 +28,7 @@ var listMessageID = []MessageType{
 	MessageType_BattleMember,
 	MessageType_BattleMemberLeave,
 	MessageType_BattleProp,
+	MessageType_LoadAsyncOver,
 	MessageType_BattlePickProp,
 	MessageType_BattleDropBagProp,
 	MessageType_BattleDropEquipProp,
@@ -130,6 +131,9 @@ var mapMessageCreator = map[MessageType]func() interface{}{
 	},
 	MessageType_BattleProp: func() interface{} {
 		return &MsgBattleProp{}
+	},
+	MessageType_LoadAsyncOver: func() interface{} {
+		return &MsgLoadAsyncOver{}
 	},
 	MessageType_BattlePickProp: func() interface{} {
 		return &MsgBattlePickProp{}

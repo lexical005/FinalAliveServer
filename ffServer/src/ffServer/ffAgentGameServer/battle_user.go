@@ -1,22 +1,25 @@
 package main
 
 import (
+	"ffCommon/log/log"
 	"ffCommon/uuid"
 	"ffProto"
+	"fmt"
 	"time"
 )
 
-type battleStatus byte
+type roleStatus byte
 
 const (
-	battleStatusAlive battleStatus = iota
-	battleStatusDead
-	battleStatusRunAway
+	roleStatusLoad    roleStatus = iota // 异步加载
+	roleStatusAlive                     // 存活中
+	roleStatusDead                      // 死亡
+	roleStatusRunAway                   // 逃跑
 )
 
 type battleUser struct {
 	agent  *agentUser
-	status battleStatus
+	status roleStatus
 
 	member     *ffProto.StBattleMember
 	uuidBattle uuid.UUID // 战场
@@ -36,8 +39,27 @@ type battleUser struct {
 	kill int32 // 击杀
 }
 
+func (agent *battleUser) String() string {
+	return fmt.Sprintf("%p:%v:%v", agent, agent.uniqueid, agent.status)
+}
+
 func (agent *battleUser) UUID() uuid.UUID {
 	return agent.agent.UUID()
+}
+
+// 异步加载完成
+func (agent *battleUser) LoadAsyncOver() error {
+	log.RunLogger.Printf("battleUser[%v].LoadAsyncOver", agent)
+
+	battle, err := instBattleGameWorld.CheckScene(agent)
+	if err != nil {
+		return err
+	}
+
+	agent.status = roleStatusAlive
+
+	battle.TryStart()
+	return nil
 }
 
 // SendProtoExtraDataNormal 发送Proto
@@ -48,6 +70,8 @@ func (agent *battleUser) SendProtoExtraDataNormal(proto *ffProto.Proto) bool {
 
 // 修改持有的物品, 场景内新增扔掉的物品
 func (agent *battleUser) DropBagItem(itemtemplateid, dropItemData int32, position *ffProto.StVector3) error {
+	log.RunLogger.Printf("battleUser[%v].DropBagItem itemtemplateid[%v] dropItemData[%v]", agent, itemtemplateid, dropItemData)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -63,6 +87,8 @@ func (agent *battleUser) DropBagItem(itemtemplateid, dropItemData int32, positio
 
 // 修改装备状态, 修改持有的物品, 场景内新增扔掉的物品
 func (agent *battleUser) DropEquip(message *ffProto.MsgBattleDropEquipProp) error {
+	log.RunLogger.Printf("battleUser[%v].DropEquip EquipIndex[%v]", agent, message.EquipIndex)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -81,6 +107,8 @@ func (agent *battleUser) DropEquip(message *ffProto.MsgBattleDropEquipProp) erro
 
 // 捡取场景里的物品
 func (agent *battleUser) PickProp(message *ffProto.MsgBattlePickProp) error {
+	log.RunLogger.Printf("battleUser[%v].PickProp Uniqueid[%v]", agent, message.Itemuniqueid)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -110,6 +138,8 @@ func (agent *battleUser) PickProp(message *ffProto.MsgBattlePickProp) error {
 
 // 切换武器
 func (agent *battleUser) SwitchWeapon(message *ffProto.MsgBattleSwitchWeapon) error {
+	log.RunLogger.Printf("battleUser[%v].SwitchWeapon EquipIndex[%v=>%v]", agent, agent.itemManager.activeWeaponIndex, message.EquipIndex)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -151,6 +181,8 @@ func (agent *battleUser) RoleEyeRotate(message *ffProto.MsgBattleRoleEyeRotate) 
 
 // 行为
 func (agent *battleUser) RoleAction(message *ffProto.MsgBattleRoleAction) error {
+	log.RunLogger.Printf("battleUser[%v].RoleAction Action[%v]", agent, message.Action)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -162,6 +194,8 @@ func (agent *battleUser) RoleAction(message *ffProto.MsgBattleRoleAction) error 
 
 // 射击状态
 func (agent *battleUser) RoleShootState(message *ffProto.MsgBattleRoleShootState) error {
+	log.RunLogger.Printf("battleUser[%v].RoleShootState State[%v]", agent, message.State)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -173,6 +207,8 @@ func (agent *battleUser) RoleShootState(message *ffProto.MsgBattleRoleShootState
 
 // 射击
 func (agent *battleUser) RoleShoot(message *ffProto.MsgBattleRoleShoot) error {
+	log.RunLogger.Printf("battleUser[%v].RoleShoot", agent)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -184,6 +220,8 @@ func (agent *battleUser) RoleShoot(message *ffProto.MsgBattleRoleShoot) error {
 
 // 射击结果
 func (agent *battleUser) RoleShootHit(message *ffProto.MsgBattleRoleShootHit) error {
+	log.RunLogger.Printf("battleUser[%v].RoleShootHit Shootid[%v] Targetuniqueid[%v]", agent, message.Shootid, message.Targetuniqueid)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -202,6 +240,8 @@ func (agent *battleUser) RoleShootHit(message *ffProto.MsgBattleRoleShootHit) er
 
 // 治疗开始
 func (agent *battleUser) HealStart(message *ffProto.MsgBattleRoleHeal) error {
+	log.RunLogger.Printf("battleUser[%v].HealStart Itemtemplateid[%v]", agent, message.Itemtemplateid)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -219,6 +259,8 @@ func (agent *battleUser) HealStart(message *ffProto.MsgBattleRoleHeal) error {
 
 // 治疗中断
 func (agent *battleUser) HealCancel(message *ffProto.MsgBattleRoleHeal) error {
+	log.RunLogger.Printf("battleUser[%v].HealCancel Itemtemplateid[%v]", agent, message.Itemtemplateid)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -236,6 +278,8 @@ func (agent *battleUser) HealCancel(message *ffProto.MsgBattleRoleHeal) error {
 
 // 治疗结算
 func (agent *battleUser) HealSettle(message *ffProto.MsgBattleRoleHeal) error {
+	log.RunLogger.Printf("battleUser[%v].HealSettle Itemtemplateid[%v]", agent, message.Itemtemplateid)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
@@ -253,12 +297,14 @@ func (agent *battleUser) HealSettle(message *ffProto.MsgBattleRoleHeal) error {
 
 // 逃跑(主动逃跑, 断线)
 func (agent *battleUser) RunAway() error {
+	log.RunLogger.Printf("battleUser[%v].RunAway", agent)
+
 	battle, err := instBattleGameWorld.CheckScene(agent)
 	if err != nil {
 		return err
 	}
 
-	agent.status = battleStatusRunAway
+	agent.status = roleStatusRunAway
 
 	// 逃跑
 	battle.RunAway(agent)
@@ -268,7 +314,7 @@ func (agent *battleUser) RunAway() error {
 func newBattleUser(agent *agentUser, uuidBattle uuid.UUID, member *ffProto.StBattleMember) *battleUser {
 	return &battleUser{
 		agent:  agent,
-		status: battleStatusAlive,
+		status: roleStatusLoad,
 
 		member:     member,
 		uuidBattle: uuidBattle,
