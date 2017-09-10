@@ -382,32 +382,34 @@ const (
 	EAttrCrossRangeMin EAttr = EAttr(17)
 	// EAttrCrossRangeMax 最大准心范围-单位0.001
 	EAttrCrossRangeMax EAttr = EAttr(18)
+	// EAttrCrossMoveRangeMax 最大移动准心范围-单位0.001
+	EAttrCrossMoveRangeMax EAttr = EAttr(19)
 	// EAttrCrossRange 准心扩散-单位0.001
-	EAttrCrossRange EAttr = EAttr(19)
+	EAttrCrossRange EAttr = EAttr(20)
 	// EAttrCrossOutTime 准心扩散时间-单位毫秒
-	EAttrCrossOutTime EAttr = EAttr(20)
+	EAttrCrossOutTime EAttr = EAttr(21)
 	// EAttrCrossInTime 准心收缩时间-单位毫秒
-	EAttrCrossInTime EAttr = EAttr(21)
+	EAttrCrossInTime EAttr = EAttr(22)
 	// EAttrCrossMoveOutTime 移动准心扩散时间
-	EAttrCrossMoveOutTime EAttr = EAttr(22)
+	EAttrCrossMoveOutTime EAttr = EAttr(23)
 	// EAttrCrossReduce 准心扩散降低-百分比
-	EAttrCrossReduce EAttr = EAttr(23)
+	EAttrCrossReduce EAttr = EAttr(24)
 	// EAttrCameraShakeRange 摄像机抖动位移-单位0.001
-	EAttrCameraShakeRange EAttr = EAttr(24)
+	EAttrCameraShakeRange EAttr = EAttr(25)
 	// EAttrCameraShakeTime 摄像机抖动时间-单位毫秒
-	EAttrCameraShakeTime EAttr = EAttr(25)
+	EAttrCameraShakeTime EAttr = EAttr(26)
 	// EAttrCameraShakeReduce 摄像机抖动降低-百分比
-	EAttrCameraShakeReduce EAttr = EAttr(26)
+	EAttrCameraShakeReduce EAttr = EAttr(27)
 	// EAttrShotRadius 散弹半径-单位0.001
-	EAttrShotRadius EAttr = EAttr(27)
+	EAttrShotRadius EAttr = EAttr(28)
 	// EAttrShotRadiusReduce 散弹半径降低-百分比
-	EAttrShotRadiusReduce EAttr = EAttr(28)
+	EAttrShotRadiusReduce EAttr = EAttr(29)
 	// EAttrMirrorMultiple 准镜倍数-单位0.001
-	EAttrMirrorMultiple EAttr = EAttr(29)
+	EAttrMirrorMultiple EAttr = EAttr(30)
 	// EAttrOpenMirrorTime 开镜时间-单位毫秒
-	EAttrOpenMirrorTime EAttr = EAttr(30)
+	EAttrOpenMirrorTime EAttr = EAttr(31)
 	// EAttrOpenMirrorTimeReduce 开镜时间降低-百分比
-	EAttrOpenMirrorTimeReduce EAttr = EAttr(31)
+	EAttrOpenMirrorTimeReduce EAttr = EAttr(32)
 )
 
 type internalEAttrInfo struct {
@@ -513,6 +515,11 @@ var allEAttrInfo = []*internalEAttrInfo{
 		desc:  "最大准心范围-单位0.001",
 	},
 	&internalEAttrInfo{
+		value: EAttrCrossMoveRangeMax,
+		toml:  "EAttr.CrossMoveRangeMax",
+		desc:  "最大移动准心范围-单位0.001",
+	},
+	&internalEAttrInfo{
 		value: EAttrCrossRange,
 		toml:  "EAttr.CrossRange",
 		desc:  "准心扩散-单位0.001",
@@ -599,6 +606,7 @@ var mapCodeToEAttrInfo = map[string]*internalEAttrInfo{
 	allEAttrInfo[int32(EAttrPitchBackTime)].toml:        allEAttrInfo[int(EAttrPitchBackTime)],
 	allEAttrInfo[int32(EAttrCrossRangeMin)].toml:        allEAttrInfo[int(EAttrCrossRangeMin)],
 	allEAttrInfo[int32(EAttrCrossRangeMax)].toml:        allEAttrInfo[int(EAttrCrossRangeMax)],
+	allEAttrInfo[int32(EAttrCrossMoveRangeMax)].toml:    allEAttrInfo[int(EAttrCrossMoveRangeMax)],
 	allEAttrInfo[int32(EAttrCrossRange)].toml:           allEAttrInfo[int(EAttrCrossRange)],
 	allEAttrInfo[int32(EAttrCrossOutTime)].toml:         allEAttrInfo[int(EAttrCrossOutTime)],
 	allEAttrInfo[int32(EAttrCrossInTime)].toml:          allEAttrInfo[int(EAttrCrossInTime)],
