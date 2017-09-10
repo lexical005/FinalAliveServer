@@ -263,8 +263,6 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 		if target.health == 0 {
 			agent.kill++
 
-			scene.aliveCount--
-
 			// 死亡
 			target.Dead(scene.aliveCount, int32(len(scene.agents)))
 
@@ -281,6 +279,7 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 			}
 
 			// 结束
+			scene.aliveCount--
 			if scene.aliveCount == 1 {
 				scene.Settle()
 			}
