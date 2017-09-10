@@ -43,6 +43,7 @@ func (agent *agentUser) OnDisConnect() {
 	// 在战场, 则退出
 	if agent.battleUser != nil {
 		agent.battleUser.RunAway()
+		agent.battleUser = nil
 	}
 }
 

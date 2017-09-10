@@ -65,6 +65,7 @@ func (player *matchPlayer) Count() int {
 // MatchSuccess 进入了准备组, 匹配完成
 func (player *matchPlayer) MatchSuccess(uuidBattle uuid.UUID, uuidTokens []uuid.UUID) {
 	player.uuidBattle, player.uuidToken = uuidBattle, uuidTokens[0]
+	player.inMatch = false
 
 	proto := ffProto.ApplyProtoForSend(ffProto.MessageType_MatchResult)
 	message := proto.Message().(*ffProto.MsgMatchResult)
@@ -78,6 +79,7 @@ func (player *matchPlayer) Init(sourceServer *agentGameServer, uuidPlayerKey, uu
 	player.sourceServerID, player.sourceServerUUID = sourceServer.serverID, sourceServer.UUID()
 	player.uuidPlayerKey, player.uuidAccount, player.uuidTeam = uuidPlayerKey, uuidAccount, uuidTeam
 	player.uuidToken = uuid.InvalidUUID
+	player.inMatch = false
 }
 
 func (player *matchPlayer) back() {

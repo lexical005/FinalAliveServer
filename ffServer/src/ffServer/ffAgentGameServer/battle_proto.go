@@ -44,6 +44,10 @@ func onBattleProto(agent *agentUser, proto *ffProto.Proto) (bool, bool) {
 		return onBattleProtoStartSync(agent, proto), true
 	}
 
+	if agent.battleUser == nil {
+		return false, false
+	}
+
 	if callback, ok := mapBattleProtoCallback[proto.ProtoID()]; ok {
 		return callback(agent.battleUser, proto), true
 	}

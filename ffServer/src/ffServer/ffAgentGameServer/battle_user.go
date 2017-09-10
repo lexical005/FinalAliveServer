@@ -308,6 +308,8 @@ func (agent *battleUser) RunAway() error {
 
 	// 逃跑
 	battle.RunAway(agent)
+
+	agent.agent.battleUser = nil
 	return nil
 }
 
@@ -315,13 +317,9 @@ func (agent *battleUser) RunAway() error {
 func (agent *battleUser) Leave() error {
 	log.RunLogger.Printf("battleUser[%v].Leave", agent)
 
-	_, err := instBattleGameWorld.CheckScene(agent)
-	if err != nil {
-		return err
-	}
-
 	agent.status = roleStatusLeave
 
+	agent.agent.battleUser = nil
 	return nil
 }
 
