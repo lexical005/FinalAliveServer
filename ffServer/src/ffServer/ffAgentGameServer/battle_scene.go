@@ -263,6 +263,12 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 		if target.health == 0 {
 			agent.kill++
 
+			scene.aliveCount--
+
+			// 死亡
+			target.Dead(scene.aliveCount, int32(len(scene.agents)))
+
+			// 广播死亡
 			for _, one := range scene.agents {
 				if one.status != roleStatusLeave {
 					p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleDead)
@@ -273,18 +279,6 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 					ffProto.SendProtoExtraDataNormal(one, p, false)
 				}
 			}
-
-			if target.status != roleStatusLeave {
-				p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
-				m := p.Message().(*ffProto.MsgBattleSettle)
-				m.Rank = scene.aliveCount
-				m.RankCount = int32(len(scene.agents))
-				m.Health = 0
-				m.Kill = target.kill
-				ffProto.SendProtoExtraDataNormal(target, p, false)
-			}
-
-			scene.aliveCount--
 
 			// 结束
 			if scene.aliveCount == 1 {

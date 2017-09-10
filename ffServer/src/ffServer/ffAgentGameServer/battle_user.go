@@ -36,6 +36,8 @@ type battleUser struct {
 	healitemtemplateid int32     // 正在使用的治疗物品模板id
 	healTime           time.Time // 开始heal的时间
 
+	inShootState bool // 在射击状态
+
 	kill int32 // 击杀
 }
 
@@ -51,7 +53,7 @@ func (agent *battleUser) UUID() uuid.UUID {
 func (agent *battleUser) LoadAsyncOver() error {
 	log.RunLogger.Printf("battleUser[%v].LoadAsyncOver", agent)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(false)
 	if err != nil {
 		return err
 	}
@@ -68,11 +70,29 @@ func (agent *battleUser) SendProtoExtraDataNormal(proto *ffProto.Proto) bool {
 	return agent.agent.SendProtoExtraDataNormal(proto)
 }
 
+// 检查战斗状态
+func (agent *battleUser) Check(checkAlive bool) (*battleScene, error) {
+	// 检查活着
+	if checkAlive {
+		if agent.health < 1 {
+			return nil, fmt.Errorf("battleUser[%v].Check not alive", agent)
+		}
+	}
+
+	// 检查战场
+	battle, err := instBattleGameWorld.CheckScene(agent)
+	if err != nil {
+		return nil, err
+	}
+
+	return battle, err
+}
+
 // 修改持有的物品, 场景内新增扔掉的物品
 func (agent *battleUser) DropBagItem(itemtemplateid, dropItemData int32, position *ffProto.StVector3) error {
 	log.RunLogger.Printf("battleUser[%v].DropBagItem itemtemplateid[%v] dropItemData[%v]", agent, itemtemplateid, dropItemData)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -89,7 +109,7 @@ func (agent *battleUser) DropBagItem(itemtemplateid, dropItemData int32, positio
 func (agent *battleUser) DropEquip(message *ffProto.MsgBattleDropEquipProp) error {
 	log.RunLogger.Printf("battleUser[%v].DropEquip EquipIndex[%v]", agent, message.EquipIndex)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -109,7 +129,7 @@ func (agent *battleUser) DropEquip(message *ffProto.MsgBattleDropEquipProp) erro
 func (agent *battleUser) PickProp(message *ffProto.MsgBattlePickProp) error {
 	log.RunLogger.Printf("battleUser[%v].PickProp Uniqueid[%v]", agent, message.Itemuniqueid)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -140,7 +160,7 @@ func (agent *battleUser) PickProp(message *ffProto.MsgBattlePickProp) error {
 func (agent *battleUser) SwitchWeapon(message *ffProto.MsgBattleSwitchWeapon) error {
 	log.RunLogger.Printf("battleUser[%v].SwitchWeapon EquipIndex[%v=>%v]", agent, agent.itemManager.activeWeaponIndex, message.EquipIndex)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -159,7 +179,7 @@ func (agent *battleUser) SwitchWeapon(message *ffProto.MsgBattleSwitchWeapon) er
 
 // 移动
 func (agent *battleUser) RoleMove(message *ffProto.MsgBattleRoleMove) error {
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -170,7 +190,7 @@ func (agent *battleUser) RoleMove(message *ffProto.MsgBattleRoleMove) error {
 
 // 视野
 func (agent *battleUser) RoleEyeRotate(message *ffProto.MsgBattleRoleEyeRotate) error {
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -183,7 +203,7 @@ func (agent *battleUser) RoleEyeRotate(message *ffProto.MsgBattleRoleEyeRotate) 
 func (agent *battleUser) RoleAction(message *ffProto.MsgBattleRoleAction) error {
 	log.RunLogger.Printf("battleUser[%v].RoleAction Action[%v]", agent, message.Action)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -196,10 +216,12 @@ func (agent *battleUser) RoleAction(message *ffProto.MsgBattleRoleAction) error 
 func (agent *battleUser) RoleShootState(message *ffProto.MsgBattleRoleShootState) error {
 	log.RunLogger.Printf("battleUser[%v].RoleShootState State[%v]", agent, message.State)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
+
+	agent.inShootState = message.State
 
 	battle.RoleShootState(agent.uniqueid, message)
 	return nil
@@ -209,7 +231,11 @@ func (agent *battleUser) RoleShootState(message *ffProto.MsgBattleRoleShootState
 func (agent *battleUser) RoleShoot(message *ffProto.MsgBattleRoleShoot) error {
 	log.RunLogger.Printf("battleUser[%v].RoleShoot", agent)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	if !agent.inShootState {
+		return fmt.Errorf("battleUser[%v].RoleShoot not in shoot state", agent)
+	}
+
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -222,7 +248,7 @@ func (agent *battleUser) RoleShoot(message *ffProto.MsgBattleRoleShoot) error {
 func (agent *battleUser) RoleShootHit(message *ffProto.MsgBattleRoleShootHit) error {
 	log.RunLogger.Printf("battleUser[%v].RoleShootHit Shootid[%v] Targetuniqueid[%v]", agent, message.Shootid, message.Targetuniqueid)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -238,11 +264,26 @@ func (agent *battleUser) RoleShootHit(message *ffProto.MsgBattleRoleShootHit) er
 	return nil
 }
 
+// 死亡
+func (agent *battleUser) Dead(aliveCount int32, rankCount int32) {
+	agent.inShootState = false
+
+	if agent.status != roleStatusLeave {
+		p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleSettle)
+		m := p.Message().(*ffProto.MsgBattleSettle)
+		m.Rank = aliveCount
+		m.RankCount = rankCount
+		m.Health = 0
+		m.Kill = agent.kill
+		ffProto.SendProtoExtraDataNormal(agent, p, false)
+	}
+}
+
 // 治疗开始
 func (agent *battleUser) HealStart(message *ffProto.MsgBattleRoleHeal) error {
 	log.RunLogger.Printf("battleUser[%v].HealStart Itemtemplateid[%v]", agent, message.Itemtemplateid)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -261,7 +302,7 @@ func (agent *battleUser) HealStart(message *ffProto.MsgBattleRoleHeal) error {
 func (agent *battleUser) HealCancel(message *ffProto.MsgBattleRoleHeal) error {
 	log.RunLogger.Printf("battleUser[%v].HealCancel Itemtemplateid[%v]", agent, message.Itemtemplateid)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -280,7 +321,7 @@ func (agent *battleUser) HealCancel(message *ffProto.MsgBattleRoleHeal) error {
 func (agent *battleUser) HealSettle(message *ffProto.MsgBattleRoleHeal) error {
 	log.RunLogger.Printf("battleUser[%v].HealSettle Itemtemplateid[%v]", agent, message.Itemtemplateid)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(true)
 	if err != nil {
 		return err
 	}
@@ -299,7 +340,7 @@ func (agent *battleUser) HealSettle(message *ffProto.MsgBattleRoleHeal) error {
 func (agent *battleUser) RunAway() error {
 	log.RunLogger.Printf("battleUser[%v].RunAway", agent)
 
-	battle, err := instBattleGameWorld.CheckScene(agent)
+	battle, err := agent.Check(false)
 	if err != nil {
 		return err
 	}
