@@ -272,7 +272,6 @@ func (scene *battleScene) OnShootHit(agent *battleUser, shootid int32, targetuni
 					p := ffProto.ApplyProtoForSend(ffProto.MessageType_BattleRoleDead)
 					m := p.Message().(*ffProto.MsgBattleRoleDead)
 					m.Roleuniqueid = target.uniqueid
-					m.Reason = 0
 					m.Sourceuniqueid = agent.uniqueid
 					ffProto.SendProtoExtraDataNormal(one, p, false)
 				}
