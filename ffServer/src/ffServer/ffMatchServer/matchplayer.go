@@ -76,15 +76,22 @@ func (player *matchPlayer) MatchSuccess(uuidBattle uuid.UUID, uuidTokens []uuid.
 }
 
 func (player *matchPlayer) Init(sourceServer *agentGameServer, uuidPlayerKey, uuidAccount, uuidTeam uuid.UUID) {
-	player.sourceServerID, player.sourceServerUUID = sourceServer.serverID, sourceServer.UUID()
-	player.uuidPlayerKey, player.uuidAccount, player.uuidTeam = uuidPlayerKey, uuidAccount, uuidTeam
-	player.uuidToken = uuid.InvalidUUID
-	player.inMatch = false
+
 }
 
 func (player *matchPlayer) back() {
 }
 
-func newMatchPlayer() *matchPlayer {
-	return &matchPlayer{}
+func newMatchPlayer(sourceServer *agentGameServer, uuidPlayerKey, uuidAccount, uuidTeam uuid.UUID) *matchPlayer {
+	return &matchPlayer{
+		sourceServerID:   sourceServer.serverID,
+		sourceServerUUID: sourceServer.UUID(),
+
+		uuidPlayerKey: uuidPlayerKey,
+		uuidAccount:   uuidAccount,
+		uuidTeam:      uuidTeam,
+
+		uuidToken: uuid.InvalidUUID,
+		inMatch:   false,
+	}
 }

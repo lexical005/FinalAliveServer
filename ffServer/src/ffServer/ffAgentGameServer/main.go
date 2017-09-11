@@ -4,7 +4,6 @@ import (
 	"ffCommon/log/log"
 	"ffCommon/net/tcpclient"
 	"ffCommon/net/tcpserver"
-	"ffCommon/net/tcpsession"
 	"ffCommon/util"
 	"ffProto"
 	"fmt"
@@ -48,7 +47,6 @@ quitLoop:
 			closeTime++
 			log.RunLogger.Printf("closing %v", closeTime)
 			log.RunLogger.Printf("useragent_server[%s]", instAgentUserServer.Status())
-			tcpsession.PrintModule()
 			tcpserver.PrintModule()
 			ffProto.PrintModule()
 
@@ -62,7 +60,6 @@ quitLoop:
 }
 
 func printStatus() {
-	tcpsession.PrintModule()
 	tcpclient.PrintModule()
 	tcpserver.PrintModule()
 	ffProto.PrintModule()

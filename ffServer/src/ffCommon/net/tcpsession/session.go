@@ -76,19 +76,11 @@ func (s *tcpSession) Close() {
 	s.onceClose.Do(func() {
 		// 关闭底层连接
 		s.conn.Close()
-
-		// 归还
-		sessPool.back(s)
 	})
 }
 
 func (s *tcpSession) String() string {
 	return fmt.Sprintf(`%p:%v`, s, s.uuid)
-}
-
-// setConn 设置底层连接对象
-func (s *tcpSession) setConn(conn net.Conn) {
-	s.conn = conn
 }
 
 func (s *tcpSession) mainSend(params ...interface{}) {
@@ -323,13 +315,13 @@ func (s *tcpSession) back() {
 	s.chSendProto = nil
 	s.sendLeft = s.sendLeft[:0]
 	s.conn, s.chNetEventData = nil, nil
-
-	// 归还
-	sessPool.back(s)
 }
 
-func newSession() base.Session {
+func newSession(conn net.Conn, uuid uuid.UUID) base.Session {
 	return &tcpSession{
+		conn: conn,
+		uuid: uuid,
+
 		sendProtoHeader: ffProto.NewProtoHeader(),
 
 		recvHeaderBuf:   ffProto.NewProtoHeaderBuf(),

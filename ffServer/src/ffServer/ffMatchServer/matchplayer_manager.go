@@ -9,7 +9,6 @@ import (
 type matchPlayerManager struct {
 	mutexPlayer sync.RWMutex               // 用户操作锁
 	players     map[uuid.UUID]*matchPlayer // 当前有效用户. key: uuidPlayerKey
-	playerPool  *matchPlayerPool           // matchPlayer 缓存
 }
 
 // 记录player
@@ -27,8 +26,6 @@ func (mgr *matchPlayerManager) delPlayer(player *matchPlayer) {
 	delete(mgr.players, player.uuidPlayerKey)
 
 	player.back()
-
-	mgr.playerPool.back(player)
 }
 
 // 获取player
@@ -48,8 +45,7 @@ func (mgr *matchPlayerManager) AddPlayer(agent *agentGameServer, uuidPlayerKey, 
 
 	player := mgr.GetPlayer(uuidPlayerKey)
 	if player == nil {
-		player = mgr.playerPool.apply()
-		player.Init(agent, uuidPlayerKey, uuidAccount, uuidTeam)
+		player = newMatchPlayer(agent, uuidPlayerKey, uuidAccount, uuidTeam)
 		mgr.addPlayer(player)
 	}
 }
@@ -65,7 +61,6 @@ func (mgr *matchPlayerManager) RemovePlayer(uuidPlayerKey uuid.UUID) {
 
 func (mgr *matchPlayerManager) Start() error {
 	mgr.players = make(map[uuid.UUID]*matchPlayer, appConfig.Match.InitMatchCount/2)
-	mgr.playerPool = newMatchPlayerPool("matchPlayerManager", appConfig.Match.InitMatchCount)
 
 	return nil
 }

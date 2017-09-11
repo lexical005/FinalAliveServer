@@ -152,24 +152,6 @@ func (agent *agentSession) onProto(data base.NetEventData) {
 	}
 }
 
-// init 初始化
-func (agent *agentSession) init(sess base.Session, net inet, chAgentClosed chan *agentSession, responseKeepAlive bool) {
-	agent.name = fmt.Sprintf("agentSession[%v]", sess.UUID())
-	agent.uuid = sess.UUID()
-	agent.responseKeepAlive = responseKeepAlive
-
-	agent.sendExtraDataType, agent.chAgentClosed = net.SendExtraDataType(), chAgentClosed
-
-	agent.chSendProto = make(chan *ffProto.Proto, net.SessionSendProtoCache())
-	agent.chNetEventData = make(chan base.NetEventData, net.SessionNetEventDataCache())
-
-	log.RunLogger.Printf("%v.init sendExtraDataType[%v]", agent.name, agent.sendExtraDataType)
-
-	agent.chClose = make(chan struct{}, 1)
-
-	agent.status.Reset()
-}
-
 // Start 启动, 收发协议
 func (agent *agentSession) Start(sess base.Session, net inet, handler INetSessionHandler) {
 	agent.handler = handler
@@ -288,6 +270,22 @@ func (agent *agentSession) keepAlive() {
 	agent.SendProtoExtraDataUUID(agent.UUID().Value(), proto)
 }
 
-func newAgentSession() *agentSession {
-	return &agentSession{}
+func newAgentSession(sess base.Session, net inet, chAgentClosed chan *agentSession, responseKeepAlive bool) *agentSession {
+	agent := &agentSession{
+		name:              fmt.Sprintf("agentSession[%v]", sess.UUID()),
+		uuid:              sess.UUID(),
+		responseKeepAlive: responseKeepAlive,
+
+		sendExtraDataType: net.SendExtraDataType(),
+		chAgentClosed:     chAgentClosed,
+
+		chSendProto:    make(chan *ffProto.Proto, net.SessionSendProtoCache()),
+		chNetEventData: make(chan base.NetEventData, net.SessionNetEventDataCache()),
+
+		chClose: make(chan struct{}, 1),
+	}
+
+	log.RunLogger.Printf("%v.init sendExtraDataType[%v]", agent.name, agent.sendExtraDataType)
+
+	return agent
 }

@@ -18,7 +18,7 @@ type sessionNetEventData struct {
 
 // Back 回收
 func (s *sessionNetEventData) Back() {
-	log.RunLogger.Printf("sessionNetEventData.Back: %v", s)
+	log.RunLogger.Printf("sessionNetEventData[%v].Back", s)
 
 	if s.eventType == base.NetEventOff { // 回收tcpsession
 		s.session.back()
@@ -26,9 +26,6 @@ func (s *sessionNetEventData) Back() {
 
 	s.eventType = base.NetEventInvalid
 	s.proto, s.session = nil, nil
-
-	// 回收自身
-	eventDataPool.back(s)
 }
 
 // Session Session
@@ -52,7 +49,7 @@ func (s *sessionNetEventData) Proto() *ffProto.Proto {
 }
 
 func (s *sessionNetEventData) String() string {
-	return fmt.Sprintf(`%p eventType[%v] uuidSession[%v]`, s, s.eventType, s.session.uuid)
+	return fmt.Sprintf(`%p:%v:%v`, s, s.session.uuid, s.eventType)
 }
 
 func newSessionNetEvent() *sessionNetEventData {
@@ -60,19 +57,30 @@ func newSessionNetEvent() *sessionNetEventData {
 }
 
 func newSessionNetEventOn(session *tcpSession) base.NetEventData {
-	data := eventDataPool.apply()
-	data.session, data.eventType = session, base.NetEventOn
+	data := &sessionNetEventData{
+		session:   session,
+		eventType: base.NetEventOn,
+	}
+	log.RunLogger.Printf("sessionNetEventData[%v].New", data)
 	return data
 }
 
 func newSessionNetEventOff(session *tcpSession, manualClose bool) base.NetEventData {
-	data := eventDataPool.apply()
-	data.session, data.eventType, data.manualClose = session, base.NetEventOff, manualClose
+	data := &sessionNetEventData{
+		session:     session,
+		eventType:   base.NetEventOff,
+		manualClose: manualClose,
+	}
+	log.RunLogger.Printf("sessionNetEventData[%v].New", data)
 	return data
 }
 
 func newSessionNetEventProto(session *tcpSession, proto *ffProto.Proto) base.NetEventData {
-	data := eventDataPool.apply()
-	data.session, data.eventType, data.proto = session, base.NetEventProto, proto
+	data := &sessionNetEventData{
+		session:   session,
+		eventType: base.NetEventProto,
+		proto:     proto,
+	}
+	log.RunLogger.Printf("sessionNetEventData[%v].New", data)
 	return data
 }

@@ -81,7 +81,6 @@ func NewServer(
 
 		chAgentClosed: make(chan *agentSession, 2),
 		mapAgent:      make(map[uuid.UUID]*agentSession, config.InitOnlineCount),
-		agentPool:     newAgentSessionPool(name, config.InitOnlineCount),
 
 		countApplicationQuit: countApplicationQuit,
 		chApplicationQuit:    chApplicationQuit,
@@ -118,7 +117,6 @@ func NewClient(
 
 		chAgentClosed: make(chan *agentSession, 2),
 		mapAgent:      make(map[uuid.UUID]*agentSession, 1),
-		agentPool:     newAgentSessionPool(name, 1),
 
 		countApplicationQuit: countApplicationQuit,
 		chApplicationQuit:    chApplicationQuit,

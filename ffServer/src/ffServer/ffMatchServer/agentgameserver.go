@@ -73,6 +73,9 @@ func (agent *agentGameServer) Close() {
 	agent.netsession.Close()
 }
 
-func newAgentGameServer() *agentGameServer {
-	return &agentGameServer{}
+func newAgentGameServer(netsession netmanager.INetSession) *agentGameServer {
+	return &agentGameServer{
+		name:       fmt.Sprintf("agentGameServer[%v]", netsession.UUID()),
+		netsession: netsession,
+	}
 }

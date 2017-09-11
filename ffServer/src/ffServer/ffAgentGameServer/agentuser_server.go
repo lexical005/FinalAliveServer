@@ -15,7 +15,6 @@ type agentUserServer struct {
 
 	mutexAgent sync.Mutex               // mutexAgent 锁
 	mapAgent   map[uuid.UUID]*agentUser // mapAgent 所有连接
-	agentPool  *agentUserPool           // agentPool 所有连接缓存
 }
 
 // Create 创建
@@ -26,10 +25,7 @@ func (server *agentUserServer) Create(netsession netmanager.INetSession) netmana
 	defer server.mutexAgent.Unlock()
 
 	// 申请
-	agent := server.agentPool.apply()
-
-	// 初始化
-	agent.Init(netsession)
+	agent := newAgentUser(netsession)
 
 	// 记录
 	server.mapAgent[agent.UUID()] = agent
@@ -51,9 +47,6 @@ func (server *agentUserServer) Back(handler netmanager.INetSessionHandler) {
 
 	// 回收清理
 	agent.Back()
-
-	// 缓存
-	server.agentPool.back(agent)
 }
 
 // Start 开始建立服务
@@ -68,7 +61,6 @@ func (server *agentUserServer) Start() error {
 
 	server.netManager = manager
 	server.mapAgent = make(map[uuid.UUID]*agentUser, appConfig.ServeUser.InitOnlineCount)
-	server.agentPool = newAgentUserPool("agentUserServer", appConfig.ServeUser.InitOnlineCount)
 
 	atomic.AddInt32(&waitApplicationQuit, 1)
 
@@ -84,8 +76,8 @@ func (server *agentUserServer) End() {
 
 // Status 当前状态描述
 func (server *agentUserServer) Status() string {
-	return fmt.Sprintf("mapAgent[%v] agentPool[%v] netManager[%v]",
-		len(server.mapAgent), server.agentPool, server.netManager.Status())
+	return fmt.Sprintf("mapAgent[%v] netManager[%v]",
+		len(server.mapAgent), server.netManager.Status())
 }
 
 // OnCustomLoginResult Login检查结果

@@ -31,8 +31,6 @@ type Manager struct {
 	chAgentClosed chan *agentSession
 	// mapAgent 所有连接
 	mapAgent map[uuid.UUID]*agentSession
-	// agentPool 所有连接缓存
-	agentPool *agentSessionPool
 
 	// countApplicationQuit 退出时计数
 	countApplicationQuit *int32
@@ -62,8 +60,7 @@ func (mgr *Manager) onNewSession(sess base.Session) {
 	log.RunLogger.Printf("%v.onNewSession sess[%v]", mgr.name, sess)
 
 	//
-	agent := mgr.agentPool.apply()
-	agent.init(sess, mgr.net, mgr.chAgentClosed, mgr.sendKeepAliveInterval == 0)
+	agent := newAgentSession(sess, mgr.net, mgr.chAgentClosed, mgr.sendKeepAliveInterval == 0)
 
 	//
 	handler := mgr.handlerManager.Create(agent)
@@ -84,9 +81,6 @@ func (mgr *Manager) onAgentClosed(agent *agentSession) {
 
 	// 回收清理
 	agent.Back()
-
-	// 缓存
-	mgr.agentPool.back(agent)
 
 	//
 	mgr.net.onAgentClosed()

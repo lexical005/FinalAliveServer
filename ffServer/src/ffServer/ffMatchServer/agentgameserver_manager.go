@@ -15,7 +15,6 @@ type agentGameServerManager struct {
 
 	mutexAgent sync.Mutex                     // 同步锁
 	mapAgent   map[uuid.UUID]*agentGameServer // mapAgent 所有连接
-	agentPool  *agentGameServerPool           // agentPool 所有连接缓存
 }
 
 // Create 创建
@@ -23,10 +22,7 @@ func (mgr *agentGameServerManager) Create(netsession netmanager.INetSession) net
 	log.RunLogger.Printf("agentUserServer.Create netsession[%v]", netsession)
 
 	// 申请
-	agent := mgr.agentPool.apply()
-
-	// 初始化
-	agent.Init(netsession)
+	agent := newAgentGameServer(netsession)
 
 	// 记录
 	mgr.mapAgent[agent.UUID()] = agent
@@ -45,9 +41,6 @@ func (mgr *agentGameServerManager) Back(handler netmanager.INetSessionHandler) {
 
 	// 回收清理
 	agent.Back()
-
-	// 缓存
-	mgr.agentPool.back(agent)
 }
 
 // Start 开始建立服务
@@ -62,7 +55,6 @@ func (mgr *agentGameServerManager) Start() error {
 
 	mgr.netManager = manager
 	mgr.mapAgent = make(map[uuid.UUID]*agentGameServer, appConfig.ServeAgentGameServer.InitOnlineCount)
-	mgr.agentPool = newAgentGameServerPool("agentUserServer", appConfig.ServeAgentGameServer.InitOnlineCount)
 
 	atomic.AddInt32(&waitApplicationQuit, 1)
 
@@ -126,6 +118,6 @@ func (mgr *agentGameServerManager) SendServerProto(sourceServerUUID uuid.UUID, s
 
 // Status 当前服务状态描述
 func (mgr *agentGameServerManager) Status() string {
-	return fmt.Sprintf("mapAgent[%v] agentPool[%v] netManager[%v]",
-		len(mgr.mapAgent), mgr.agentPool, mgr.netManager.Status())
+	return fmt.Sprintf("mapAgent[%v] netManager[%v]",
+		len(mgr.mapAgent), mgr.netManager.Status())
 }

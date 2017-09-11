@@ -79,12 +79,6 @@ func (agent *agentUser) UUID() uuid.UUID {
 
 // Init 初始化
 func (agent *agentUser) Init(netsession netmanager.INetSession) {
-	agent.name = fmt.Sprintf("agentUser[%v]", netsession.UUID())
-	agent.netsession = netsession
-
-	// 用户数据
-	agent.uuidPlatformLogin = ""
-	agent.uuidAccount = uuid.InvalidUUID.Value()
 }
 
 // Back 回收
@@ -97,6 +91,13 @@ func (agent *agentUser) Close() {
 	agent.netsession.Close()
 }
 
-func newAgentUser() *agentUser {
-	return &agentUser{}
+func newAgentUser(netsession netmanager.INetSession) *agentUser {
+	return &agentUser{
+		name:       fmt.Sprintf("agentUser[%v]", netsession.UUID()),
+		netsession: netsession,
+
+		// 用户数据
+		uuidPlatformLogin: "",
+		uuidAccount:       uuid.InvalidUUID.Value(),
+	}
 }
