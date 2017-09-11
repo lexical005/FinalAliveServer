@@ -5,6 +5,7 @@ import (
 	"ffCommon/uuid"
 	"ffProto"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -365,6 +366,7 @@ func (agent *battleUser) Leave() error {
 }
 
 func newBattleUser(agent *agentUser, uuidBattle uuid.UUID, member *ffProto.StBattleMember) *battleUser {
+	member.Name = strconv.FormatUint(agent.uuidAccount, 10)
 	return &battleUser{
 		agent:  agent,
 		status: roleStatusLoad,
